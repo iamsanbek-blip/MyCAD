@@ -43,6 +43,12 @@ if (process.platform === 'linux' && process.getuid?.() === 0) electronArgs.unshi
     assert.equal(appVersion, require('../package.json').version);
     passed.push('real app:// renderer and isolated preload started');
 
+    // Windows may constrain the initial window to the CI display's small work
+    // area. Set the content size explicitly before using drawing coordinates.
+    const mainWindow = await app.browserWindow(page);
+    await mainWindow.evaluate(window => window.setContentSize(1600, 950));
+    await page.waitForFunction(() => window.innerWidth === 1600 && window.innerHeight === 950);
+
     await page.locator('#modeDrawBtn').click();
     await page.locator('#toolRectBtn').click();
     await page.locator('#cv').click({position: {x:200,y:400}});
@@ -116,6 +122,14 @@ if (process.platform === 'linux' && process.getuid?.() === 0) electronArgs.unshi
       },null,2)+'\n');
     }
     console.log(JSON.stringify({status:'passed',platform:process.platform,checks:passed,pageErrors:errors},null,2));
+  } catch (error) {
+    if (artifactDir && page && !page.isClosed()) {
+      fs.mkdirSync(artifactDir, {recursive:true});
+      await page.screenshot({path:path.join(artifactDir,'failure.png')}).catch(()=>{});
+      const viewport = await page.evaluate(() => ({width:innerWidth,height:innerHeight})).catch(()=>null);
+      fs.writeFileSync(path.join(artifactDir,'failure.json'),JSON.stringify({error:String(error),viewport,passed,pageErrors:errors},null,2));
+    }
+    throw error;
   } finally {
     if (page && !page.isClosed()) await page.evaluate(() => {projectDirty=false;}).catch(()=>{});
     await app.close();
