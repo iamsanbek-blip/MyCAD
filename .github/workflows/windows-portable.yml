@@ -47,7 +47,7 @@ jobs:
         env:
           RUGBY_TEST_ARTIFACTS: verification/source
       - name: Build unsigned portable preview
-        run: npx electron-builder --win portable --x64 --publish never -c.forceCodeSigning=false -c.win.signAndEditExecutable=true -c.win.signDlls=false
+        run: node scripts/build-preview.cjs
       - name: Windows packaged GUI test
         run: npm run test:electron
         env:

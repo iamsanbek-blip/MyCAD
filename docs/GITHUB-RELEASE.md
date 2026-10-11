@@ -33,8 +33,7 @@ npm ci
 npm run check
 npm test
 npm run test:electron
-$env:CSC_IDENTITY_AUTO_DISCOVERY = 'false'
-npx electron-builder --win portable --x64 --publish never -c.forceCodeSigning=false -c.win.signAndEditExecutable=true -c.win.signDlls=false
+node scripts/build-preview.cjs
 ```
 
 Natija `dist/Rugby-Portable.exe`. Qurilgan faylni tarqatishdan oldin workflowdagi
