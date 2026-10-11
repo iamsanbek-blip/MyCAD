@@ -1,0 +1,130 @@
+{
+  "version": "1.1.0-preview.2",
+  "checkedOn": "2026-10-03",
+  "archiveCrc": "passed",
+  "payloadFilesMatched": 20,
+  "sourceFilesMatched": 60,
+  "appAsarSha256": "c195e3291dd6aa8059e13fb54f154bc38d7e379d280594234926dc205a5af160",
+  "payload": [
+    {
+      "file": "LICENSE.electron.txt",
+      "bytes": 1096,
+      "sha256": "5154e165bd6c2cc0cfbcd8916498c7abab0497923bafcd5cb07673fe8480087d",
+      "verifiedBy": "extracted bytes compared with build"
+    },
+    {
+      "file": "LICENSES.chromium.html",
+      "bytes": 9451912,
+      "sha256": "dc2878d9bf6ef5fca45737536272a7a1877e0c6f89cb9578cb0f956781102986",
+      "verifiedBy": "extracted bytes compared with build"
+    },
+    {
+      "file": "Rugby.exe",
+      "bytes": 180875264,
+      "sha256": "f2ebaa040f9fabca0ae9a4898083a5bf79b0280df7c0f483b6d72f3ae85a371f",
+      "verifiedBy": "full archive-member stream compared with build"
+    },
+    {
+      "file": "chrome_100_percent.pak",
+      "bytes": 151856,
+      "sha256": "7dd5485def22a53c0635efdf8ae900f147ec8c8a22b9ed71c24668075dd605d3",
+      "verifiedBy": "extracted bytes compared with build"
+    },
+    {
+      "file": "chrome_200_percent.pak",
+      "bytes": 228784,
+      "sha256": "2408969599d3953aae2fb36008e4d0711e30d0bc86fb4d03f8b0577d43c649fa",
+      "verifiedBy": "extracted bytes compared with build"
+    },
+    {
+      "file": "d3dcompiler_47.dll",
+      "bytes": 4916728,
+      "sha256": "af7b99be1b8770c0e4d18e43b04e81d11bdeb667fa6b07ade7a88f4c5676bf9a",
+      "verifiedBy": "extracted bytes compared with build"
+    },
+    {
+      "file": "ffmpeg.dll",
+      "bytes": 2682880,
+      "sha256": "113ccc8e701157d0d59283baa5dc1fd3b0eae2571fd825084d7a4d58697a5ec2",
+      "verifiedBy": "extracted bytes compared with build"
+    },
+    {
+      "file": "icudtl.dat",
+      "bytes": 10468208,
+      "sha256": "9ae98c06cbb0ea43c5cd6b5725310c008c65e46072421a1118cb88e1de9a8b92",
+      "verifiedBy": "extracted bytes compared with build"
+    },
+    {
+      "file": "libEGL.dll",
+      "bytes": 481280,
+      "sha256": "01b8a8c2875ecb9979de339500ce0e0b7ecc3c5387053ce27bea51e6a09e2d72",
+      "verifiedBy": "extracted bytes compared with build"
+    },
+    {
+      "file": "libGLESv2.dll",
+      "bytes": 8058368,
+      "sha256": "fb6ea924fbb9417e4695ce414cdcbc299f13451dbedd2d9adb55479bf1cbf57f",
+      "verifiedBy": "extracted bytes compared with build"
+    },
+    {
+      "file": "locales/en-US.pak",
+      "bytes": 464976,
+      "sha256": "41123d72bd8e289e85bd35227aabb4cc61fe1de02b5cd7a7834e5ec200bc2078",
+      "verifiedBy": "extracted bytes compared with build"
+    },
+    {
+      "file": "locales/ru.pak",
+      "bytes": 946319,
+      "sha256": "4babe5f20caafca33867ee263aa9dd55ed271704a062e4372fdd133eb359a558",
+      "verifiedBy": "extracted bytes compared with build"
+    },
+    {
+      "file": "resources/app.asar",
+      "bytes": 994415,
+      "sha256": "c195e3291dd6aa8059e13fb54f154bc38d7e379d280594234926dc205a5af160",
+      "verifiedBy": "extracted bytes compared with build"
+    },
+    {
+      "file": "resources/elevate.exe",
+      "bytes": 107520,
+      "sha256": "9b1fbf0c11c520ae714af8aa9af12cfd48503eedecd7398d8992ee94d1b4dc37",
+      "verifiedBy": "extracted bytes compared with build"
+    },
+    {
+      "file": "resources.pak",
+      "bytes": 5547739,
+      "sha256": "a5908171bfbb738ac015e7c9903c838d93359ed12c3b7d86545514dc1f0e9d62",
+      "verifiedBy": "extracted bytes compared with build"
+    },
+    {
+      "file": "snapshot_blob.bin",
+      "bytes": 310242,
+      "sha256": "22a46de643045805a3e588f9a18ebaa377f9fba3dee46b2d60f3ae300a09cc4e",
+      "verifiedBy": "extracted bytes compared with build"
+    },
+    {
+      "file": "v8_context_snapshot.bin",
+      "bytes": 662053,
+      "sha256": "a8bd22478c4f85afa836c89d3a7f52c606b17872fbbefce268b499bedede10ae",
+      "verifiedBy": "extracted bytes compared with build"
+    },
+    {
+      "file": "vk_swiftshader.dll",
+      "bytes": 5475328,
+      "sha256": "7005598f9bb8559101458ddaac77e3a23f9876c0a1aaf7136a11f2d1d5173448",
+      "verifiedBy": "extracted bytes compared with build"
+    },
+    {
+      "file": "vk_swiftshader_icd.json",
+      "bytes": 106,
+      "sha256": "32d83ff113fef532a9f97e0d2831f8656628ab1c99e9060f0332b1532839afd9",
+      "verifiedBy": "extracted bytes compared with build"
+    },
+    {
+      "file": "vulkan-1.dll",
+      "bytes": 961024,
+      "sha256": "45adc3dac19684ed3af159ae3914fbbf2426a879e5a4c1e678e3c9b451fab01a",
+      "verifiedBy": "extracted bytes compared with build"
+    }
+  ]
+}

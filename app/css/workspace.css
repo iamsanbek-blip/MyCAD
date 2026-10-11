@@ -1,0 +1,29 @@
+/* Page navigation and preferences stay independent of the drawing styles. */
+#canvasWrap{min-width:0;margin-bottom:44px;}
+#drawToolbar .dtGroup{max-width:100%;flex-wrap:wrap;}
+#sidebar{flex:0 0 340px;}
+#pageBar{position:fixed;z-index:20;left:0;right:340px;bottom:0;height:44px;display:flex;align-items:center;gap:5px;padding:5px 8px;background:var(--panel);border-top:1px solid var(--line);}
+#pageTabs{display:flex;gap:3px;flex:1;min-width:50px;overflow:auto;scrollbar-width:thin;}
+#pageBar button{width:auto;flex-shrink:0;padding:6px 9px;color:var(--text);background:var(--panel-2);border:1px solid var(--line);white-space:nowrap;}
+#pageBar .pageTab{max-width:180px;overflow:hidden;text-overflow:ellipsis;}
+#pageBar .pageTab.active{background:var(--cyan);color:#062031;border-color:var(--cyan);}
+#pageBar #pageAddBtn{font-size:19px;line-height:16px;color:var(--cyan);}
+#pageCount{font-size:10px;color:var(--text-dim);white-space:nowrap;}
+button:disabled{opacity:.35;cursor:default;}
+button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;}
+dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:22px;box-shadow:0 24px 80px #0009;max-width:calc(100vw - 48px);}
+dialog::backdrop{background:#0009;}
+dialog h2{font-size:20px;margin:0 0 10px;}
+dialog p{color:var(--text-dim);font-size:13px;line-height:1.55;}
+#shortcutDialog{width:720px;}
+#shortcutSearch{width:100%;margin:8px 0 12px;}
+dialog input{background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:5px;padding:9px;}
+#shortcutRows{height: min(50vh, 450px);overflow-y:auto;}
+.shortcutRow{display:grid;grid-template-columns:minmax(150px,1fr) 180px 90px;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);}
+.shortcutRow label{font-size:13px;margin:0;color:var(--text);}
+.shortcutRow input{width:100%;cursor:pointer;font:12px Consolas,monospace;text-align:center;}
+.shortcutRow input:focus{border-color:var(--cyan);outline:1px solid var(--cyan);}
+#shortcutError{color:var(--danger);min-height:38px;margin:10px 0;}
+.dialogActions{display:flex;gap:8px;justify-content:flex-end;}
+.dialogActions button{width:auto;}.dialogActions span{flex:1;}
+#unsavedDialog{width:560px;}

@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "platform": "linux",
+  "electron": "31.7.7",
+  "appVersion": "1.1.0-preview.2",
+  "testedApp": "packaged app.asar",
+  "appArchiveSha256": "c195e3291dd6aa8059e13fb54f154bc38d7e379d280594234926dc205a5af160",
+  "checks": [
+    "real app:// renderer and isolated preload started",
+    "mouse drawing and keyboard page navigation preserve independent geometry",
+    "hotkey editor receives real keyboard events and executes remapped command",
+    "save, new and reopen round-trip through actual Electron IPC and disk",
+    "toolbar fits the canvas at 1600x950 and 1100x700"
+  ],
+  "pageErrors": [],
+  "nativeDialogs": "choices mocked",
+  "smartAppControl": "not tested"
+}

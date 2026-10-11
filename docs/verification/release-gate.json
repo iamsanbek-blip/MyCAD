@@ -1,0 +1,9 @@
+{
+  "checkedOn": "2026-10-03",
+  "platform": "linux",
+  "command": "node scripts/release-portable.cjs",
+  "actualExitCode": 1,
+  "expectedBehavior": "Refuse a production portable release on a non-Windows host",
+  "message": "Release blocked: run the signed-release workflow on Windows for native GUI and Authenticode verification.",
+  "windowsSigningWorkflow": "not executed"
+}

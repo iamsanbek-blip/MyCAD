@@ -1,0 +1,146 @@
+/* Dogbone Editor — barcha uslublar */
+
+  :root{
+    --bg: #0b1220; --panel:#111b2e; --panel-2:#16233b; --line:#2a3b58;
+    --cyan:#5ee1ff; --amber:#ffb454; --purple:#c792ea; --green:#6ee7a8; --grey:#6b7a94;
+    --blue:#5ea1ff; --danger:#ff6b6b;
+    --text:#dce6f5; --text-dim:#93a3bd;
+  }
+  *{box-sizing:border-box;}
+
+  /* TUZATILDI: sichqonchani chizmadan panelga sudrab o'tganda brauzer
+     interfeys matnini "tanlab" ko'k rangga bo'yardi — CAD dasturida bu
+     keraksiz va chalkash ko'rinadi. Endi matn tanlanmaydi.
+     Faqat KIRITISH maydonlarida tanlash qoladi (u yerda kerak). */
+  body{ -webkit-user-select:none; user-select:none; }
+  input, textarea, select{ -webkit-user-select:text; user-select:text; }
+  body{margin:0; font-family:'Segoe UI',Roboto,sans-serif; background:var(--bg); color:var(--text); display:flex; height:100vh; overflow:hidden;}
+  #canvasWrap{flex:1; position:relative; background:var(--bg);}
+  canvas{display:block; width:100%; height:100%; cursor:crosshair;}
+  #hint{position:absolute; left:12px; bottom:10px; font-size:11px; color:var(--text-dim); background:rgba(11,18,32,.7); padding:6px 10px; border-radius:5px; line-height:1.6;}
+  #drawToolbar{position:absolute; top:12px; left:12px; right:12px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; background:rgba(17,27,46,.92); border:1px solid var(--line); border-radius:8px; padding:6px 8px; max-width:calc(100% - 24px);}
+  .dtGroup{display:flex; gap:4px; background:var(--panel-2); border-radius:6px; padding:2px;}
+  .dtBtn{width:auto; background:transparent; color:var(--text-dim); border:none; border-radius:5px; padding:6px 10px; font-size:12px; font-weight:600; cursor:pointer;}
+  .dtBtn.active{background:var(--cyan); color:#062031;}
+  .dtBtn.ok{color:var(--green);} .dtBtn.ok.active{background:var(--green); color:#062031;}
+  .dtBtn.cancel{color:var(--danger);}
+  #typedLenBadge{font-size:12px; color:var(--amber); font-weight:700; background:var(--panel-2); padding:6px 10px; border-radius:6px;}
+  #zoomBadge{position:absolute; right:12px; bottom:10px; font-size:11px; color:var(--text-dim); background:rgba(11,18,32,.7); padding:6px 10px; border-radius:5px;}
+  #bulkBar{position:absolute; top:12px; left:50%; transform:translateX(-50%); background:var(--panel); border:1px solid var(--cyan); border-radius:8px; padding:8px 10px; display:none; gap:6px; align-items:center; font-size:12px;}
+  #bulkBar select, #bulkBar input{background:var(--panel-2); color:var(--text); border:1px solid var(--line); border-radius:4px; padding:4px 6px; font-size:12px;}
+  #bulkBar button{background:var(--cyan); color:#062031; border:none; border-radius:4px; padding:5px 10px; font-size:12px; font-weight:600; cursor:pointer;}
+  #sidebar{width:340px; background:var(--panel); border-left:1px solid var(--line); display:flex; flex-direction:column; overflow:hidden;}
+  .section{padding:12px 16px; border-bottom:1px solid var(--line);}
+  h1{font-size:14px; margin:0 0 2px; letter-spacing:.5px; color:var(--cyan); font-weight:600;}
+  .sub{font-size:11px; color:var(--text-dim); margin-bottom:8px;}
+  label{font-size:11px; color:var(--text-dim); display:block; margin-bottom:4px;}
+  input[type=file]{font-size:11px; color:var(--text-dim); width:100%;}
+  input[type=number]{width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--text); padding:6px 8px; border-radius:4px; font-size:13px;}
+  select{width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--text); padding:6px 8px; border-radius:4px; font-size:12px;}
+  button{background:var(--cyan); color:#062031; border:none; border-radius:4px; padding:8px 10px; font-size:12px; font-weight:600; cursor:pointer; width:100%;}
+  button.secondary{background:var(--panel-2); color:var(--text); border:1px solid var(--line);}
+  .row{display:flex; gap:8px; margin-bottom:8px;}
+  .row > *{flex:1;}
+  #cornerList{flex:1; overflow-y:auto; padding:8px 10px;}
+  .corner-item{background:var(--panel-2); border:1px solid var(--line); border-radius:6px; padding:8px 10px; margin-bottom:6px; cursor:pointer;}
+  .corner-item.sel{border-color:var(--cyan); box-shadow:0 0 0 1px var(--cyan) inset;}
+  .corner-item .head{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .corner-item .tag{font-size:10px; padding:2px 6px; border-radius:3px; font-weight:700;}
+  .tag.ignore{background:#2a3b58; color:var(--text-dim);}
+  .tag.dogbone{background:#4a1f1f; color:var(--danger);}
+  .tag.tbone{background:#1a2f4a; color:var(--blue);}
+  .tag.fillet{background:#123a24; color:var(--green);}
+  .tag.chamfer{background:#4a2f10; color:var(--amber);}
+  .corner-item .idx{font-size:11px; color:var(--text-dim);}
+  .corner-item .ctrls{display:flex; gap:6px; align-items:center;}
+  .corner-item select{font-size:11px; padding:4px;}
+  .corner-item input[type=number]{padding:4px; font-size:11px;}
+  .flipBtn{width:auto; padding:4px 7px; font-size:10px; background:var(--panel); border:1px solid var(--line); color:var(--text-dim);}
+  .legend{display:flex; flex-wrap:wrap; gap:8px; font-size:10px; color:var(--text-dim); margin-top:6px;}
+  .legend span{display:flex; align-items:center; gap:4px;}
+  .dot{width:9px; height:9px; border-radius:50%; display:inline-block;}
+  #stats{font-size:11px; color:var(--text-dim); margin-top:6px;}
+  .footer{padding:12px 16px; border-top:1px solid var(--line); display:flex; gap:8px;}
+  ::-webkit-scrollbar{width:6px;} ::-webkit-scrollbar-thumb{background:var(--line); border-radius:3px;}
+#drawnList::-webkit-scrollbar{ width:10px; }
+#drawnList::-webkit-scrollbar-track{ background:#0b1220; border-radius:5px; }
+#drawnList::-webkit-scrollbar-thumb{ background:#3a4a63; border-radius:5px; }
+#drawnList::-webkit-scrollbar-thumb:hover{ background:#5ee1ff; }
+#drawnList{ scrollbar-width:thin; scrollbar-color:#3a4a63 #0b1220; }
+#sidebar{ overflow-y:auto; }
+
+/* ---- Fayl paneli: tugma + hotkey nishoni ---- */
+.fileBtn{position:relative; display:flex; align-items:center; justify-content:center;
+         gap:6px; padding:7px 8px; font-size:12px;}
+.fileBtn .kb{font-size:9px; font-weight:600; letter-spacing:.3px; opacity:.55;
+             border:1px solid currentColor; border-radius:3px; padding:1px 4px;
+             white-space:nowrap;}
+.fileName{font-size:11px; color:var(--text); background:rgba(255,255,255,.05);
+          border:1px solid var(--line); border-radius:4px; padding:5px 8px;
+          overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+
+
+/* ---- Brend sarlavhasi (chap yuqori burchak) ---- */
+.brand{
+  display:flex; align-items:center; gap:11px;
+  margin:0 0 12px; padding-bottom:12px;
+  border-bottom:1px solid var(--line);
+}
+.brandMark{
+  width:38px; height:38px; flex:0 0 38px; display:block;
+  border-radius:9px;
+  filter:drop-shadow(0 3px 10px rgba(93,224,254,.28));
+  -webkit-user-select:none; user-select:none;
+}
+.brandText{ min-width:0; }
+.brand h1{
+  font-size:17px; line-height:1.05; margin:0 0 2px;
+  letter-spacing:.14em; font-weight:800; color:#eaf6ff;
+}
+.brand .sub{
+  margin:0; font-size:9.5px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--text-dim); font-weight:600;
+}
+
+
+/* ---- Matn kiritish oynasi (Electron'da prompt() yo'q) ---- */
+.askOverlay{position:fixed; inset:0; background:rgba(4,8,16,.62);
+            display:flex; align-items:center; justify-content:center; z-index:9999;}
+.askBox{background:#111b2e; border:1px solid var(--line); border-radius:10px;
+        padding:16px 18px; width:min(460px, 90vw);
+        box-shadow:0 24px 60px rgba(0,0,0,.55);}
+.askTitle{font-size:13px; font-weight:700; color:var(--cyan);
+          margin-bottom:10px; letter-spacing:.03em;}
+.askBox textarea{width:100%; background:#0b1220; color:var(--text);
+        border:1px solid var(--line); border-radius:6px; padding:9px 10px;
+        font-size:13px; font-family:inherit; resize:vertical; outline:none;}
+.askBox textarea:focus{border-color:var(--cyan);}
+.askRow{display:flex; gap:8px; justify-content:flex-end; margin-top:12px;}
+.askRow button{width:auto; padding:7px 14px; font-size:12px;}
+
+/* ---- Yorug' mavzu tuzatishlari ----
+   Kanvas oq bo'lganda ba'zi elementlar qattiq kodlangan to'q rangda qolib
+   ketadi. Bu blok ularni yorug' fonga moslaydi. */
+body.lightTheme #hint{ background:rgba(255,255,255,.86); color:#3b4757;
+                       border:1px solid var(--line); }
+body.lightTheme #zoomBadge{ background:rgba(255,255,255,.86); color:#3b4757;
+                            border:1px solid var(--line); }
+body.lightTheme #drawToolbar{ background:rgba(255,255,255,.94); }
+body.lightTheme .dtBtn.active{ color:#ffffff; }
+body.lightTheme #typedLenBadge{ color:#a86200; }
+body.lightTheme .askBox{ background:var(--panel); }
+body.lightTheme .askBox textarea{ background:#ffffff; color:#1b2432; }
+body.lightTheme .fileName{ background:rgba(0,0,0,.04); }
+body.lightTheme #bulkBar button{ color:#ffffff; }
+
+/* ---- Maydon fokusi DOIM ko'rinsin ----
+   Ilgari maxsus uslub yo'q edi va foydalanuvchi maydon faol yoki yo'qligini
+   faqat brauzerning standart halqasidan bilardi. Endi aniq belgi bor:
+   fokus bo'lsa — cyan chegara va yumshoq nur. */
+input:focus, select:focus, textarea:focus{
+  outline:none;
+  border-color:var(--cyan) !important;
+  box-shadow:0 0 0 2px rgba(93,224,254,.28);
+}
+input:disabled, select:disabled{ opacity:.45; cursor:not-allowed; }
+input[readonly]{ opacity:.7; }

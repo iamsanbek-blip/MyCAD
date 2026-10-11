@@ -1,0 +1,34 @@
+
+7-Zip (a) [64] 16.02 : Copyright (c) 1999-2016 Igor Pavlov : 2016-05-21
+p7zip Version 16.02 (locale=C.UTF-8,Utf16=on,HugeFiles=on,64 bits,9 CPUs INTEL(R) XEON(R) PLATINUM 8573C (C06F2),ASM,AES-NI)
+
+Scanning the drive for archives:
+1 file, 65529675 bytes (63 MiB)
+
+Testing archive: dist/Rugby-Unsigned-Dev.exe
+
+WARNINGS:
+There are data after the end of archive
+
+--
+Path = dist/Rugby-Unsigned-Dev.exe
+Type = 7z
+WARNINGS:
+There are data after the end of archive
+Offset = 112440
+Physical Size = 65129237
+Tail Size = 287998
+Headers Size = 619
+Method = LZMA2:26 LZMA:20 BCJ2
+Solid = +
+Blocks = 2
+
+Everything is Ok
+
+Archives with Warnings: 1
+
+Warnings: 1
+Folders: 2
+Files: 20
+Size:       232786098
+Compressed: 65529675

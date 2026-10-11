@@ -1,0 +1,18 @@
+[
+  {
+    "file": "Rugby-Portable.exe",
+    "bytes": 65529675,
+    "sha256": "45986820f23fa712c610b205335ff41d9b50a0e9615b312804a7568a0c338026",
+    "peMagic": "0x10b",
+    "certificateTableOffset": 0,
+    "certificateTableSize": 0
+  },
+  {
+    "file": "Rugby.exe",
+    "bytes": 180875264,
+    "sha256": "f2ebaa040f9fabca0ae9a4898083a5bf79b0280df7c0f483b6d72f3ae85a371f",
+    "peMagic": "0x20b",
+    "certificateTableOffset": 0,
+    "certificateTableSize": 0
+  }
+]

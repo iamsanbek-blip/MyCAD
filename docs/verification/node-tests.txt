@@ -1,0 +1,59 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> rugby@1.1.0-preview.2 check
+> node scripts/check.cjs
+
+Syntax/assets: 49 JavaScript files, 0 errors.
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> rugby@1.1.0-preview.2 test
+> node scripts/test.cjs
+
+PASS test_after.js
+PASS test_dim_text.js
+PASS test_move_file.js
+PASS t5_offset.js
+PASS t7_fillet.js
+PASS t8_final.js
+PASS t10_nest.js
+PASS t13_all.js
+PASS t15.js
+PASS t17.js
+PASS t18.js
+PASS t19_area.js
+PASS t21_paste.js
+PASS t23_selectall.js
+PASS t24_guard.js
+PASS t25_snap_ortho.js
+PASS t27_dxf.js
+PASS t29.js
+✔ renderer loads every script in HTML order and starts clean (28.274067ms)
+✔ pages isolate geometry, layer state, zoom and per-page undo/redo (21.353587ms)
+✔ duplicate, reorder and delete operate on the right page without sharing geometry (22.165775ms)
+✔ round trip includes all pages, dimensions, text, relief and active tab (31.758353ms)
+✔ legacy v1 opens as one page and v2 unknown versions are rejected (0.798224ms)
+✔ invalid inactive pages are rejected before any current data changes (11.442253ms)
+✔ cancelled/invalid open preserves existing path and dirty flag (23.275485ms)
+✔ desktop save/re-save serializes all pages to the selected file (14.395057ms)
+✔ editing while Save As is open keeps later changes dirty (13.193758ms)
+✔ blank multi-page documents can be saved and cancellation keeps identity (12.810608ms)
+✔ new document waits for pending save so an old path cannot attach to new pages (17.396337ms)
+✔ undo after save marks the whole document dirty (11.357543ms)
+✔ layer visibility and locking are saved changes with undo support (11.615707ms)
+✔ switching tabs cancels a live transform without leaking it (23.543874ms)
+✔ Ctrl+A selects drawing but remains native inside input fields (9.597183ms)
+✔ custom bindings disable old key, persist and use physical key on Cyrillic layouts (16.481866ms)
+✔ hotkeys detect conflicts, support swaps, reset and unassignment (0.500619ms)
+✔ settings modal prevents drawing hotkeys and saved button updates labels (7.646396ms)
+✔ page navigation shortcuts and drawing arc context remain independent (20.770226ms)
+✔ quick paste and alternate redo execute through the configurable registry (10.401629ms)
+✔ atomic save protects prior file if validation fails (1.3766ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 317.535994
+18 legacy regression files + workspace behavior suite; 0 failing suites.

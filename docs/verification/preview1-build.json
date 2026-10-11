@@ -1,0 +1,22 @@
+{
+  "version": "1.1.0-preview.1",
+  "artifact": "Rugby-Portable.exe",
+  "bytes": 83918236,
+  "sha256": "77a58e4820e8c830f6b33f41ec9943b932240cad7083f380bb4e25b5130b2ff6",
+  "architecture": "Windows x64 app in NSIS portable launcher",
+  "electron": "31.7.7",
+  "electronBuilder": "24.13.3",
+  "syntaxFiles": 49,
+  "behaviorTestsPassed": 21,
+  "legacyRegressionFilesPassed": 18,
+  "archiveTest": "PASS: embedded 7z payload; SFX trailing launcher data expected",
+  "embeddedAppAsar": "exact match to verified build",
+  "windowsGuiTest": "not performed",
+  "reviewedOn": "2026-10-03",
+  "releaseStatus": "blocked: unsigned publisher rejected by user's Smart App Control",
+  "outerAuthenticodeCertificate": "absent: security directory offset=0, size=0",
+  "innerAuthenticodeCertificate": "absent: security directory offset=0, size=0",
+  "sourceUpdatedSinceBuild": true,
+  "newExeBuiltDuringReview": false,
+  "linuxSourceGuiTest": "passed; see verification/electron-smoke.json; not a Windows or SAC test"
+}

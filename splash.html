@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<title>Rugby</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body {
+    width:100%; height:100%; overflow:hidden; background:#0b1220;
+    -webkit-user-select:none; user-select:none; cursor:default;
+  }
+  /* Shader foni — butun ekranni egallaydi */
+  #silk { position:fixed; inset:0; width:100%; height:100%; display:block; }
+  /* Logo ortidagi yumshoq qoraytirish — matn va logo aniq o'qilsin */
+  #veil {
+    position:fixed; inset:0;
+    background: radial-gradient(ellipse 46% 46% at 50% 47%,
+                rgba(8,14,26,.82) 0%, rgba(8,14,26,.55) 45%, rgba(8,14,26,0) 72%);
+  }
+  #stage {
+    position:fixed; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:0;
+  }
+
+  /* ---- logo belgisi ---- */
+  .markWrap { position:relative; opacity:0; transform:scale(.82); }
+  .markWrap.in { animation: markIn .78s cubic-bezier(.2,.9,.25,1.08) forwards; }
+  @keyframes markIn {
+    0%   { opacity:0; transform:scale(.82) translateY(14px); }
+    60%  { opacity:1; transform:scale(1.04) translateY(0); }
+    100% { opacity:1; transform:scale(1)    translateY(0); }
+  }
+  #mark {
+    width:clamp(120px, 13vh, 190px); height:auto; display:block;
+    filter: drop-shadow(0 22px 46px rgba(0,0,0,.55));
+  }
+  /* logo ustidan o'tuvchi yaltiroq nur */
+  .markWrap::after {
+    content:''; position:absolute; inset:0; border-radius:18%;
+    background: linear-gradient(105deg, transparent 38%,
+                rgba(255,255,255,.42) 48%, transparent 58%);
+    opacity:0; pointer-events:none;
+  }
+  .markWrap.in::after { animation: sweep 1.5s ease-in-out .55s 1 forwards; }
+  @keyframes sweep {
+    0%   { opacity:0; transform:translateX(-115%); }
+    18%  { opacity:1; }
+    82%  { opacity:1; }
+    100% { opacity:0; transform:translateX(115%); }
+  }
+
+  /* ---- wordmark ---- */
+  #word {
+    margin-top:clamp(20px, 3.2vh, 42px);
+    width:clamp(190px, 22vh, 330px); height:auto; display:block;
+    opacity:0; transform:translateY(16px);
+    filter: drop-shadow(0 6px 20px rgba(0,0,0,.45));
+  }
+  #word.in { animation: rise .7s cubic-bezier(.2,.85,.3,1) .26s forwards; }
+
+  .tagline {
+    margin-top:clamp(8px, 1.4vh, 16px);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size:clamp(10px, 1.35vh, 14px);
+    letter-spacing:.32em; text-transform:uppercase; font-weight:600;
+    color:rgba(220,232,245,.62); white-space:nowrap;
+    opacity:0; transform:translateY(10px);
+  }
+  .tagline.in { animation: rise .7s cubic-bezier(.2,.85,.3,1) .46s forwards; }
+  @keyframes rise { to { opacity:1; transform:translateY(0); } }
+
+  /* ---- yuklanish chizig'i ---- */
+  #barWrap {
+    position:fixed; left:50%; transform:translateX(-50%);
+    bottom:clamp(64px, 11vh, 130px);
+    width:clamp(180px, 20vw, 280px); height:2px;
+    background:rgba(255,255,255,.13); border-radius:2px; overflow:hidden;
+    opacity:0;
+  }
+  #barWrap.in { animation: fadeIn .5s ease .7s forwards; }
+  @keyframes fadeIn { to { opacity:1; } }
+  #bar {
+    height:100%; width:0%; border-radius:2px;
+    background:linear-gradient(90deg, #5DE0FE, #9defff);
+    box-shadow:0 0 12px rgba(93,224,254,.85);
+    transition: width .35s cubic-bezier(.3,.8,.4,1);
+  }
+
+  /* ---- pastki qator ---- */
+  .footer {
+    position:fixed; left:0; right:0; bottom:clamp(20px, 3.4vh, 40px);
+    display:flex; justify-content:center; gap:10px;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size:11px; color:rgba(220,232,245,.34); letter-spacing:.06em;
+    opacity:0;
+  }
+  .footer.in { animation: fadeIn .6s ease .9s forwards; }
+  .skip { position:fixed; right:22px; bottom:18px; font-size:10.5px;
+          color:rgba(220,232,245,.26); letter-spacing:.1em;
+          font-family:system-ui,sans-serif; opacity:0; }
+  .skip.in { animation: fadeIn .6s ease 1.4s forwards; }
+
+  /* ---- chiqish ---- */
+  body.leaving #stage, body.leaving #veil, body.leaving #barWrap,
+  body.leaving .footer, body.leaving .skip { animation: none; }
+  body.leaving { animation: bye .34s ease forwards; }
+  @keyframes bye { to { opacity:0; } }
+</style>
+</head>
+<body>
+  <canvas id="silk"></canvas>
+  <div id="veil"></div>
+
+  <div id="stage">
+    <div class="markWrap" id="markWrap">
+      <img id="mark" src="assets/icon-512.png" alt="Rugby">
+    </div>
+    <img id="word" src="assets/wordmark-light.png" alt="RUGBY">
+    <div class="tagline" id="tag">CNC Corner Editor</div>
+  </div>
+
+  <div id="barWrap"><div id="bar"></div></div>
+  <div class="footer" id="foot"><span id="ver">Rugby</span><span>·</span><span id="status">Yuklanmoqda…</span></div>
+  <div class="skip" id="skip">ESC — o'tkazib yuborish</div>
+
+<script>
+// ===========================================================================
+//  ATLAS (SILK) SHADER — "mat'odek tovlanuvchi" fon
+//
+//  Nega video emas, shader?
+//   · Har qanday ekran o'lchamiga (1080p, 1440p, 4K, ultrawide) o'z
+//     o'lchamida chiziladi — cho'zilmaydi, pikselga aylanmaydi
+//   · Loop chegarasi YO'Q — hech qachon "sakramaydi"
+//   · Fayl hajmi ~4 KB (video 1-3 MB bo'lardi)
+// ===========================================================================
+(function(){
+  const cv = document.getElementById('silk');
+  const gl = cv.getContext('webgl') || cv.getContext('experimental-webgl');
+
+  if(!gl){                       // WebGL yo'q bo'lsa — CSS gradient zaxira
+    cv.style.background =
+      'linear-gradient(125deg,#0e1b2e 0%,#17263D 38%,#1d4a63 62%,#17263D 88%)';
+    cv.style.backgroundSize = '400% 400%';
+    cv.style.animation = 'none';
+    document.body.insertAdjacentHTML('beforeend',
+      '<style>@keyframes shimmer{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}'+
+      '#silk{animation:shimmer 9s ease-in-out infinite !important}</style>');
+    return;
+  }
+
+  const VS = `
+    attribute vec2 aPos;
+    void main(){ gl_Position = vec4(aPos, 0.0, 1.0); }
+  `;
+  const FS = `
+    precision highp float;
+    uniform vec2  uRes;
+    uniform float uTime;
+
+    // TUZATILDI (mato uzilishi).
+    //
+    // 1) HASH. Ilgari fract(sin(...)) ishlatilardi. GPU 32-bitli float bilan
+    //    ishlaydi va bunda qo'shni katak tugunlari 20% hollarda AYNAN bir xil
+    //    qiymat olardi — o'sha joyda shovqin tekislanib, chiziq chiqardi.
+    //    Yangi hash sin'siz, 100% noyob qiymat beradi.
+    float hash(vec2 p){
+      float a = fract(p.x*0.1031 + p.y*0.1030);
+      float b = fract(p.x*0.0973 - p.y*0.1099);
+      a = fract(a*(b + 19.19) + 0.33);
+      b = fract(b*(a + 23.71) + 0.77);
+      return fract((a + b) * (a*31.13 + b*17.77));
+    }
+
+    float noise(vec2 p){
+      vec2 i = floor(p), f = fract(p);
+      // 2) INTERPOLATSIYA. Ilgari kubik smoothstep f*f*(3-2f) edi. U faqat
+      //    birinchi hosilada silliq: katak chegarasida EGRILIK sakraydi
+      //    (o'lchandi: ichkaridagidan 1924 marta katta). Pastdagi sheen
+      //    pow(...,7) shu sakrashni kuchaytirib, ekranda TO'G'RI CHIZIQ
+      //    qilib ko'rsatardi. Kvintik f³(6f²-15f+10) ikkinchi hosilada ham
+      //    silliq — sakrash nisbati 1.2× ga tushdi, ya'ni yo'qoldi.
+      vec2 u = f*f*f*(f*(f*6.0 - 15.0) + 10.0);
+      float a = hash(i);
+      float b = hash(i + vec2(1.0, 0.0));
+      float c = hash(i + vec2(0.0, 1.0));
+      float d = hash(i + vec2(1.0, 1.0));
+      return a + (b-a)*u.x + (c-a)*u.y + (a-b-c+d)*u.x*u.y;
+    }
+
+    float fbm(vec2 p){
+      float v = 0.0, amp = 0.5;
+      for(int i = 0; i < 3; i++){ v += amp*noise(p); p *= 2.0; amp *= 0.5; }
+      return v;
+    }
+
+    void main(){
+      vec2 px = gl_FragCoord.xy / uRes;
+      px.y = 1.0 - px.y;
+      float ar = uRes.x / uRes.y;
+      float t  = uTime;
+
+      // Domen cho'zilgan → burmalar uzun va yo'nalishli (atlas kabi)
+      vec2 p  = vec2((px.x - 0.5)*ar*0.924, (px.y - 0.5)*2.2);
+      vec2 pr = vec2(p.x*0.94 - p.y*0.34, p.x*0.34 + p.y*0.94);   // ~20 gradus
+
+      // Ikki bosqichli domain warping — mato oqimi
+      float q = fbm(vec2(pr.x + t*0.05, pr.y*1.6 - t*0.03));
+      float h = fbm(vec2(pr.x + 2.2*q + t*0.04, pr.y*1.6 + 1.7*q));
+
+      // Ikki qatlam yaltiroq lenta — tovlanish
+      float sheen  = pow(0.5 + 0.5*sin(h*12.0 + t*1.10), 7.0);
+      float sheen2 = pow(0.5 + 0.5*sin(h* 6.1 - t*0.70 + 1.2), 11.0);
+
+      vec3 navy = vec3(0.0902, 0.1490, 0.2392);   // #17263D
+      vec3 cyan = vec3(0.3647, 0.8784, 0.9961);   // #5DE0FE
+
+      float hh = clamp((h - 0.22)/0.6, 0.0, 1.0);
+      vec3 col = navy*(0.30 + 0.92*hh)
+               + cyan*(sheen*0.50)
+               + vec3(sheen2*0.15);
+
+      vec2 d = px - 0.5;
+      col *= 1.0 - 0.70*pow(dot(d, d), 0.9);      // vinyetka
+
+      gl_FragColor = vec4(col, 1.0);
+    }
+  `;
+
+  function shader(type, src){
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src); gl.compileShader(s);
+    if(!gl.getShaderParameter(s, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(s));
+    return s;
+  }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, shader(gl.VERTEX_SHADER, VS));
+  gl.attachShader(prog, shader(gl.FRAGMENT_SHADER, FS));
+  gl.linkProgram(prog); gl.useProgram(prog);
+
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(prog, 'aPos');
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+  const uRes  = gl.getUniformLocation(prog, 'uRes');
+  const uTime = gl.getUniformLocation(prog, 'uTime');
+
+  // 4K ekranda ham yengil bo'lishi uchun piksel zichligini cheklaymiz.
+  // Fon yumshoq bo'lgani uchun farq sezilmaydi.
+  function resize(){
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    cv.width  = Math.round(innerWidth  * dpr);
+    cv.height = Math.round(innerHeight * dpr);
+    gl.viewport(0, 0, cv.width, cv.height);
+  }
+  addEventListener('resize', resize); resize();
+
+  const t0 = performance.now();
+  (function loop(){
+    gl.uniform2f(uRes, cv.width, cv.height);
+    gl.uniform1f(uTime, (performance.now() - t0)/1000);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    requestAnimationFrame(loop);
+  })();
+})();
+
+// ===========================================================================
+//  Animatsiya vaqt jadvali va yuklanish holati
+// ===========================================================================
+requestAnimationFrame(()=>{
+  ['markWrap','word','tag','barWrap','foot','skip'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.classList.add('in');
+  });
+});
+
+const bar = document.getElementById('bar');
+const statusEl = document.getElementById('status');
+let pct = 0;
+// Haqiqiy yuklanish holati bo'lmasa ham, joriy progress silliq ko'rinsin
+const tick = setInterval(()=>{
+  pct = Math.min(pct + (pct < 65 ? 9 : 3), 92);
+  bar.style.width = pct + '%';
+}, 170);
+
+if (window.splashAPI) {
+  window.splashAPI.onStatus((msg, value)=>{
+    if (msg) statusEl.textContent = msg;
+    if (typeof value === 'number'){ pct = value; bar.style.width = value + '%'; }
+  });
+  window.splashAPI.onDone(()=>{
+    clearInterval(tick);
+    pct = 100; bar.style.width = '100%';
+    statusEl.textContent = 'Tayyor';
+    document.body.classList.add('leaving');
+  });
+  if (window.splashAPI.version) window.splashAPI.version().then(v=>{
+    document.getElementById('ver').textContent='v'+v;
+  }).catch(()=>{});
+}
+
+// Esc yoki bosish — o'tkazib yuborish
+function skip(){ if(window.splashAPI) window.splashAPI.skip(); }
+addEventListener('keydown', e => { if(e.key === 'Escape') skip(); });
+addEventListener('click', skip);
+</script>
+</body>
+</html>

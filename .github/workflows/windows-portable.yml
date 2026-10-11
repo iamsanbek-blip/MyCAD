@@ -1,0 +1,83 @@
+name: Windows portable preview
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'desktop/**'
+      - 'assets/**'
+      - 'build/**'
+      - 'main.js'
+      - 'preload*.js'
+      - 'splash.html'
+      - 'package*.json'
+      - 'scripts/**'
+      - 'tests/**'
+      - '.github/workflows/windows-portable.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: windows-portable-preview
+  cancel-in-progress: false
+
+jobs:
+  portable:
+    runs-on: windows-2022
+    timeout-minutes: 25
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Check syntax and assets
+        run: npm run check
+      - name: Regression tests
+        run: npm test
+      - name: Windows source GUI test
+        run: npm run test:electron
+        env:
+          RUGBY_TEST_ARTIFACTS: verification/source
+      - name: Build unsigned portable preview
+        run: npx electron-builder --win portable --x64 --publish never -c.forceCodeSigning=false -c.win.signAndEditExecutable=true -c.win.signDlls=false
+      - name: Windows packaged GUI test
+        run: npm run test:electron
+        env:
+          RUGBY_TEST_EXECUTABLE: dist/win-unpacked/Rugby.exe
+          RUGBY_TEST_APP_PATH: dist/win-unpacked/resources/app.asar
+          RUGBY_TEST_ARTIFACTS: verification/packaged
+      - name: Open the portable launcher
+        shell: pwsh
+        run: ./scripts/test-portable-launcher.ps1
+      - name: Prepare verified release files
+        run: node scripts/prepare-preview.cjs
+      - name: Publish preview
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = node -p "require('./package.json').version"
+          $tag = "v$version"
+          gh release view $tag --repo $env:GITHUB_REPOSITORY *> $null
+          if ($LASTEXITCODE -eq 0) { throw "Release $tag already exists. Bump the version; published binaries are never overwritten." }
+          gh release create $tag dist/Rugby-Portable.exe dist/SHA256.txt dist/BUILD-REPORT.json namunalar/ikki-sahifa.dbe --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --prerelease --title "Rugby $version — Windows portable" --notes-file dist/RELEASE-NOTES.md
+          if ($LASTEXITCODE -ne 0) { throw 'GitHub release creation failed.' }
+      - name: Save verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-verification
+          path: |
+            verification/
+            dist/SHA256.txt
+            dist/BUILD-REPORT.json
+          if-no-files-found: warn
+          retention-days: 30

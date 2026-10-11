@@ -1,0 +1,24 @@
+{
+  "checkedOn": "2026-10-03",
+  "scope": "Previously distributed unsigned build; not rebuilt from the latest source",
+  "files": [
+    {
+      "artifact": "deliverables/Rugby-Portable.exe",
+      "bytes": 83918236,
+      "sha256": "77a58e4820e8c830f6b33f41ec9943b932240cad7083f380bb4e25b5130b2ff6",
+      "peMagic": "0x10b",
+      "certificateTableOffset": 0,
+      "certificateTableSize": 0,
+      "embeddedAuthenticodeCertificatePresent": false
+    },
+    {
+      "artifact": "rugby-desktop/dist/win-unpacked/Rugby.exe",
+      "bytes": 180875264,
+      "sha256": "997243cfee62ac594fabddb2e2b29b08c74d444f56918fbacbd15ce86515efbe",
+      "peMagic": "0x20b",
+      "certificateTableOffset": 0,
+      "certificateTableSize": 0,
+      "embeddedAuthenticodeCertificatePresent": false
+    }
+  ]
+}

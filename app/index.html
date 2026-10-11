@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<title>Rugby — CNC Corner Editor</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/workspace.css">
+</head>
+<body>
+<nav id="pageBar" aria-label="Loyiha sahifalari">
+  <div id="pageTabs" role="tablist" aria-label="Sahifalar"></div>
+  <span id="pageCount" aria-live="polite"></span>
+  <button id="pageAddBtn" title="Yangi sahifa">＋</button>
+  <button id="pageRenameBtn" title="Nomlash">Nom</button>
+  <button id="pageDuplicateBtn" title="Sahifa nusxasi">Nusxa</button>
+  <button id="pageLeftBtn" title="Chapga ko‘chirish">←</button>
+  <button id="pageRightBtn" title="O‘ngga ko‘chirish">→</button>
+  <button id="pageDeleteBtn" title="Sahifani o‘chirish">×</button>
+</nav>
+<dialog id="shortcutDialog" aria-labelledby="shortcutTitle">
+  <h2 id="shortcutTitle">Klaviatura tugmalari</h2>
+  <p>Buyruq yonidagi maydonni bosing va yangi kombinatsiyani bosing. Ctrl+A/C/V/Z matn maydonida odatdagidek ishlaydi.</p>
+  <input id="shortcutSearch" placeholder="Buyruq yoki tugmani qidirish…" aria-label="Hotkey qidirish">
+  <div id="shortcutRows"></div>
+  <p id="shortcutError" role="alert" aria-live="polite"></p>
+  <div class="dialogActions"><button id="shortcutResetBtn" class="secondary">Standart tugmalar</button><span></span><button id="shortcutCancelBtn" class="secondary">Bekor</button><button id="shortcutSaveBtn">Saqlash</button></div>
+</dialog>
+<dialog id="unsavedDialog" aria-labelledby="unsavedTitle">
+  <form method="dialog"><h2 id="unsavedTitle">Saqlanmagan o‘zgarishlar</h2>
+  <p>Davom etishdan oldin barcha sahifalarni saqlaysizmi?</p>
+  <div class="dialogActions"><button value="cancel" class="secondary" autofocus>Bekor</button><button value="discard" class="secondary">Saqlamay davom etish</button><button value="save">Saqlash</button></div></form>
+</dialog>
+
+<div id="canvasWrap">
+  <canvas id="cv"></canvas>
+  <div id="drawToolbar">
+    <button class="dtBtn" id="shortcutSettingsBtn" title="Hotkey sozlamalari">⌨ Hotkey</button>
+    <div class="dtGroup">
+      <button class="dtBtn active" id="modeSelectBtn" title="Fillet/Dogbone/T-Bone tahrirlash">🦴 <span data-i18n="modeBoneEdit">Bone edit</span></button>
+      <button class="dtBtn" id="modeDrawBtn" title="Chiziq/Polyline chizish">✏ <span data-i18n="modeDraw">Chizish</span></button>
+    </div>
+    <div class="dtGroup" id="toolGroup" style="display:none;">
+      <button class="dtBtn" id="toolNoneBtn" title="Hech qanday asbob — N">⛔ <span data-i18n="modeNone">None</span></button>
+      <button class="dtBtn active" id="toolLineBtn" title="Line/Polyline — L">╱ <span data-i18n="tool_line">Line</span></button>
+      <button class="dtBtn" id="toolCircleBtn" title="Circle — C">◯ <span data-i18n="tool_circle">Circle</span></button>
+      <button class="dtBtn" id="toolRectBtn" title="Rectangle — K. Birinchi burchakni bosing, keyin EN yozing, &quot;,&quot; bosing, BO&#39;Y yozing, Enter (AutoCAD uslubi)">▭ <span data-i18n="tool_rect">Rect</span></button>
+      <button class="dtBtn" id="toolArcBtn" title="Arc — A">◜ <span data-i18n="tool_arc">Arc</span></button>
+      <button class="dtBtn" id="toolPolygonBtn" title="Polygon (3-9 taraf) — G">⬡ <span data-i18n="tool_polygon">Polygon</span></button>
+      <select id="polygonSides" title="Taraflar soni" style="width:44px; padding:4px;">
+        <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+        <option value="6" selected>6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option>
+      </select>
+    </div>
+    <div class="dtGroup" id="orthoGroup" style="display:none;">
+      <button class="dtBtn active" id="orthoOnBtn" title="Ortho — F8">⊞ <span data-i18n="ortho">Ortho</span></button>
+      <button class="dtBtn" id="orthoOffBtn" title="Erkin burchak — F8">⤢ <span data-i18n="freehand">Free</span></button>
+    </div>
+    <div class="dtGroup" id="drawActionsGroup" style="display:none;">
+      <button class="dtBtn ok" id="finishDrawBtn" title="Tugatish — Enter">✓ <span data-i18n="finish">Tugatish</span></button>
+      <button class="dtBtn cancel" id="cancelDrawBtn" title="Bekor qilish — Esc">✕ <span data-i18n="cancel_btn">Bekor</span></button>
+    </div>
+    <div class="dtGroup" id="deleteGroup">
+      <button class="dtBtn cancel" id="deleteLineBtn" title="Tanlangan chizmani o'chirish — Delete">🗑 <span data-i18n="tool_delete">O'chirish</span></button>
+    </div>
+    <div class="dtGroup" id="transformGroup">
+      <button class="dtBtn" id="moveBtn" title="Ko'chirish — M">⤧ <span data-i18n="tool_move">Move</span></button>
+      <button class="dtBtn" id="rotateBtn" title="Aylantirish — R">⟳ <span data-i18n="tool_rotate">Rotate</span></button>
+      <button class="dtBtn" id="scaleBtn" title="Masshtab — S">⤢ <span data-i18n="tool_scale">Scale</span></button>
+      <button class="dtBtn" id="mirrorBtn" title="Oyna aksi — Mi (M keyin i)">◫ <span data-i18n="tool_mirror">Mirror</span></button>
+      <button class="dtBtn" id="stretchBtn" title="Stretch — W: nuqtalar ustidan ramka torting, bazaviy nuqta, keyin masofa (Move kabi)">⇹ <span data-i18n="tool_stretch">Stretch</span></button>
+      <button class="dtBtn" id="trimBtn" title="Trim/Extend — oddiy klik: kesish (trim), Ctrl/Shift+klik: uzaytirish (extend) [T]">✂ <span data-i18n="tool_trim">Trim/Extend</span></button>
+      <button class="dtBtn" id="offsetBtn" title="Offset — shaklni tanlab, masofani kiriting, keyin qaysi tomonga surishni bosing [O]">⧉ <span data-i18n="tool_offset">Offset</span></button>
+      <button class="dtBtn" id="filletBtn" title="Fillet — burchakni yumaloqlash [F]">⌒ <span data-i18n="tool_fillet">Fillet</span></button>
+      <button class="dtBtn" id="chamferBtn" title="Chamfer — burchakni qiyalash [Shift+F]">◺ <span data-i18n="tool_chamfer">Chamfer</span></button>
+      <label style="display:flex;align-items:center;gap:3px;font-size:11px;color:var(--text-dim);">R:
+        <input type="text" inputmode="decimal" id="filletR" value="5" style="width:52px;padding:3px;" title="Fillet radiusi / Chamfer masofasi (mm)"><span style="font-size:10px;">mm</span>
+      </label>
+      <button class="dtBtn" id="joinBtn" title="Join — tanlangan chiziq/arc/polyline'larni bitta yaxlit shaklga birlashtiradi (yondagi masofa = ulanish tolerantligi) [J]">⧓ <span data-i18n="tool_join">Join</span></button>
+      <label style="display:flex;align-items:center;gap:3px;font-size:11px;color:var(--text-dim);" title="Join masofasi: uchlari shu masofadan yaqin bo'lgan elementlar ulanadi">d:<input type="text" inputmode="decimal" id="joinDistInp" value="1" style="width:46px; padding:3px;"><span style="font-size:10px;">mm</span></label>
+      <button class="dtBtn" id="explodeBtn" title="Explode — tanlangan shakl(lar)ni alohida chiziq segmentlariga ajratadi [E]">⧨ <span data-i18n="tool_explode">Explode</span></button>
+      <span style="display:flex;align-items:center;gap:2px;" title="Tekislash — tanlangan shakllarni chetiga/markaziga tekislaydi">
+        <button class="dtBtn" id="alignLeftBtn" title="Chapga tekislash">⇤</button>
+        <button class="dtBtn" id="alignCenterXBtn" title="Vertikal o'q bo'yicha markazlash">⇹</button>
+        <button class="dtBtn" id="alignRightBtn" title="O'ngga tekislash">⇥</button>
+        <button class="dtBtn" id="alignTopBtn" title="Yuqoriga tekislash">⇧</button>
+        <button class="dtBtn" id="alignCenterYBtn" title="Gorizontal o'q bo'yicha markazlash">⇕</button>
+        <button class="dtBtn" id="alignBottomBtn" title="Pastga tekislash">⇩</button>
+        <button class="dtBtn" id="distHBtn" title="Gorizontal teng taqsimlash (kamida 3 shakl)">⇿</button>
+        <button class="dtBtn" id="distVBtn" title="Vertikal teng taqsimlash (kamida 3 shakl)">⇳</button>
+      </span>
+      <button class="dtBtn" id="arrayBtn" title="Array — tanlangan shakllarni qator (to'g'ri) yoki aylana bo'ylab nusxalaydi">⁂ <span data-i18n="tool_array">Array</span></button>
+      <button class="dtBtn" id="groupBtn" title="Guruhlash — tanlangan shakllarni bitta guruhga birlashtiradi (Ctrl+G). Guruh a'zosini bosganda butun guruh tanlanadi.">▣ <span data-i18n="tool_group">Group</span></button>
+      <button class="dtBtn" id="ungroupBtn" title="Guruhni yechish — tanlangan guruh(lar)ni ajratadi (Ctrl+Shift+G)">▢ <span data-i18n="tool_ungroup">Ungroup</span></button>
+      <button class="dtBtn" id="simplifyBtn" title="Soddalashtirish — tanlangan og'ir shakllarni egri (arc) segmentlarga siqadi, shakl o'zgarmaydi">↯ <span data-i18n="tool_simplify">Soddalash</span></button>
+    </div>
+    <div class="dtGroup" id="arrayGroup" style="display:none;">
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);">Tur
+        <select id="arrayType" style="padding:3px;">
+          <option value="rect">Qator (to'g'ri)</option>
+          <option value="polar">Aylana bo'ylab</option>
+        </select>
+      </label>
+      <span id="arrayRectOpts" style="display:flex;align-items:center;gap:6px;">
+        <label style="display:flex;align-items:center;gap:3px;font-size:11px;color:var(--text-dim);">Ustun<input type="text" inputmode="decimal" id="arrayCols" value="3" style="width:46px;padding:3px;"></label>
+        <label style="display:flex;align-items:center;gap:3px;font-size:11px;color:var(--text-dim);">Qadam X<input type="text" inputmode="decimal" id="arrayDX" value="50" style="width:56px;padding:3px;"><span style="font-size:10px;">mm</span></label>
+        <label style="display:flex;align-items:center;gap:3px;font-size:11px;color:var(--text-dim);">Qator<input type="text" inputmode="decimal" id="arrayRows" value="1" style="width:46px;padding:3px;"></label>
+        <label style="display:flex;align-items:center;gap:3px;font-size:11px;color:var(--text-dim);">Qadam Y<input type="text" inputmode="decimal" id="arrayDY" value="50" style="width:56px;padding:3px;"><span style="font-size:10px;">mm</span></label>
+      </span>
+      <span id="arrayPolarOpts" style="display:none;align-items:center;gap:6px;">
+        <label style="display:flex;align-items:center;gap:3px;font-size:11px;color:var(--text-dim);">Soni<input type="text" inputmode="decimal" id="arrayCount" value="6" style="width:46px;padding:3px;"></label>
+        <label style="display:flex;align-items:center;gap:3px;font-size:11px;color:var(--text-dim);">Burchak<input type="text" inputmode="decimal" id="arrayAngle" value="360" style="width:52px;padding:3px;"><span style="font-size:10px;">&deg;</span></label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);"><input type="checkbox" id="arrayRotate" checked style="width:auto;">Aylantirish</label>
+        <span style="font-size:11px;color:var(--cyan);" id="arrayCenterHint">Markazni bosing</span>
+      </span>
+      <button class="dtBtn" id="arrayApplyBtn" title="Massivni yaratish">✓ <span data-i18n="finish">Tugatish</span></button>
+      <button class="dtBtn" id="arrayCancelBtn" title="Bekor qilish">✕ <span data-i18n="cancel_btn">Bekor</span></button>
+    </div>
+    <div class="dtGroup" id="nestGroup" style="display:none;">
+      <span style="font-size:11px;color:var(--cyan);font-weight:600;">⊞ CNC Nesting</span>
+      <label style="display:flex;align-items:center;gap:3px;font-size:11px;color:var(--text-dim);" title="Material list o'lchami">List
+        <input type="text" inputmode="decimal" id="nestSheetW" value="2440" style="width:62px;padding:3px;">×
+        <input type="text" inputmode="decimal" id="nestSheetH" value="1220" style="width:62px;padding:3px;"><span style="font-size:10px;">mm</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:3px;font-size:11px;color:var(--text-dim);" title="Detallar orasidagi masofa (freza diametridan katta bo'lsin)">Oraliq
+        <input type="text" inputmode="decimal" id="nestGap" value="10" style="width:46px;padding:3px;"><span style="font-size:10px;">mm</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:3px;font-size:11px;color:var(--text-dim);" title="List chetidan qoldiriladigan bo'sh joy">Chet
+        <input type="text" inputmode="decimal" id="nestMargin" value="10" style="width:46px;padding:3px;"><span style="font-size:10px;">mm</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);" title="Sig'masa detalni 90° burib ko'radi"><input type="checkbox" id="nestRotate" checked style="width:auto;">90° burish</label>
+      <button class="dtBtn" id="nestRunBtn" title="Tanlangan (yoki barcha) detallarni listga joylaydi">⊞ <span data-i18n="nestPlace">Joylash</span></button>
+      <button class="dtBtn" id="nestClearBtn" title="List chizig'ini olib tashlash">✕ <span data-i18n="nestClear">List</span></button>
+      <span id="nestReport" style="font-size:11px;color:var(--cyan);"></span>
+    </div>
+    <div class="dtGroup" id="dimensionGroup">
+      <button class="dtBtn" id="dimHorizBtn" title="Gorizontal o'lchov — 2 nuqta bosing, keyin chiziq balandligini bosing">↔ <span data-i18n="dim_h">Dim-H</span></button>
+      <button class="dtBtn" id="dimVertBtn" title="Vertikal o'lchov — 2 nuqta bosing, keyin chiziq masofasini bosing">↕ <span data-i18n="dim_v">Dim-V</span></button>
+      <button class="dtBtn" id="dimAlignBtn" title="Parallel (aligned) o'lchov — istalgan yo'nalishda ikki nuqta orasi [D]">⤡ <span data-i18n="dim_a">Dim-A</span></button>
+      <button class="dtBtn" id="dimAngBtn" title="Burchak o'lchovi — markaz, keyin ikki nur nuqtasi">∠ <span data-i18n="dim_ang">Dim-Ang</span></button>
+      <button class="dtBtn" id="dimArcBtn" title="Yoy / aylana uzunligi">⌒ <span data-i18n="dim_arc">Dim-Arc</span></button>
+      <button class="dtBtn" id="areaBtn" title="Tanlangan yopiq shakllarning maydoni va perimetri [Shift+A]">▦ <span data-i18n="dim_area">Maydon</span></button>
+    </div>
+    <div class="dtGroup" id="dimSettingsGroup" style="gap:8px; padding:6px 10px;">
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);">Matn
+        <input type="text" inputmode="decimal" id="dimTextSize" value="10" style="width:56px; padding:3px;" title="Matn balandligi — REAL o'lcham (mm). Strelka va chiziqlar shunga proporsional."><span style="font-size:10px;">mm</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);">Aniqlik
+        <select id="dimPrecision" style="width:52px; padding:3px;" title="O'nlik xona soni">
+          <option value="0">0</option>
+          <option value="1" selected>0.0</option>
+          <option value="2">0.00</option>
+          <option value="3">0.000</option>
+        </select>
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);">Birlik
+        <input type="text" id="dimUnit" value="mm" style="width:40px; padding:3px;" title="O'lchov birligi qo'shimchasi">
+      </label>
+    </div>
+    <div class="dtGroup" id="textGroup" style="gap:8px; padding:4px 8px;">
+      <button class="dtBtn" id="textAddBtn" title="Chizmaga texnik matn qo'yish — bosing, keyin joyni bosing [B]">🅰 <span data-i18n="textToolLabel">Matn</span></button>
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);">H
+        <input type="text" inputmode="decimal" id="textSize" value="10" style="width:52px; padding:3px;" title="Matn balandligi — REAL o'lcham (mm)"><span style="font-size:10px;">mm</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);">&#8736;
+        <input type="text" inputmode="decimal" id="textRot" value="0" style="width:52px; padding:3px;" title="Burilish burchagi (gradus)"><span style="font-size:10px;">&deg;</span>
+      </label>
+      <button class="dtBtn cancel" id="textDelBtn" title="Tanlangan matnlarni o'chirish">&#10006;</button>
+    </div>
+    <div class="dtGroup" id="snapGroup" style="display:none; flex-wrap:wrap; gap:6px 8px; padding:6px 10px;">
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);"><input type="checkbox" id="snapEndpointChk" checked style="width:auto;">Endpoint</label>
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);"><input type="checkbox" id="snapMidpointChk" checked style="width:auto;">Midpoint</label>
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);"><input type="checkbox" id="snapCenterChk" checked style="width:auto;">Center</label>
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);"><input type="checkbox" id="snapIntersectChk" checked style="width:auto;">Intersection</label>
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);"><input type="checkbox" id="snapPerpChk" style="width:auto;">Perpendicular</label>
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);"><input type="checkbox" id="snapParallelChk" style="width:auto;">Parallel</label>
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);"><input type="checkbox" id="snapNearChk" checked style="width:auto;">Near</label>
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--cyan);"><input type="checkbox" id="snapGridChk" style="width:auto;">Grid</label>
+      <label style="display:flex;align-items:center;gap:3px;font-size:11px;color:var(--text-dim);" title="Panjara qadami (mm)"><input type="text" inputmode="decimal" id="gridStepInp" value="10" style="width:44px;padding:2px;">mm</label>
+      <span style="width:1px;height:16px;background:var(--line);margin:0 4px;"></span>
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);" title="Kataklarni ko'rsatish / yashirish [H]"><input type="checkbox" id="gridToggle" checked style="width:auto;">Katak</label>
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);" title="Chizish maydoni rangi">🎨
+        <select id="themeSel" style="width:auto;padding:2px 4px;font-size:11px;background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;"></select>
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--cyan);" title="Burchak bo'yicha yopishish (0/15/30/45/90...)"><input type="checkbox" id="snapAngleChk" style="width:auto;">Angle</label>
+      <label style="display:flex;align-items:center;gap:3px;font-size:11px;color:var(--text-dim);" title="Burchak qadami (daraja)"><input type="text" inputmode="decimal" id="angleStepInp" value="15" style="width:40px;padding:2px;">°</label>
+    </div>
+    <span id="typedLenBadge" style="display:none;"></span>
+  </div>
+  <div id="bulkBar">
+    <span id="bulkCount">0 tanlandi</span>
+    <select id="bulkMode">
+      <option value="ignore">Ignore</option>
+      <option value="dogbone">Dogbone</option>
+      <option value="tbone">T-Bone</option>
+      <option value="fillet">Fillet</option>
+      <option value="chamfer">Chamfer</option>
+    </select>
+    <input type="text" inputmode="decimal" id="bulkSize" value="3" step="0.5" min="0.1" style="width:55px" title="Radius">
+    <input type="text" inputmode="decimal" id="bulkOffset" value="0.5" style="width:55px" title="Extension">
+    <select id="bulkTboneDir" title="T-Bone yo'nalishi" style="width:60px">
+      <option value="auto">Auto</option>
+      <option value="e1">Chap</option>
+      <option value="e2">O'ng</option>
+    </select>
+    <label style="display:flex;align-items:center;gap:3px;font-size:10px;color:var(--text-dim);" title="Mirror"><input type="checkbox" id="bulkTboneMirror" style="width:auto;">Mirror</label>
+    <button id="bulkApply"><span data-i18n="apply_btn">Qo'llash</span></button>
+    <button class="secondary" id="bulkClear" style="width:auto; padding:5px 8px;">✕</button>
+  </div>
+  <div id="hint">
+    <span id="hintEdit">Chap klik: burchak rejimini almashtirish &middot; Ctrl/Shift+klik: tanlovga qo'shish/olib tashlash &middot; Chiziqqa klik: uni tanlab o'chirish<br>
+    Chap sudrash (bo'sh joyda): ko'p tanlash &middot; O'ng/O'rta tugma sudrash: pan &middot; G'ildirak: zoom &middot; Ctrl+Z/Y: undo/redo</span>
+    <span id="hintDraw" style="display:none;">Klik: nuqta qo'yish (snap: endpoint/midpoint/nearest) &middot; Raqam yozib Enter: aniq uzunlik &middot; Enter: tugatish &middot; Esc: bekor qilish &middot; F8: Ortho</span>
+  </div>
+  <div id="zoomBadge">100%</div>
+  <button id="centerViewBtn" title="Markazga qaytish (0,0 atrofida ~1000mm)" style="position:absolute; right:12px; bottom:38px; width:auto; padding:6px 10px; font-size:11px; background:rgba(17,27,46,.92); color:var(--text-dim); border:1px solid var(--line); border-radius:5px; cursor:pointer;">⌖ <span data-i18n="centerView">Markazga</span></button>
+</div>
+
+<div id="sidebar">
+  <div class="section">
+    <div class="brand">
+      <img class="brandMark" src="assets/logo-mark.png" alt="Rugby" draggable="false">
+      <div class="brandText">
+        <h1>RUGBY</h1>
+        <div class="sub" data-i18n="tagline">CNC Corner Editor</div>
+      </div>
+      <button id="langSwitchBtn" title="Switch language / Tilni almashtirish"
+              style="margin-left:auto; width:auto; padding:5px 10px; font-size:11px;
+                     font-weight:700; letter-spacing:.05em; border-radius:5px;
+                     background:var(--panel-2); border:1px solid var(--line);
+                     color:var(--cyan); cursor:pointer;">EN</button>
+    </div>
+    <label style="margin-top:8px;">📁 <span data-i18n="fileSection">Fayl</span></label>
+    <div class="fileName" id="currentFileName" title="Joriy loyiha fayli">nomsiz loyiha</div>
+    <div class="row" style="margin-top:5px;">
+      <button class="secondary fileBtn" id="newProjBtn" style="flex:1;" title="Yangi bo'sh loyiha — Alt+N (Ctrl+N ni brauzer o'zi ushlab qoladi)">🆕 Yangi<span class="kb">Alt+N</span></button>
+      <button class="secondary fileBtn" id="openProjBtn" style="flex:1;" title="Saqlangan .dbe loyihani ochish">📂 Ochish<span class="kb">Ctrl+O</span></button>
+    </div>
+    <div class="row" style="margin-top:5px;">
+      <button class="fileBtn" id="saveProjBtn" style="flex:1;" title="Saqlash — birinchi marta joy so'raydi, keyin shu fayl ustiga yozadi">💾 Saqlash<span class="kb">Ctrl+S</span></button>
+      <button class="secondary fileBtn" id="saveAsProjBtn" style="flex:1;" title="Boshqacha saqlash — har safar joy so'raydi">🗂 Saqlash…<span class="kb">Ctrl+Shift+S</span></button>
+    </div>
+    <div class="sub" id="fileApiNote" style="display:none; margin-top:6px; color:#ffb454; line-height:1.5;"></div>
+    <input type="file" id="projInput" accept=".dbe,.json" style="display:none;">
+
+    <label style="margin-top:12px;">📥 <span data-i18n="importSection">Import</span></label>
+    <input type="file" id="fileInput" accept=".dxf" style="display:none;">
+    <button class="secondary fileBtn" id="importBtn" style="width:100%;">DXF fayl<span class="kb">Ctrl+I</span></button>
+
+    <label style="margin-top:10px;">🖼 <span data-i18n="refSection">Referens rasm (shablon)</span></label>
+    <input type="file" id="refImgInput" accept="image/png,image/jpeg,image/jpg,image/svg+xml,image/webp,image/gif" style="display:none;">
+    <div class="row">
+      <button class="secondary" id="refImgBtn" style="flex:2;" title="JPG / PNG / SVG rasmni shablon sifatida yuklash">📥 <span data-i18n="refUploadBtn">Rasm yuklash</span></button>
+      <button class="secondary" id="refEditBtn" style="flex:1;" title="Yoqilganda rasmni sichqoncha bilan surish mumkin">✥ <span data-i18n="refEdit">Tahrir</span></button>
+    </div>
+    <div id="refList" style="margin-top:6px;"></div>
+    <div class="sub" style="margin-top:4px;" data-i18n="refHint">Rasm chizmaning ORQASIDA turadi. Tahrir yoqilganda sudrab suring; o'lcham, burchak va shaffoflikni pastdan sozlang.</div>
+    <div class="sub" id="importedName" style="margin:4px 0 8px;">DXF fayl tanlang</div>
+
+    <label style="margin-top:10px;">📤 <span data-i18n="exportSection">Export</span></label>
+    <div class="row">
+      <button id="exportBtn" style="flex:2;">DXF</button>
+      <button class="secondary" id="exportSvgBtn" style="flex:1;" title="SVG rasm sifatida saqlash">SVG</button>
+      <button class="secondary" id="exportPngBtn" style="flex:1;" title="PNG rasm sifatida saqlash">PNG</button>
+    </div>
+    <div class="sub" style="margin-top:4px;" data-i18n="exportHint">Chizmani boshqa dasturlar uchun chiqaradi</div>
+  </div>
+
+  <div class="section">
+    <label style="margin-top:10px;">▦ <span data-i18n="areaSection">Maydon (Area)</span></label>
+    <div id="areaReport" style="font-size:12px; background:var(--panel-2); border:1px solid var(--line); border-radius:5px; padding:8px 10px; line-height:1.55;">
+      <span style="color:var(--text-dim);" data-i18n="areaHint">Yopiq shakl(lar)ni tanlang va ▦ Maydon tugmasini bosing.</span>
+    </div>
+    <div class="sub" style="margin-top:4px;" data-i18n="areaNote">Yoylar aniq formula bilan hisoblanadi. Ichkaridagi kontur teshik deb ayiriladi.</div>
+
+    <label>📚 <span data-i18n="layersSection">Layers (Qatlamlar)</span></label>
+    <div id="layerList" style="margin-top:6px;"></div>
+    <button class="secondary" id="addLayerBtn" style="width:100%; margin-top:6px;"><span data-i18n="addLayer">+ Yangi qatlam</span></button>
+    <div class="sub" style="margin-top:4px;">Faol qatlamni bosing — yangi chizmalar shunga tushadi. 👁 ko'rinish, 🔒 qulf.</div>
+  </div>
+
+  <div class="section">
+    <label>🎨 <span data-i18n="colorSection">Rang (tanlangan shakllarga)</span></label>
+    <div id="colorPalette" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;"></div>
+    <div class="sub" style="margin-top:4px;">Rangni bosing — tanlangan shakl(lar)ga qo'llanadi. Yangi chizmalar ham shu rangda bo'ladi.</div>
+  </div>
+
+  <div id="editPanel">
+  <div class="section">
+    <label>Radius manbai</label>
+    <div class="row" style="margin-bottom:8px;">
+      <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-dim);"><input type="radio" name="radiusMode" id="radiusModeDiameter" checked style="width:auto;"> Freza diametri</label>
+      <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-dim);"><input type="radio" name="radiusMode" id="radiusModeCustom" style="width:auto;"> Custom radius</label>
+    </div>
+    <div class="row">
+      <div>
+        <label id="toolDiaLabel">Freza diametri (mm)</label>
+        <input type="text" inputmode="decimal" id="toolDiameter" value="6">
+      </div>
+      <div>
+        <label id="radiusLabel">Radius (hisoblangan)</label>
+        <input type="text" inputmode="decimal" id="defaultSize" value="3" readonly>
+      </div>
+    </div>
+    <label>Extension (aylana markazi burchakdan qancha suriladi, mm) — manfiy: kichraytiradi/burchakka yaqinlashtiradi (−R gacha), 0: burchakning o'zida, musbat: tegish nuqtasigacha (+Dbase gacha)</label>
+    <input type="text" inputmode="decimal" id="defaultOffset" value="0">
+    <label style="margin-top:8px;">Standart rejim</label>
+    <div class="row">
+      <select id="defaultMode" style="flex:2;">
+        <option value="ignore">Ignore / None</option>
+        <option value="dogbone">Dogbone</option>
+        <option value="tbone">T-Bone</option>
+        <option value="fillet">Fillet</option>
+        <option value="chamfer">Chamfer</option>
+      </select>
+      <button class="secondary" id="applyAllBtn" style="flex:1;"><span data-i18n="applyAll">Barchaga</span></button>
+    </div>
+    <label style="margin-top:8px;">T-Bone yo'nalishi (standart)</label>
+    <select id="defaultTboneDir">
+      <option value="auto" selected>Auto (uzunroq tomon)</option>
+      <option value="e1">Chap / Prev devor</option>
+      <option value="e2">O'ng / Next devor</option>
+    </select>
+    <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-dim); margin:6px 0 0;"><input type="checkbox" id="defaultTboneMirror" style="width:auto;"> Mirror (bulge qarama-qarshi tomonga)</label>
+    <div class="row" style="margin-top:8px; align-items:center;">
+      <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-dim); margin:0;"><input type="checkbox" id="restrictAngleRange" style="width:auto;" checked> Faqat shu diapazonda qo'llash</label>
+    </div>
+    <div class="row">
+      <input type="text" inputmode="decimal" id="angleMin" value="89" style="width:60px">
+      <span style="align-self:center; font-size:11px; color:var(--text-dim);">—</span>
+      <input type="text" inputmode="decimal" id="angleMax" value="91" style="width:60px">
+      <span style="align-self:center; font-size:11px; color:var(--text-dim);">°</span>
+    </div>
+    <div class="sub" style="margin:-2px 0 0;">Dogbone/T-Bone/Fillet faqat shu ichki burchak oralig'idagi burchaklarga qo'llanadi (ular uchun T-Bone doim qarshi — 360°−burchak — tomonga chiqadi); tashqarisidagilar avtomatik Ignore bo'ladi.</div>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--grey)"></i>Ignore</span>
+      <span><i class="dot" style="background:var(--danger)"></i>Dogbone</span>
+      <span><i class="dot" style="background:var(--blue)"></i>T-Bone</span>
+      <span><i class="dot" style="background:var(--green)"></i>Fillet</span>
+      <span><i class="dot" style="background:var(--amber)"></i>Chamfer</span>
+    </div>
+    <div id="stats"></div>
+  </div>
+
+  <div class="section">
+    <label>Avtomatik Ignore qoidalari</label>
+    <div class="row">
+      <input type="text" inputmode="decimal" id="ignoreSlotWidth" value="10" title="Slot width (mm)">
+      <button class="secondary" id="ignoreSmallBtn" style="flex:1.4;"><span data-i18n="ignoreSmall">Kichik slotlarni ignore</span></button>
+    </div>
+    <div class="sub" style="margin:-4px 0 8px;">Slot kengligi &lt; shu qiymat bo'lsa — barcha burchaklari ignore qilinadi</div>
+    <div class="row">
+      <input type="text" inputmode="decimal" id="ignoreAngleDeg" value="135" title="Burchak (daraja)">
+      <button class="secondary" id="ignoreAngleBtn" style="flex:1.4;"><span data-i18n="ignoreAngle">Yassi burchaklarni ignore</span></button>
+    </div>
+    <div class="sub" style="margin:-4px 0 0;">Burchak &gt; shu daraja bo'lsa (deyarli tekis) — ignore qilinadi</div>
+  </div>
+
+  <div id="cornerList"></div>
+  </div>
+
+  <div id="drawPanel" style="display:none;">
+    <div class="section">
+      <label>Joriy asbob</label>
+      <div id="currentToolLabel" style="font-size:13px; color:var(--cyan); font-weight:600; margin-bottom:8px;">Line/Polyline</div>
+      <div class="row">
+        <button class="secondary" id="hideSelBtn" style="flex:1;" title="Tanlangan shakllarni vaqtincha yashirish">🙈 Hide selection</button>
+        <button class="secondary" id="unhideAllBtn" style="flex:1;" title="Yashirilgan barcha shakllarni qayta ko'rsatish">👁 Unhide all</button>
+      </div>
+      <div class="sub" style="margin-top:6px;">Ortho: F8 (yoki tepadagi tugma). Snap turlarini tepadagi panelda yoqing.</div>
+    </div>
+    <div class="section">
+      <label>🎨 To'ldirish</label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;margin-top:6px;cursor:pointer;">
+        <input type="checkbox" id="fillShapeChk" style="width:auto;"> Solid filled shape (bo'yash)
+      </label>
+      <div class="sub" style="margin-top:4px;">Yopiq shaklni tanlab galochka qo'ying — shakl bir xil rangda bo'yaladi (PNG eksportda ham).</div>
+      <div id="fillHint" class="sub" style="margin-top:4px;color:var(--cyan);"></div>
+    </div>
+    <div class="section">
+      <label>Chizilgan elementlar</label>
+      <div id="drawnStats" class="sub" style="margin-bottom:6px;"></div>
+      <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-dim);margin-bottom:6px;"><input type="checkbox" id="selectByColorChk" style="width:auto;"> Select by color (bir xil rangdagilarni birga tanlash)</label>
+      <button class="secondary" id="clearAllDrawnBtn">Hammasini o'chirish</button>
+    </div>
+    <div id="drawnList" style="max-height:280px; overflow-y:auto; overflow-x:hidden; padding-right:4px;"></div>
+  </div>
+
+  <div class="footer" style="flex-direction:column; align-items:stretch; gap:6px;">
+    <div class="row" style="margin:0;">
+      <button class="secondary" id="undoBtn">↶ Undo</button>
+      <button class="secondary" id="redoBtn">↷ Redo</button>
+    </div>
+    <div class="row" style="margin:0; align-items:center;">
+      <span id="historyStats" style="font-size:10px; color:var(--text-dim); flex:1;">1 / 1 (limit: 50)</span>
+      <label style="font-size:10px; color:var(--text-dim); display:flex; align-items:center; gap:4px;">Limit
+        <input type="text" inputmode="decimal" id="historyLimitInp" value="50" style="width:56px; padding:3px;">
+      </label>
+    </div>
+  </div>
+</div>
+
+
+<!-- ==================================================================
+     MODUL YUKLASH TARTIBI — O'ZGARTIRMANG.
+     Bu tartib original bitta <script> blokidagi kod tartibini aynan
+     takrorlaydi. Modullar global scope'ni baham ko'radi, shuning uchun
+     bitta faylni yuqoriga/pastga surish ilovani buzadi.
+     ================================================================== -->
+
+  <!-- GEOMETRY — segment, arc, snap, matematika -->
+  <script src="js/core/document-codec.js"></script>
+  <script src="js/core/shortcut-map.js"></script>
+  <script src="js/geometry/core.js"></script>
+
+  <!-- IO — dxf, raster, project -->
+  <script src="js/io/dxf-import.js"></script>
+
+  <!-- MODEL — shapes, layers, corners, history -->
+  <script src="js/model/state.js"></script>
+  <script src="js/model/layers.js"></script>
+  <script src="js/model/corners.js"></script>
+  <script src="js/model/shapes.js"></script>
+
+  <!-- UI — render, panels, input, reference -->
+  <script src="js/ui/render.js"></script>
+  <script src="js/ui/i18n.js"></script>
+  <script src="js/ui/theme.js"></script>
+  <script src="js/ui/input-view.js"></script>
+
+  <!-- GEOMETRY — segment, arc, snap, matematika -->
+  <script src="js/geometry/segments.js"></script>
+  <script src="js/geometry/offset.js"></script>
+  <script src="js/geometry/snap.js"></script>
+
+  <!-- UI — render, panels, input, reference -->
+  <script src="js/ui/panels-draw.js"></script>
+  <script src="js/ui/input-mouse.js"></script>
+
+  <!-- TOOLS — draw, edit, transform, cnc -->
+  <script src="js/tools/transform.js"></script>
+  <script src="js/tools/align.js"></script>
+  <script src="js/tools/array.js"></script>
+
+  <!-- UI — render, panels, input, reference -->
+  <script src="js/ui/reference.js"></script>
+
+  <!-- TOOLS — draw, edit, transform, cnc -->
+  <script src="js/tools/clipboard.js"></script>
+  <script src="js/tools/groups.js"></script>
+  <script src="js/tools/edit.js"></script>
+  <script src="js/tools/fillet.js"></script>
+  <script src="js/tools/area.js"></script>
+  <script src="js/tools/dimension.js"></script>
+  <script src="js/tools/text.js"></script>
+
+  <!-- GEOMETRY — segment, arc, snap, matematika -->
+  <script src="js/geometry/arcfit.js"></script>
+
+  <!-- TOOLS — draw, edit, transform, cnc -->
+  <script src="js/tools/edit-grips.js"></script>
+
+  <!-- UI — render, panels, input, reference -->
+  <script src="js/ui/input-drag.js"></script>
+  <script src="js/ui/input-guard.js"></script>
+  <script src="js/ui/input-keys.js"></script>
+  <script src="js/ui/panels-list.js"></script>
+
+  <!-- IO — dxf, raster, project -->
+  <script src="js/io/file-load.js"></script>
+  <script src="js/io/dxf-export.js"></script>
+
+  <!-- UI — render, panels, input, reference -->
+  <script src="js/ui/panels-layers.js"></script>
+
+  <!-- IO — dxf, raster, project -->
+  <script src="js/io/raster.js"></script>
+  <script src="js/model/pages.js"></script>
+  <script src="js/io/project.js"></script>
+  <script src="js/io/filemanager.js"></script>
+
+  <!-- TOOLS — draw, edit, transform, cnc -->
+  <script src="js/tools/nest-raster.js"></script>
+  <script src="js/tools/cnc.js"></script>
+
+  <script src="js/ui/shortcuts.js"></script>
+
+  <!-- BOOTSTRAP -->
+  <script src="js/app.js"></script>
+
+
+<!-- Matn kiritish oynasi. Electron window.prompt() ni QO'LLAB-QUVVATLAMAYDI,
+     shuning uchun o'z oynamiz kerak. -->
+<div id="askOverlay" class="askOverlay" style="display:none;">
+  <div class="askBox">
+    <div class="askTitle" id="askTitle">Matn</div>
+    <textarea id="askInput" rows="3" spellcheck="false"
+              placeholder="Masalan: Qalinlik 18 mm&#10;Shift+Enter — yangi qator"></textarea>
+    <div class="askRow">
+      <button class="secondary" id="askCancel">Bekor (Esc)</button>
+      <button id="askOk">Qo'yish (Enter)</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

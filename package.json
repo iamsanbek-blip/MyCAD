@@ -1,0 +1,98 @@
+{
+  "name": "rugby",
+  "productName": "Rugby",
+  "version": "1.1.0-preview.2",
+  "description": "Rugby — CNC Corner Editor. Dogbone, T-bone, fillet, chamfer va nesting.",
+  "main": "main.js",
+  "author": {
+    "name": "Rugby",
+    "email": "info@rugby.local"
+  },
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "electron .",
+    "check": "node scripts/check.cjs",
+    "test": "node scripts/test.cjs",
+    "pack:update": "node scripts/pack-asar.cjs",
+    "dist": "electron-builder --win --x64",
+    "test:electron": "node tests/electron-smoke.cjs",
+    "dist:portable": "node scripts/release-portable.cjs",
+    "dist:both": "electron-builder --win nsis portable --x64",
+    "dist:unsigned:linux": "electron-builder --win --dir --x64 -c.forceCodeSigning=false -c.win.signAndEditExecutable=false && node patch-exe.js && electron-builder --win portable --x64 --prepackaged dist/win-unpacked -c.forceCodeSigning=false -c.win.signAndEditExecutable=false -c.portable.artifactName=Rugby-Unsigned-Dev.exe"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3",
+    "playwright": "1.62.1",
+    "resedit": "^2.0.0"
+  },
+  "build": {
+    "forceCodeSigning": true,
+    "appId": "uz.rugby.editor",
+    "productName": "Rugby",
+    "copyright": "Copyright © 2026 Rugby",
+    "electronLanguages": [
+      "en-US",
+      "ru"
+    ],
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "preload-splash.js",
+      "splash.html",
+      "desktop/**/*",
+      "app/**/*",
+      "assets/**/*"
+    ],
+    "fileAssociations": [
+      {
+        "ext": "dbe",
+        "name": "Rugby loyihasi",
+        "description": "Rugby CNC Corner Editor loyihasi",
+        "icon": "build/icon.ico",
+        "role": "Editor"
+      }
+    ],
+    "win": {
+      "signDlls": true,
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "artifactName": "Rugby-${version}-Setup.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Rugby",
+      "menuCategory": "Rugby",
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "installerLanguages": [
+        "en_US"
+      ],
+      "artifactName": "Rugby-${version}-Setup.${ext}"
+    },
+    "portable": {
+      "artifactName": "Rugby-Portable.${ext}",
+      "requestExecutionLevel": "user",
+      "unpackDirName": false
+    }
+  }
+}

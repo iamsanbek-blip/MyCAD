@@ -1,0 +1,23 @@
+{
+  "version": "1.1.0-preview.2",
+  "builtOn": "2026-10-03",
+  "artifact": "Rugby-Portable.exe",
+  "bytes": 65529675,
+  "sha256": "45986820f23fa712c610b205335ff41d9b50a0e9615b312804a7568a0c338026",
+  "architecture": "Windows x64 application in standard NSIS portable launcher",
+  "electron": "31.7.7",
+  "electronBuilder": "24.13.3",
+  "signed": false,
+  "status": "Unsigned preview requested by the user; not a Smart App Control fix",
+  "smartscreen": "More info / Run anyway is controlled by Windows policy and cannot be guaranteed by the app",
+  "smartAppControl": "Still may block this unsigned executable; no per-app Run anyway option",
+  "windowsGuiTest": "not performed",
+  "payloadIntegrity": "passed: 20 files verified; SFX trailing data expected",
+  "sourceFilesMatched": 60,
+  "appAsarSha256": "c195e3291dd6aa8059e13fb54f154bc38d7e379d280594234926dc205a5af160",
+  "linuxGuiTest": "passed on app.asar extracted from this exact EXE; native dialog choices mocked",
+  "syntaxFiles": 49,
+  "behaviorTestsPassed": 21,
+  "legacyRegressionFilesPassed": 18,
+  "windowsSecuritySettingsChanged": false
+}
