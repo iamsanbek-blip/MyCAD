@@ -1,10 +1,10 @@
 # Joriy tarqatish holati — 2026-10-11
 
 GitHub manbasi: https://github.com/iamsanbek-blip/MyCAD . Qisqa foydalanuvchi
-qo‘llanmasi README.md da; yangi Windows preview reliz jarayoni
+qo‘llanmasi README.md da; v1.1.0-preview.2 Releases’da chiqarildi; yangi Windows preview reliz jarayoni
 `docs/GITHUB-RELEASE.md` da. Tekshiruv holati `docs/TESTING.md` da.
 
-Quyidagi 2026-10-03 qaydlar tarixiy. Yangi EXE Windows CI orqali qayta quriladi;
+Quyidagi 2026-10-03 qaydlar tarixiy. Yangi EXE Windows CI orqali qayta qurilib, sinovlardan o‘tdi;
 oldingi EXE o‘rniga yangi relizning SHA256.txt fayli ustuvor. Imzolash sertifikati
 hali mavjud emas; preview relizi SAC muammosini hal qilmaydi.
 

@@ -1,16 +1,40 @@
 # GitHub relizi uchun tekshiruv — 2026-10-11
 
-Mahalliy Node tekshiruvlari qayta bajarildi: 49 JavaScript fayli sintaksisi va
-asset yo‘llari, 18 regressiya fayli va 21 workspace testi — barchasi o‘tdi.
+**Windows tekshiruvlari o‘tdi.**
+[GitHub Actions natijasi](https://github.com/iamsanbek-blip/MyCAD/actions/runs/38148716414).
+Windows Server 2022, x64, Electron 31.7.7; versiya 1.1.0-preview.2.
 
-Windows CI jarayoni tayyorlandi. U manba va ichki Rugby.exe GUI sini hamda
-portable launcher ochilishini tekshiradi; faqat muvaffaqiyatdan so‘ng reliz
-chiqaradi. Ishga tushirish natijasi GitHub Actions va relizdagi BUILD-REPORT.json
-da qayd etiladi. Ushbu yozuv paytida Windows CI natijasi hali olinmagan.
+- 49 JavaScript fayli sintaksisi va asset yo‘llari; 18 regressiya fayli va
+  21 workspace testi — mahalliy va Windows muhitida o‘tdi.
+- Haqiqiy Electron oynasida manba hamda paketlangan `Rugby.exe`: chizish,
+  ikki sahifa, hotkey remap, IPC/disk orqali saqlash va qayta ochish o‘tdi.
+- Toolbar 1600×950 va 1100×700 kontent o‘lchamida tekshirildi.
+- Aynan tarqatilgan `Rugby-Portable.exe` odatiy flaglar bilan ishga tushirildi;
+  `Nomsiz loyiha — Rugby` asosiy oynasi ochilib, ishlashda davom etdi.
 
-Quyidagi eski tekshiruvlar 2026-10-03 nusxasiga tegishli. Ularning EXE hashlari
-GitHub’da qayta quriladigan faylga tatbiq etilmaydi. Windows 10/11 qo‘lda qabul,
-haqiqiy fayl tanlash dialoglari va SmartScreen/SAC sinovi hali bajarilmagan.
+Reliz: [v1.1.0-preview.2](https://github.com/iamsanbek-blip/MyCAD/releases/tag/v1.1.0-preview.2).
+EXE hajmi: **65 612 574 bayt**. SHA256:
+
+```text
+8af408c37ba7afc9d30453a39fd175ed315866b804b57720f55525ad85898784
+```
+
+Relizdagi `BUILD-REPORT.json` aniq commit, paket hashi va test dalillarini,
+`SHA256.txt` yuklangan EXE hashini saqlaydi. GitHub’dagi asset digest ham ushbu
+hash bilan teng. Kod commit: `28f5460efee25c02183ecc9a4cae80cc7d90261d`.
+
+**Chegaralar:** GUI avtomatlashtirishda fayl dialogining tanlovi mock qilingan;
+GPU grafik testda o‘chirilgan, portable launcher esa odatiy flaglar bilan ochilgan.
+Windows 10/11 foydalanuvchi muhiti, haqiqiy fayl tanlash dialoglari,
+SmartScreen/SAC va imzolangan build hali tekshirilmagan. EXE imzosiz.
+
+Dastlabki CI urinishida serverning kichik boshlang‘ich oynasi test nuqtasini
+panel ostida qoldirdi; test kontent o‘lchami aniq belgilandi. Keyingi buildda
+PowerShell dotted CLI parametrini noto‘g‘ri ajratdi; `scripts/build-preview.cjs`
+strukturali builder API chaqiruviga o‘tkazildi. Yakuniy CI to‘liq o‘tdi.
+
+Quyidagi tekshiruvlar 2026-10-03 nusxasiga tegishli. Ularning EXE hashlari
+GitHub’da qayta qurilgan faylga tatbiq etilmaydi.
 
 ---
 
