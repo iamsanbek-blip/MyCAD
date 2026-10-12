@@ -17,6 +17,10 @@ kod imzolash sertifikati hali yo‘q.
 [Reliz va SHA256](https://github.com/iamsanbek-blip/MyCAD/releases/tag/v1.1.0-preview.2)
 · [Xato haqida yozish](https://github.com/iamsanbek-blip/MyCAD/issues)
 
+## Dastur ko‘rinishi
+
+![Rugby Desktop — mebel chizmasi va o‘lchamlar](docs/images/rugby-preview.png)
+
 ## Tez boshlash
 
 - Pastdagi **+** — yangi sahifa; **Ctrl+PageUp / PageDown** — sahifalar orasida o‘tish.
