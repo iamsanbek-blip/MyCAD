@@ -23,8 +23,8 @@ function setHint(msg){const h=document.getElementById('hint');if(h)h.textContent
 function projectText(){return JSON.stringify(buildProject());}
 function projectIsEmpty(){
   return !documentPages.some(p=>p.id===activePageId
-    ? drawnLines.length||dimensions.length||texts.length||refImages.length
-    : p.shapes.length||p.dimensions.length||p.texts.length||p.refImages.length);
+    ? drawnLines.length||dimensions.length||texts.length||refImages.length||panelScene.panels.length||panelScene.templates.length
+    : p.shapes.length||p.dimensions.length||p.texts.length||p.refImages.length||p.scene3d?.panels.length||p.scene3d?.templates.length);
 }
 async function chooseUnsavedAction(){
   if(window.desktop?.confirmReplace)return window.desktop.confirmReplace();

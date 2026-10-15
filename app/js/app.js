@@ -34,6 +34,7 @@ function initApp(){
 
   // Fayl boshqaruvi (New / Open / Save / Save As) — js/io/filemanager.js
   initPages();
+  initModel3D();
   wireFileManager();
   wireShortcuts();
   markProjectSaved(null,null,null);

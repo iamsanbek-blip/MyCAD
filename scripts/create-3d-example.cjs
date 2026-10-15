@@ -1,0 +1,4 @@
+const fs=require('node:fs'),P=require('../app/js/core/panel-model.js'),D=require('../app/js/core/document-codec.js'),p=D.emptyPage('Korpus 600 × 400 × 720');
+function add(name,w,h,position,rotation){const t=P.template([{x:0,y:0},{x:w,y:0},{x:w,y:h},{x:0,y:h}],name);p.scene3d.templates.push(t);p.scene3d.panels.push(P.update(P.instantiate(t),{position,rotation}));}
+add('Chap yon',400,720,[-292,0,360],[90,0,90]);add('O‘ng yon',400,720,[292,0,360],[90,0,90]);add('Past',568,400,[0,0,8],[0,0,0]);add('Tepa',568,400,[0,0,712],[0,0,0]);add('Tokcha',568,384,[0,-8,360],[0,0,0]);add('Orqa',568,688,[0,192,360],[90,0,0]);
+let offset=0;for(const t of p.scene3d.templates){p.shapes.push({uid:t.id,kind:'rect',points:t.outline.map(v=>({x:v.x+offset,y:v.y})),closed:true,layer:'cut',color:'#ff6b6b'});offset+=t.width+50;}fs.writeFileSync('namunalar/korpus-3d.dbe',JSON.stringify(D.encode([p],p.id),null,2)+'\n');

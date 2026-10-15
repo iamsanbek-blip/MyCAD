@@ -37,7 +37,11 @@ function updateDrawActionButtons(){
   document.getElementById('drawActionsGroup').style.display = has ? 'flex' : 'none';
 }
 function setAppMode(mode){
+  if(typeof panelLeave==='function'&&appMode==='model3d')panelLeave();
+  if(mode==='model3d')settlePageInteraction();
   appMode = mode;
+  document.body.classList.toggle('model3d',mode==='model3d');
+  document.getElementById('mode3dBtn').classList.toggle('active',mode==='model3d');
   if(transformTool){ finishTransform(); } // switching modes cancels an in-progress transform
   if(trimMode){ finishTrim(); }
   if(dimTool){ finishDim(); }
@@ -62,7 +66,7 @@ function setAppMode(mode){
   if(ng) ng.style.display = mode==='edit' ? 'flex' : 'none';
   // The sheet outline belongs to nesting only — drop it when leaving Bone edit
   // so it never gets in the way while drawing.
-  if(mode!=='edit' && typeof nestSheets!=='undefined' && nestSheets.length){
+  if(mode==='draw' && typeof nestSheets!=='undefined' && nestSheets.length){
     nestSheets=[];
     const nr=document.getElementById('nestReport'); if(nr) nr.textContent='';
   }
@@ -76,6 +80,7 @@ function setAppMode(mode){
     ? 'Chap klik: nuqta qo\'yish &middot; Raqam yozib Enter: aniq uzunlik/radius &middot; Enter (bo\'sh)/qo\'sh klik: tugatish &middot; Esc: bekor/asboblarsiz rejim<br>Ortho: gorizontal/vertikalga tortadi &middot; Snap turlarini yon panelda yoqib/o\'chiring'
     : 'Chap klik: burchak rejimini almashtirish &middot; Ctrl/Shift+klik: burchakni tanlovga qo\'shish/olib tashlash &middot; Chizilgan chiziqni klik: tanlab o\'chirish<br>Chapdan-o\'ngga sudrash: to\'liq ichidagilarni tanlaydi &middot; O\'ngdan-chapga sudrash: tegib turganlarni ham tanlaydi &middot; O\'ng/O\'rta sudrash: pan &middot; Ctrl+Z/Y: undo/redo';
   draw();
+  if(mode==='model3d')panelEnter();
 }
 document.getElementById('modeSelectBtn').addEventListener('click', ()=>setAppMode('edit'));
 document.getElementById('modeDrawBtn').addEventListener('click', ()=>setAppMode('draw'));

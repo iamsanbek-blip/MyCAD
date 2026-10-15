@@ -1,5 +1,6 @@
 /* Command registry: add a command here once; settings and dispatch share it. */
 const RUGBY_COMMANDS = [
+  ['view.model3d','3D modellash','Shift+F3',()=>setAppMode('model3d'),'mode3dBtn'],
   ['file.new','Yangi loyiha','Ctrl+N',()=>newProject(),'newProjBtn',true],
   ['file.open','Loyihani ochish','Ctrl+O',()=>openProjectDialog(),'openProjBtn',true],
   ['file.save','Barcha sahifalarni saqlash','Ctrl+S',()=>saveProjectQuick(),'saveProjBtn',true],
@@ -66,6 +67,11 @@ function handleShortcut(e){
   if(inField&&(!command.inField||(!e.ctrlKey&&!e.metaKey&&!e.altKey)))return;
   if(currentDraw&&typedLen!==''&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&combo.length===1)return;
   if(currentDraw&&command.id==='edit.delete')return;
+  if(appMode==='model3d'){
+    const handlers={'edit.delete':panelDelete,'edit.duplicate':panelDuplicate,'tool.move':()=>panelMode('translate'),'tool.rotate':()=>panelMode('rotate'),'tool.scale':()=>panelMode('scale'),'view.ortho':panelToggleOrtho};
+    if(handlers[command.id]){e.preventDefault();e.stopImmediatePropagation();if(!e.repeat)handlers[command.id]();return;}
+    if(!/^(file\.(new|open|save|saveAs)|page\.|edit\.(undo|redo)|settings\.|view\.model3d)/.test(command.id))return;
+  }
   e.preventDefault();e.stopImmediatePropagation();if(e.repeat)return;
   Promise.resolve(command.run()).catch(err=>{console.error(err);alert('Buyruq bajarilmadi: '+err.message);});
 }

@@ -1,3 +1,10 @@
+# 1.1.1-preview.1 — 3D modellash
+
+Alohida branch: `versions/1.1.1-preview.1`.
+Qo‘llanma: [MODEL3D](docs/MODEL3D.md). Quyida eski tarixiy qaydlar.
+
+---
+
 # Yangi versiya — 1.1.0-preview.3 (2026-10-15)
 
 GitHub branch: `versions/1.1.0-preview.3`. Eski `main` va preview.2 relizi

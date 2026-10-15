@@ -38,7 +38,7 @@ test('round trip includes all pages, dimensions, text, relief and active tab',()
 });
 test('legacy v1 opens as one page and v2 unknown versions are rejected',()=>{
  const p=codec.emptyPage();const v1={...p,format:codec.FORMAT,version:1};const out=codec.decode(JSON.stringify(v1));
- assert.equal(out.pages.length,1);assert.equal(out.version,2);assert.throws(()=>codec.decode({...v1,version:99}));
+ assert.equal(out.pages.length,1);assert.equal(out.version,3);assert.throws(()=>codec.decode({...v1,version:99}));
 });
 test('invalid inactive pages are rejected before any current data changes',()=>{
  const h=createHarness();rect(h);const before=h.run('projectText()');const p=JSON.parse(before);p.pages.push({...codec.emptyPage(),shapes:[{points:[{x:'bad',y:1}]}]});h.sb.bad=JSON.stringify(p);

@@ -5,7 +5,8 @@
   else root.RugbyDocument = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
-  const FORMAT = 'dogbone-editor-project', VERSION = 2;
+  const FORMAT = 'dogbone-editor-project', VERSION = 3;
+  const Panels=typeof module==='object'&&module.exports?require('./panel-model.js'):globalThis.RugbyPanels;
   const clone = value => JSON.parse(JSON.stringify(value));
   const uid = () => 'page_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
   function emptyPage(name = 'Sahifa 1') {
@@ -15,7 +16,7 @@
         {id:'engrave',name:"Engrave (O‘yish)",color:'#5ee1ff',aci:4,visible:true,locked:false},
         {id:'drill',name:'Drill (Teshik)',color:'#ffe680',aci:2,visible:true,locked:false},
         {id:'default',name:'General',color:'#ffb454',aci:40,visible:true,locked:false}],
-      activeLayer:'cut',activeColor:'#ffb454',view:{scale:1,ox:0,oy:0},settings:{}};
+      activeLayer:'cut',activeColor:'#ffb454',view:{scale:1,ox:0,oy:0},settings:{},scene3d:Panels.empty()};
   }
   function validateNumbers(value, depth = 0) {
     if (depth > 50) throw new Error('Loyiha tuzilmasi haddan tashqari chuqur.');
@@ -54,6 +55,7 @@
     if (raw.view && Number.isFinite(raw.view.scale) && raw.view.scale > 0 &&
         Number.isFinite(raw.view.ox) && Number.isFinite(raw.view.oy)) page.view = clone(raw.view);
     if (raw.settings && typeof raw.settings === 'object' && !Array.isArray(raw.settings)) page.settings = clone(raw.settings);
+    page.scene3d=Panels.normalize(raw.scene3d);
     validateNumbers(page);
     return page;
   }

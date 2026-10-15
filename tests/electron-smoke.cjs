@@ -111,6 +111,7 @@ if (process.platform === 'linux' && process.getuid?.() === 0) electronArgs.unshi
     }
     passed.push('toolbar fits the canvas at 1600x950 and 1100x700');
     passed.push(...await require('./input-region-checks.cjs')(app,page,temporary,artifactDir));
+    passed.push(...await require('./model3d-checks.cjs')(app,page,temporary,artifactDir));
     assert.deepEqual(errors, []);
     if (artifactDir) {
       fs.mkdirSync(artifactDir, {recursive:true});

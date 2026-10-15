@@ -14,6 +14,7 @@ function cycleMode(c){
 
 document.addEventListener('keydown',(e)=>{
   if(e.isComposing)return;
+  if(appMode==='model3d'){if(e.key==='Escape'){panelView?.cancel();panelLineMode=false;panelView?.setLine(false);}return;}
   if(typeof pngRegionSelection!=='undefined' && pngRegionSelection){
     if(e.key==='Escape'){e.preventDefault();cancelPNGRegionExport();}
     return;

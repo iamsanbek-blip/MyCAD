@@ -31,6 +31,8 @@ fs.writeFileSync('dist/BUILD-REPORT.json', JSON.stringify({
 }, null, 2) + '\n');
 fs.writeFileSync('dist/RELEASE-NOTES.md', `Windows x64 uchun Rugby ${pkg.version}.\n\n` +
   '**Rugby-Portable.exe** faylini yuklab oling va ikki marta bosing. O‘rnatish, ZIP yoki CMD kerak emas.\n\n' +
+  '- 3D modellash: 48×48 shablonlar, 16 mm panellar, Ortho/Free va qalinlikni saqlaydigan transform.\n' +
+  '- Namuna: korpus-3d.dbe. Yangi .dbe v3 eski Rugby versiyalarida ochilmaydi.\n' +
   '- Bir .dbe faylida bir nechta sahifa; Ctrl+PageUp / Ctrl+PageDown.\n' +
   '- F10 orqali hotkeylarni almashtirish; Ctrl+S bilan barcha sahifalarni saqlash.\n' +
   '- Raqamli kataklarda kechiktirilgan fokus qaytarish va panel ustidagi fon hisoblari tuzatildi.\n' +

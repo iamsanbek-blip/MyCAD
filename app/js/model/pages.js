@@ -6,6 +6,7 @@ function capturePageData(){
   const settings={};
   PAGE_CONTROL_IDS.forEach(id=>{const e=document.getElementById(id);if(e)settings[id]=e.type==='checkbox'?e.checked:e.value;});
   return {
+    scene3d:RugbyPanels.copy(panelScene),
     layers:RugbyDocument.clone(layers), activeLayer, activeColor,
     shapes:drawnLines.map(compactShape), dimensions:RugbyDocument.clone(dimensions), texts:RugbyDocument.clone(texts),
     refImages:refImages.map(r=>{const {img,...data}=r;return RugbyDocument.clone(data);}),
@@ -20,6 +21,7 @@ function rememberActivePage(){
   page.history=history;page.historyIndex=historyIndex;
 }
 function settlePageInteraction(){
+  panelView?.cancel();
   cancelPNGRegionExport();
   // Roll back live previews: changing a tab must never commit a half-move.
   if(transformTool && transformSnapshot){
@@ -41,6 +43,7 @@ function repaintPage(){
 function applyPageData(page){
   const was=pagesHydrating;pagesHydrating=true;
   try{
+    panelScene=RugbyPanels.normalize(page.scene3d);panelSelected=null;
     layers=RugbyDocument.clone(page.layers);activeLayer=page.activeLayer;activeColor=page.activeColor;
     polygons=[];drawnLines=page.shapes.map(expandShape);dimensions=RugbyDocument.clone(page.dimensions);texts=RugbyDocument.clone(page.texts);
     refImages=RugbyDocument.clone(page.refImages).map(r=>({...r,img:null}));activeRefId=refImages[0]?.id||null;
@@ -54,6 +57,7 @@ function applyPageData(page){
     history=page.history||[];historyIndex=Number.isInteger(page.historyIndex)?page.historyIndex:history.length-1;
     if(!history.length){history=[];historyIndex=-1;pushHistory();}
     repaintPage();
+    if(appMode==='model3d'){panelRefresh();panelCollectTemplates();}
   }finally{pagesHydrating=was;}
 }
 function switchPage(id){

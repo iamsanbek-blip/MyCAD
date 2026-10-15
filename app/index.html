@@ -5,6 +5,7 @@
 <title>Rugby — CNC Corner Editor</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/workspace.css">
+<link rel="stylesheet" href="css/model3d.css">
 </head>
 <body>
 <nav id="pageBar" aria-label="Loyiha sahifalari">
@@ -33,11 +34,26 @@
 
 <div id="canvasWrap">
   <canvas id="cv"></canvas>
+<div id="model3dWorkspace" hidden><aside id="model3dTools"><h3>3D modellash · mm</h3>
+<div class="panelRow"><button id="panelViewiso">Izometriya</button><button id="panelViewtop">Tepa</button><button id="panelViewfront">Old</button><button id="panelViewside">Yon</button></div>
+<p>Chap tugma: aylantirish / tanlash. O‘ng: surish. G‘ildirak: zoom.</p>
+<div class="panelRow"><button id="panelMove">Move</button><button id="panelRotate">Rotate</button><button id="panelScale">En/bo‘y scale</button></div>
+<label><input type="checkbox" id="panelOrtho" checked> Ortho (1 mm / 90°); o‘chiq — Free</label>
+<label><input type="checkbox" id="panelGuides" checked> 2D chizma va chiziqlar</label>
+<div class="panelRow"><button id="panelLine">╱ XY chiziq</button><button id="panelUndo">Undo</button><button id="panelRedo">Redo</button></div>
+<h3>Panel shablonlari · 48 × 48</h3>
+<label>Yangi panel qalinligi, mm<input type="text" inputmode="decimal" id="panelDefaultThickness" value="16"></label>
+<div class="panelRow"><button id="panelNew">+ Yangi panel</button><button id="panelRefreshTemplates">Yangilash</button><button id="panelSaveTemplate">Tanlovni saqlash</button></div>
+<div id="panelTemplates"></div><fieldset id="panelProperties" disabled><legend>Tanlangan panel</legend>
+<label>Nomi<input id="panelName" type="text" maxlength="80"></label><div class="panelFields"><label>En, mm<input id="panelWidth" type="text" inputmode="decimal"></label><label>Bo‘y, mm<input id="panelHeight" type="text" inputmode="decimal"></label><label>Qalinlik, mm<input id="panelThickness" type="text" inputmode="decimal"></label><label>X, mm<input id="panelX" type="text" inputmode="decimal"></label><label>Y, mm<input id="panelY" type="text" inputmode="decimal"></label><label>Z, mm<input id="panelZ" type="text" inputmode="decimal"></label><label>RX, °<input id="panelRX" type="text" inputmode="decimal"></label><label>RY, °<input id="panelRY" type="text" inputmode="decimal"></label><label>RZ, °<input id="panelRZ" type="text" inputmode="decimal"></label></div><button id="panelApply">Qo‘llash / Enter</button><button id="panelDuplicate">Nusxa</button><button id="panelDelete">O‘chirish</button></fieldset>
+<h3 id="panelCount">0 ta panel</h3><div id="panelSceneList"></div><p id="model3dStatus" role="status">Shablonni bosing. En/bo‘y qalinlikni o‘zgartirmaydi.</p>
+</aside><div id="model3dViewport"></div></div>
   <div id="drawToolbar">
     <button class="dtBtn" id="shortcutSettingsBtn" title="Hotkey sozlamalari">⌨ Hotkey</button>
-    <div class="dtGroup">
+    <div class="dtGroup modeTabs">
       <button class="dtBtn active" id="modeSelectBtn" title="Fillet/Dogbone/T-Bone tahrirlash">🦴 <span data-i18n="modeBoneEdit">Bone edit</span></button>
       <button class="dtBtn" id="modeDrawBtn" title="Chiziq/Polyline chizish">✏ <span data-i18n="modeDraw">Chizish</span></button>
+      <button class="dtBtn" id="mode3dBtn">▧ 3D modellash</button>
     </div>
     <div class="dtGroup" id="toolGroup" style="display:none;">
       <button class="dtBtn" id="toolNoneBtn" title="Hech qanday asbob — N">⛔ <span data-i18n="modeNone">None</span></button>
@@ -409,6 +425,7 @@
      ================================================================== -->
 
   <!-- GEOMETRY — segment, arc, snap, matematika -->
+  <script src="js/core/panel-model.js"></script>
   <script src="js/core/document-codec.js"></script>
   <script src="js/core/shortcut-map.js"></script>
   <script src="js/geometry/core.js"></script>
@@ -475,6 +492,8 @@
 
   <!-- IO — dxf, raster, project -->
   <script src="js/io/raster.js"></script>
+  <script src="vendor/three-viewport.js"></script>
+  <script src="js/ui/model3d.js"></script>
   <script src="js/model/pages.js"></script>
   <script src="js/io/project.js"></script>
   <script src="js/io/filemanager.js"></script>

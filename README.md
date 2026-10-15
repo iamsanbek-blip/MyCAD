@@ -1,11 +1,11 @@
-# Rugby Desktop — 1.1.0-preview.3
+# Rugby Desktop — 1.1.1-preview.1
 
 Windows uchun 2D chizma va CNC burchak tahrirlash dasturi. Bir faylda bir nechta
 sahifa, almashtiriladigan hotkeylar, DXF, dogbone, T-bone, fillet va chamfer.
 
 ## Yuklab olish
 
-**[Rugby-Portable.exe — Windows x64](https://github.com/iamsanbek-blip/MyCAD/releases/download/v1.1.0-preview.3/Rugby-Portable.exe)**
+**[Rugby-Portable.exe — Windows x64](https://github.com/iamsanbek-blip/MyCAD/releases/download/v1.1.1-preview.1/Rugby-Portable.exe)**
 
 Faylni yuklab oling va ikki marta bosing. O‘rnatish, ZIP ajratish yoki CMD
 ishlatish kerak emas. Sozlamalar Windows foydalanuvchi profilida saqlanadi.
@@ -14,16 +14,17 @@ Bu **imzosiz sinov versiyasi**. SmartScreen ogohlantirsa va tugma mavjud bo‘ls
 **More info → Run anyway**. Smart App Control esa uni bloklashi mumkin;
 kod imzolash sertifikati hali yo‘q.
 
-[Reliz va SHA256](https://github.com/iamsanbek-blip/MyCAD/releases/tag/v1.1.0-preview.3)
+[Reliz va SHA256](https://github.com/iamsanbek-blip/MyCAD/releases/tag/v1.1.1-preview.1)
 · [Xato haqida yozish](https://github.com/iamsanbek-blip/MyCAD/issues)
 
 ## Dastur ko‘rinishi
 
 ![Rugby Desktop — mebel chizmasi va o‘lchamlar](docs/images/rugby-preview.png)
 
-Yangi versiya: raqamli kataklar fokusini qaytarib olayotgan kod tuzatildi;
-PNG uchun to‘rtburchak bilan tanlangan hududni eksport qilish qo‘shildi.
-Oldingi preview.2 alohida reliz va `main` branchda saqlangan.
+**Yangi: 3D modellash** — 48×48 panel shablonlari, 16 mm standart qalinlik,
+aniq o‘lchamlar, Ortho/Free va qalinlikni saqlaydigan transformatsiyalar.
+[3D qo‘llanma](docs/MODEL3D.md) · [Korpus namunasi](namunalar/korpus-3d.dbe).
+Oldingi 1.1.0 versiyalar alohida branch va relizlarda saqlanadi.
 
 ## Tez boshlash
 

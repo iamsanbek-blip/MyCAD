@@ -46,7 +46,7 @@ function createHarness(storage=new Map()){
   }
   const win=element('window');
   const sb={console:{log(){},warn(){},error(...v){errors.push(v);}},document,Math,Date,JSON,Number,Array,Object,String,Set,Map,RegExp,Error,Promise,
-    URL,Blob,Uint8Array,Uint8ClampedArray,isFinite,parseFloat,parseInt,devicePixelRatio:1,navigator:{language:'uz'},
+    AbortController,URL,Blob,Uint8Array,Uint8ClampedArray,isFinite,parseFloat,parseInt,devicePixelRatio:1,navigator:{language:'uz'},
     alert:m=>alerts.push(m),confirm:()=>true,performance:{now:()=>0},setTimeout:()=>1,clearTimeout(){},requestAnimationFrame:()=>1,cancelAnimationFrame(){},
     localStorage:{getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
     Image:class{constructor(){this.width=100;this.height=100;}},FileReader:class{},

@@ -72,6 +72,7 @@ function expandShape(o){
 }
 function snapshot(){
   return {
+    scene3d:typeof panelScene==='undefined'?undefined:RugbyPanels.copy(panelScene),
     drawnLines: drawnLines.map(compactShape),
     dimensions: JSON.parse(JSON.stringify(dimensions)),
     texts: (typeof texts!=='undefined') ? JSON.parse(JSON.stringify(texts)) : [],
@@ -97,6 +98,7 @@ function pushHistory(){
 function restore(snap){
   if(!snap) return;
   try{
+    if(typeof panelScene!=='undefined')panelScene=RugbyPanels.normalize(snap.scene3d);
     drawnLines = (snap.drawnLines||[]).map(expandShape);
     dimensions = JSON.parse(JSON.stringify(snap.dimensions||[]));
     if(typeof texts!=='undefined') texts = JSON.parse(JSON.stringify(snap.texts||[]));
@@ -113,6 +115,7 @@ function restore(snap){
     detectCorners(settingsMap);
     renderDrawnList(); renderList();
     if(typeof renderLayerPanel==='function') renderLayerPanel();
+    if(typeof panelRefresh==='function')panelRefresh();
   }catch(err){
     console.warn('restore failed:', err.message);
   }

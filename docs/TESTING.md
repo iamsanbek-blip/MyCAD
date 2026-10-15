@@ -1,3 +1,13 @@
+# 1.1.1-preview.1
+
+Node syntax/assets, 18 legacy, 24 workspace va 4 panel-model test o‘tdi.
+Windows source/packaged GUI va portable natijalari BUILD-REPORT.json da;
+bu qayd yozilganida CI hali kutilmoqda. 3D testi WebGL, panel qalinligi,
+o‘lchamlar, orbit, undo/redo, v3 roundtrip va XY Ortho chiziqni tekshiradi.
+Windows 10/11 qo‘lda va SAC sinovi bajarilmadi.
+
+---
+
 # Preview.3 tekshiruvlari — 2026-10-15
 
 **Mahalliy va Windows sinovlari o‘tdi.**

@@ -1,7 +1,7 @@
 {
   "name": "rugby",
   "productName": "Rugby",
-  "version": "1.1.0-preview.3",
+  "version": "1.1.1-preview.1",
   "description": "Rugby — CNC Corner Editor. Dogbone, T-bone, fillet, chamfer va nesting.",
   "main": "main.js",
   "author": {
@@ -18,13 +18,16 @@
     "test:electron": "node tests/electron-smoke.cjs",
     "dist:portable": "node scripts/release-portable.cjs",
     "dist:both": "electron-builder --win nsis portable --x64",
-    "dist:unsigned:linux": "electron-builder --win --dir --x64 -c.forceCodeSigning=false -c.win.signAndEditExecutable=false && node patch-exe.js && electron-builder --win portable --x64 --prepackaged dist/win-unpacked -c.forceCodeSigning=false -c.win.signAndEditExecutable=false -c.portable.artifactName=Rugby-Unsigned-Dev.exe"
+    "dist:unsigned:linux": "electron-builder --win --dir --x64 -c.forceCodeSigning=false -c.win.signAndEditExecutable=false && node patch-exe.js && electron-builder --win portable --x64 --prepackaged dist/win-unpacked -c.forceCodeSigning=false -c.win.signAndEditExecutable=false -c.portable.artifactName=Rugby-Unsigned-Dev.exe",
+    "build:3d": "node scripts/build-3d.cjs"
   },
   "devDependencies": {
     "electron": "^31.0.0",
     "electron-builder": "^24.13.3",
+    "esbuild": "0.25.10",
     "playwright": "1.62.1",
-    "resedit": "^2.0.0"
+    "resedit": "^2.0.0",
+    "three": "0.180.0"
   },
   "build": {
     "forceCodeSigning": true,
