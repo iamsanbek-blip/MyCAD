@@ -13,8 +13,13 @@ function cycleMode(c){
 }
 
 document.addEventListener('keydown',(e)=>{
+  if(e.isComposing)return;
+  if(typeof pngRegionSelection!=='undefined' && pngRegionSelection){
+    if(e.key==='Escape'){e.preventDefault();cancelPNGRegionExport();}
+    return;
+  }
   const inField = (typeof inInputField==='function')
-    ? inInputField()
+    ? (isTextInputTarget(e.target)||inInputField())
     : ['INPUT','SELECT','TEXTAREA'].includes(document.activeElement && document.activeElement.tagName);
 
   // ---- HIMOYA QATLAMI ----

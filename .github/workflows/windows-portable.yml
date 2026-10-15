@@ -2,7 +2,7 @@ name: Windows portable preview
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'versions/1.1.0-preview.3']
     paths:
       - 'app/**'
       - 'desktop/**'

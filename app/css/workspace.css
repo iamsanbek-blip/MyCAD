@@ -27,3 +27,8 @@ dialog input{background:var(--panel-2);color:var(--text);border:1px solid var(--
 .dialogActions{display:flex;gap:8px;justify-content:flex-end;}
 .dialogActions button{width:auto;}.dialogActions span{flex:1;}
 #unsavedDialog{width:560px;}
+
+.pngRegionOverlay{position:absolute;inset:0;z-index:40;cursor:crosshair;touch-action:none;background:#06203118;}
+.pngRegionBox{display:none;position:absolute;pointer-events:none;border:2px dashed #20bfff;background:#20bfff22;box-sizing:border-box;}
+.pngRegionHelp{position:absolute;top:8px;left:8px;right:8px;display:flex;gap:12px;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--panel);color:var(--text);border:1px solid var(--cyan);border-radius:6px;pointer-events:none;}
+.pngRegionHelp button{width:auto;pointer-events:auto;}

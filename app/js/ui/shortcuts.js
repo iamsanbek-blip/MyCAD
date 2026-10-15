@@ -57,6 +57,8 @@ function chooseDrawingTool(tool){
 }
 function handleShortcut(e){
   if(e.defaultPrevented||e.isComposing)return;
+  if(isTextInputTarget(e.target)||inInputField())return;
+  if(typeof pngRegionSelection!=='undefined' && pngRegionSelection)return;
   if(document.querySelector('dialog[open]')||document.getElementById('askOverlay')?.style.display==='flex')return;
   const combo=RugbyShortcuts.fromEvent(e);if(!combo)return;
   const command=RUGBY_COMMANDS.find(c=>shortcutBindings[c.id]===combo);if(!command)return;

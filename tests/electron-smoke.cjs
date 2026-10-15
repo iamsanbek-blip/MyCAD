@@ -110,6 +110,7 @@ if (process.platform === 'linux' && process.getuid?.() === 0) electronArgs.unshi
       assert.deepEqual(overflow, [], 'Toolbar stays out of sidebar at '+width);
     }
     passed.push('toolbar fits the canvas at 1600x950 and 1100x700');
+    passed.push(...await require('./input-region-checks.cjs')(app,page,temporary,artifactDir));
     assert.deepEqual(errors, []);
     if (artifactDir) {
       fs.mkdirSync(artifactDir, {recursive:true});

@@ -7,74 +7,13 @@
    o'zgartirmang — kod global scope'da ishlaydi va tartibga bog'liq.
    ========================================================================== */
 
-// ===== NIMA UCHUN BU MODUL BOR =====
-//
-// Alomat: masofa / radius / oraliq maydonlariga ba'zan son yozib bo'lmaydi,
-//         oynadan chiqib qayta kirilsa tuzaladi.
-//
-// Uchta sabab aniqlandi:
-//
-//   1. HODISA OQIMI. Maydon ichidagi bosish va klavish hodisalari kanvasga
-//      ham yetib borardi. Kanvas ularni "chizish" deb tushunib, o'z rejimini
-//      yoqib qo'yishi mumkin edi.
-//
-//   2. QOTIB QOLGAN HOLAT. Sudrash paytida Alt+Tab bosilsa yoki oyna fokusni
-//      yo'qotsa, `mouseup` hech qachon kelmasdi. Natijada `panning`,
-//      `draggingGrip`, `selecting`, `draggingText`, `stretchBoxing` kabi
-//      bayroqlar `true` bo'lib QOLIB KETARDI. Keyingi bosishlar noto'g'ri
-//      shoxobchaga tushardi. Oynaga qayta kirish ba'zan buni tozalardi —
-//      "chiqib kirsam tuzaladi" alomatining sababi shu.
-//
-//   3. TAKROR ISHLOV. Ba'zi hotkeylar `inField` tekshiruvidan OLDIN turadi.
-//      Ular Ctrl bilan ishlagani uchun zarar bermaydi, lekin himoya qatlami
-//      baribir kerak.
-//
-// Bu modul FAQAT shu uchtasini davolaydi. Chizish, DXF/SVG eksport va
-// boshqa mantiqqa umuman tegmaydi.
-
-// ---------------------------------------------------------------------------
-//  1) HODISA IZOLYATSIYASI
-//     Maydon ichidagi hodisalar kanvasga o'tmasin.
-// ---------------------------------------------------------------------------
-const GUARD_FIELD_TAGS = ['INPUT', 'SELECT', 'TEXTAREA'];
-
-function guardIsField(el){
-  return !!(el && GUARD_FIELD_TAGS.includes(el.tagName));
+// Keep field editing native. Each global command handler checks this helper;
+// do not intercept events during document capture, before the field sees them.
+function isTextInputTarget(el){
+  return !!(el && (['INPUT','SELECT','TEXTAREA'].includes(el.tagName) || el.isContentEditable));
 }
-
-// Hozir kiritish maydonida turibmizmi?
-function inInputField(){
-  return guardIsField(document.activeElement);
-}
-
-function wireFieldIsolation(){
-  // ⚠️ FAQAT KLAVIATURA. Sichqoncha hodisalari ATAYLAB to'xtatilmaydi.
-  //
-  // Nima uchun? Ilova tinglovchilari quyidagicha joylashgan:
-  //     mousedown, dblclick  → CANVAS da  (maydon bosilganda ular baribir
-  //                                        ishga tushmaydi — izolyatsiya keraksiz)
-  //     mousemove, mouseup   → WINDOW da  (bular HAMMA joydan hodisa oladi)
-  //
-  // Agar mouseup ni maydon ustida to'xtatsak, quyidagi holat yuzaga keladi:
-  //   1. Foydalanuvchi kanvasda sudraydi (pan / ramka / grip)
-  //   2. Sichqonchani panelga olib chiqib, MAYDON USTIDA qo'yib yuboradi
-  //   3. window.mouseup HECH QACHON ishga tushmaydi
-  //   4. `panning` / `selecting` / `draggingGrip` `true` bo'lib QOLIB KETADI
-  //   5. Shundan keyin maydonlar javob bermay qoladi
-  //
-  // Aynan shu — "maydonga hech narsa yozib bo'lmayapti, dasturni qayta
-  // ochsam tuzaladi" alomatining sababi. Shuning uchun sichqoncha hodisalari
-  // erkin o'tadi, qotib qolgan holat esa pastdagi kafolat bilan tozalanadi.
-  const KEY_EVENTS = ['keydown','keyup','keypress'];
-  KEY_EVENTS.forEach(type=>{
-    document.addEventListener(type, (e)=>{
-      if(!guardIsField(e.target) || e.target.closest?.('#shortcutDialog')) return;
-      if(e.key==='Escape' || e.key==='Enter') return;   // maydondan chiqish yo'li
-      if(e.ctrlKey || e.metaKey) return;                // Ctrl buyruqlari o'tsin
-      e.stopPropagation();
-    }, true);
-  });
-}
+function guardIsField(el){ return isTextInputTarget(el); }
+function inInputField(){ return isTextInputTarget(document.activeElement); }
 
 // ---------------------------------------------------------------------------
 //  KAFOLAT: sichqoncha tugmasi QAYERDA qo'yib yuborilsa ham, sudrash holati
@@ -84,15 +23,10 @@ function wireFieldIsolation(){
 // ---------------------------------------------------------------------------
 function wireDragSafetyNet(){
   window.addEventListener('mouseup', ()=>{
-    // Ilova o'z mouseup ishlovini bajarib bo'lgach tekshiramiz
-    setTimeout(()=>{
-      const stuck = (typeof panning!=='undefined' && panning) ||
-                    (typeof selecting!=='undefined' && selecting) ||
-                    (typeof draggingGrip!=='undefined' && draggingGrip) ||
-                    (typeof stretchBoxing!=='undefined' && stretchBoxing) ||
-                    (typeof draggingText!=='undefined' && draggingText);
-      if(stuck) resetInteractionState('mouseup-safety');
-    }, 0);
+    // Registered after the application mouseup handler; clean leftovers now,
+    // not in a timer that could cancel a later drag.
+    const stuck = panning || selecting || draggingGrip || stretchBoxing || draggingText || draggingRef;
+    if(stuck) resetInteractionState('mouseup-safety');
   }, false);
 
   // Sichqoncha tugmasi bosilmagan holda harakat qilyaptimi, lekin sudrash
@@ -130,7 +64,7 @@ function resetInteractionState(reason){
     pendingLineClickIdx=null; cleared.push('pendingLineClickIdx'); }
   if(typeof draggingText!=='undefined' && draggingText){ draggingText=null; cleared.push('draggingText'); }
   if(typeof stretchBoxing!=='undefined' && stretchBoxing){ stretchBoxing=false; cleared.push('stretchBoxing'); }
-  if(typeof refDragging!=='undefined' && refDragging){ refDragging=null; cleared.push('refDragging'); }
+  if(typeof draggingRef!=='undefined' && draggingRef){ draggingRef=null; cleared.push('draggingRef'); }
 
   // "M bosildi, endi I kutilyapti" holati — 260 ms ichida hal bo'lishi kerak
   if(typeof pendingMirrorKey!=='undefined' && pendingMirrorKey){
@@ -148,14 +82,7 @@ function wireFocusReset(){
     if(document.hidden) resetInteractionState('hidden');
   });
   // Sichqoncha oyna tashqarisida qo'yib yuborilgan bo'lsa — qaytganda tozalaymiz
-  window.addEventListener('focus', ()=>{
-    // e.buttons === 0 bo'lsa hech qanday tugma bosilmagan
-    setTimeout(()=>{
-      if(typeof panning!=='undefined' && (panning || (typeof selecting!=='undefined' && selecting))){
-        resetInteractionState('focus');
-      }
-    }, 0);
-  });
+  window.addEventListener('focus', ()=>resetInteractionState('focus'));
   // Sichqoncha hujjatdan butunlay chiqib ketdi va tugma bosilmagan
   document.addEventListener('mouseleave', (e)=>{
     if(e.buttons === 0) resetInteractionState('mouseleave');
@@ -164,8 +91,8 @@ function wireFocusReset(){
 
 // ---------------------------------------------------------------------------
 //  3) MAYDONLARNI TIKLASH
-//     Maydon negadir javob bermay qolsa, unga bosilganda majburan
-//     fokus beriladi va tanlanadi.
+//     Maydonga kirishda qolgan drag holati tozalanadi. Fokusni brauzer
+//     boshqaradi; kechiktirilgan focus() chaqiruvlari ishlatilmaydi.
 // ---------------------------------------------------------------------------
 function wireFieldRecovery(){
   document.addEventListener('mousedown', (e)=>{
@@ -177,15 +104,9 @@ function wireFieldRecovery(){
     // bo'lsa, darhol tozalaymiz (aks holda keyingi harakatlar buziladi).
     resetInteractionState('field-mousedown');
 
-    // Fokusni ikki bosqichda kafolatlaymiz: darhol va kadr oxirida.
-    // Nima uchun ikki marta? Agar shu paytda biror kod qayta chizsa yoki
-    // DOM ni yangilasa, fokus ketishi mumkin — ikkinchi urinish qaytaradi.
-    const grab = ()=>{
-      if(document.activeElement === el) return;
-      try{ el.focus({preventScroll:true}); }catch(err){ try{ el.focus(); }catch(e2){} }
-    };
-    setTimeout(grab, 0);
-    requestAnimationFrame(grab);
+    // Let the browser's pointer default action focus the clicked field.
+    // A queued focus() can otherwise steal focus after Tab or a later click.
+
   }, true);
 
   // Maydondan chiqqanda qotib qolgan chizish holatlari bo'lsa tozalanadi
@@ -214,7 +135,6 @@ function requestRedraw(){
 
 // ---------------------------------------------------------------------------
 function wireInputGuard(){
-  wireFieldIsolation();
   wireDragSafetyNet();
   wireFocusReset();
   wireFieldRecovery();

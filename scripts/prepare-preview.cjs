@@ -33,7 +33,9 @@ fs.writeFileSync('dist/RELEASE-NOTES.md', `Windows x64 uchun Rugby ${pkg.version
   '**Rugby-Portable.exe** faylini yuklab oling va ikki marta bosing. O‘rnatish, ZIP yoki CMD kerak emas.\n\n' +
   '- Bir .dbe faylida bir nechta sahifa; Ctrl+PageUp / Ctrl+PageDown.\n' +
   '- F10 orqali hotkeylarni almashtirish; Ctrl+S bilan barcha sahifalarni saqlash.\n' +
-  '- 2D chizma, DXF va CNC burchak asboblari.\n\n' +
+  '- Raqamli kataklarda kechiktirilgan fokus qaytarish va panel ustidagi fon hisoblari tuzatildi.\n' +
+  '- PNG — hududni belgilash: to‘rtburchak torting; faqat shu joy drawing-region.png ga eksport qilinadi. Esc — bekor.\n' +
+  '- Oddiy PNG butun chizmani eksport qiladi.\n\n' +
   '**Imzosiz sinov versiyasi:** SmartScreen tugma ko‘rsatsa, More info → Run anyway. ' +
   'Smart App Control uni bloklashi mumkin; kod imzolash hali hal qilinmagan.\n\n' +
   'Windows Server 2022 muhitida kod testlari, manba va paketlangan dastur GUI sinovi, ' +

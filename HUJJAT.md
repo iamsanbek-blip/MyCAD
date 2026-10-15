@@ -1,3 +1,17 @@
+# Yangi versiya — 1.1.0-preview.3 (2026-10-15)
+
+GitHub branch: `versions/1.1.0-preview.3`. Eski `main` va preview.2 relizi
+alohida saqlanadi. Drive’da ham alohida yangi versiya papkasi yaratilgan.
+
+Raqamli katakdagi takrorlangan fokus xatosi, panel ustidagi snap/geometry
+hisoblari va klaviatura hodisalari tuzatildi. PNG hududini to‘rtburchak bilan
+belgilash qo‘shildi. Batafsil: `docs/INPUT-PNG-PREVIEW3.md`.
+Sinovning joriy natijasi `docs/TESTING.md` da.
+
+Quyidagi ma’lumotlar oldingi preview.2 tarixidir.
+
+---
+
 # Joriy tarqatish holati — 2026-10-11
 
 GitHub manbasi: https://github.com/iamsanbek-blip/MyCAD . Qisqa foydalanuvchi

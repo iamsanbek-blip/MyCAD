@@ -20,6 +20,7 @@ function rememberActivePage(){
   page.history=history;page.historyIndex=historyIndex;
 }
 function settlePageInteraction(){
+  cancelPNGRegionExport();
   // Roll back live previews: changing a tab must never commit a half-move.
   if(transformTool && transformSnapshot){
     transformSnapshot.forEach((s,i)=>{if(s)drawnLines[i]=RugbyDocument.clone(s);});

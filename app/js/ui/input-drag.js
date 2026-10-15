@@ -8,6 +8,12 @@
    ========================================================================== */
 
 window.addEventListener('mousemove',(e)=>{
+  const dragging = panning || draggingGrip || draggingRef || selecting || stretchBoxing ||
+    (typeof draggingText!=='undefined' && draggingText);
+  // Panel hover/typing must not run snapping, live transforms or redraws.
+  // Active pointer drags still receive moves and mouseup outside the canvas.
+  if(!dragging && (e.target!==canvas || inInputField())) return;
+
   if(typeof draggingText!=='undefined' && draggingText){
     const r=canvas.getBoundingClientRect();
     if(textMouseMove(e.clientX-r.left, e.clientY-r.top)) return;

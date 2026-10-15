@@ -27,6 +27,9 @@
 
 const I18N_DICT = {
   uz: {
+    pngRegion: 'PNG — hududni belgilash',
+    pngRegionHelp: 'Kerakli hudud ustida to‘rtburchak torting. Faqat ichidagi chizma eksport qilinadi.',
+    pngRegionCancel: 'Bekor (Esc)',
     // ---- Brend / sarlavha ----
     appTitle: 'CNC Corner Editor',
     tagline: 'CNC Corner Editor',
@@ -125,6 +128,9 @@ const I18N_DICT = {
   },
 
   en: {
+    pngRegion: 'PNG — select region',
+    pngRegionHelp: 'Drag a rectangle over the area to export. Only its contents will be included.',
+    pngRegionCancel: 'Cancel (Esc)',
     appTitle: 'CNC Corner Editor',
     tagline: 'CNC Corner Editor',
 

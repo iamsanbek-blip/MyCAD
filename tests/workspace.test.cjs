@@ -126,3 +126,29 @@ test('atomic save protects prior file if validation fails',()=>{
  const content=JSON.stringify(codec.encode([codec.emptyPage()],null));writeProjectAtomic(file,content);assert.equal(fs.readFileSync(file,'utf8'),content);assert.deepEqual(fs.readdirSync(folder),['file.dbe']);}
  finally{fs.rmSync(folder,{recursive:true,force:true});}
 });
+
+test('global commands including remapped file keys leave editable fields native',()=>{
+ const h=createHarness();rect(h);const before=h.run('historyIndex');
+ h.run("shortcutBindings['file.save']='Ctrl+A'");
+ for(const tag of ['input','textarea','select','div']){
+  const el=h.element(tag);el.isContentEditable=tag==='div';
+  assert.equal(key(h,'a',{ctrlKey:true},el).defaultPrevented,undefined);
+  assert.equal(key(h,'Delete',{},el).defaultPrevented,undefined);
+  assert.equal(key(h,'l',{},el).defaultPrevented,undefined);
+ }
+ assert.equal(h.run('historyIndex'),before);
+});
+test('PNG crop normalizes either drag direction and rejects invalid bounds',()=>{
+ const h=createHarness();
+ assert.equal(h.run('JSON.stringify(normalizePNGRegion({x0:30,y0:40,x1:-10,y1:2}))'),JSON.stringify({minX:-10,minY:2,maxX:30,maxY:40}));
+ assert.equal(h.run('normalizePNGRegion({x0:0,y0:0,x1:0,y1:9})'),null);
+ assert.equal(h.run('normalizePNGRegion({x0:NaN,y0:0,x1:1,y1:9})'),null);
+});
+test('PNG region cancel and page switching preserve drawing geometry',()=>{
+ const h=createHarness();rect(h);const before=h.run('JSON.stringify(drawnLines)');
+ h.run('startPNGRegionExport()');assert.equal(h.run('pngRegionSelection!==null'),true);
+ h.run('cancelPNGRegionExport()');assert.equal(h.run('pngRegionSelection'),null);
+ assert.equal(h.run('JSON.stringify(drawnLines)'),before);
+ h.run('startPNGRegionExport();addPage()');assert.equal(h.run('pngRegionSelection'),null);
+ h.run('nextPage(-1)');assert.deepEqual(JSON.parse(h.run('JSON.stringify(drawnLines)')),JSON.parse(before));
+});

@@ -56,7 +56,7 @@ function createHarness(storage=new Map()){
   const scripts=[...html.matchAll(/<script\s+src="([^"]+)"/g)].map(m=>m[1]);
   for(const file of scripts)vm.runInContext(fs.readFileSync(path.join(ROOT,'app',file),'utf8'),sb,{filename:file});
   run('initApp()');
-  return {run,sb,document,alerts,errors,storage,scripts,element};
+  return {run,sb,document,window:win,alerts,errors,storage,scripts,element};
 }
 module.exports={createHarness};
 if(require.main===module){const h=createHarness();console.log('Renderer initialized:',h.scripts.length,'scripts. Pages:',h.run('documentPages.length'));}

@@ -8,8 +8,10 @@
    ========================================================================== */
 
 // ===== PNG export =====
-function exportPNG(){
-  const pad=40;
+function exportPNG(region=null){
+  const crop = region ? normalizePNGRegion(region) : null;
+  if(region && !crop){ setHint('PNG: noto‘g‘ri hudud. Qayta belgilang.'); return; }
+  const pad=crop?0:40;
   // Build the same modified node paths used for on-screen rendering and DXF, so
   // dogbone / T-bone / fillet reliefs are included (not the raw click points).
   const drawnModified = buildDrawnModifiedPaths();
@@ -40,7 +42,7 @@ function exportPNG(){
   // gather each drawn shape's render points (modified where applicable)
   const shapesToDraw=[];
   drawnLines.forEach((l,idx)=>{
-    if(l.hidden) return;
+    if(l.hidden || (typeof layerOf==='function' && !layerOf(l).visible)) return;
     const isSmooth = l.kind==='circle' || l.kind==='arc' || (!l.kind && l.center);
     let pts;
     if(isSmooth){ pts=l.points; }
@@ -91,6 +93,7 @@ function exportPNG(){
       maxX=Math.max(maxX,b.x1); maxY=Math.max(maxY,b.y1);
     });
   }
+  if(crop){ ({minX,minY,maxX,maxY}=crop); }
   if(!isFinite(minX)){ alert('Eksport qilinadigan chizma yo\'q.'); return; }
   const w=maxX-minX||1, h=maxY-minY||1;
   const scale=Math.min(1600/w, 1600/h, 8);
@@ -280,8 +283,67 @@ function exportPNG(){
   off.toBlob(blob=>{
     if(!blob){ alert('PNG yaratib bo\'lmadi.'); return; }
     const url=URL.createObjectURL(blob);
-    const a=document.createElement('a'); a.href=url; a.download='drawing.png';
+    const a=document.createElement('a'); a.href=url; a.download=crop?'drawing-region.png':'drawing.png';
     document.body.appendChild(a); a.click();
     setTimeout(()=>{ try{document.body.removeChild(a);}catch(e){} URL.revokeObjectURL(url); }, 1500);
   }, 'image/png');
+}
+
+
+// A world-space crop is independent of selection flags and screen overlays.
+function normalizePNGRegion(region){
+  if(!region || !['x0','y0','x1','y1'].every(k=>Number.isFinite(region[k]))) return null;
+  const minX=Math.min(region.x0,region.x1), maxX=Math.max(region.x0,region.x1);
+  const minY=Math.min(region.y0,region.y1), maxY=Math.max(region.y0,region.y1);
+  return maxX>minX && maxY>minY ? {minX,minY,maxX,maxY} : null;
+}
+let pngRegionSelection=null;
+function cancelPNGRegionExport(){
+  if(!pngRegionSelection) return;
+  const {overlay,hint}=pngRegionSelection;
+  overlay.remove(); pngRegionSelection=null;
+  window.removeEventListener('blur',cancelPNGRegionExport);
+  setHint(hint);
+}
+function startPNGRegionExport(){
+  if(pngRegionSelection){ cancelPNGRegionExport(); return; }
+  resetInteractionState('png-region');
+  const overlay=document.createElement('div');
+  overlay.id='pngRegionOverlay'; overlay.className='pngRegionOverlay';
+  const box=document.createElement('div');box.className='pngRegionBox';
+  const help=document.createElement('div');help.className='pngRegionHelp';
+  help.textContent=t('pngRegionHelp');
+  const cancel=document.createElement('button');cancel.type='button';
+  cancel.textContent=t('pngRegionCancel');cancel.className='secondary';
+  cancel.addEventListener('pointerdown',e=>e.stopPropagation());
+  cancel.addEventListener('click',cancelPNGRegionExport);
+  help.appendChild(cancel);overlay.append(help,box);
+  document.getElementById('canvasWrap').appendChild(overlay);
+  pngRegionSelection={overlay,hint:document.getElementById('hint').innerHTML};
+  window.addEventListener('blur',cancelPNGRegionExport);
+  let start=null,pointerId=null;
+  const point=e=>{
+    const r=canvas.getBoundingClientRect();
+    return {x:Math.max(0,Math.min(r.width,e.clientX-r.left)),y:Math.max(0,Math.min(r.height,e.clientY-r.top))};
+  };
+  const paint=p=>{
+    box.style.display='block';box.style.left=Math.min(start.x,p.x)+'px';box.style.top=Math.min(start.y,p.y)+'px';
+    box.style.width=Math.abs(p.x-start.x)+'px';box.style.height=Math.abs(p.y-start.y)+'px';
+  };
+  overlay.addEventListener('pointerdown',e=>{
+    if(e.button!==0 || e.target===cancel) return;
+    e.preventDefault();start=point(e);pointerId=e.pointerId;
+    overlay.setPointerCapture(pointerId);paint(start);
+  });
+  overlay.addEventListener('pointermove',e=>{if(start && e.pointerId===pointerId)paint(point(e));});
+  overlay.addEventListener('pointerup',e=>{
+    if(!start || e.pointerId!==pointerId) return;
+    const end=point(e),first=start;start=null;
+    if(overlay.hasPointerCapture(pointerId))overlay.releasePointerCapture(pointerId);
+    if(Math.abs(end.x-first.x)<4 || Math.abs(end.y-first.y)<4){box.style.display='none';return;}
+    const a=toWorld(first.x,first.y),b=toWorld(end.x,end.y);
+    cancelPNGRegionExport();
+    exportPNG({x0:a.x,y0:a.y,x1:b.x,y1:b.y});
+  });
+  overlay.addEventListener('pointercancel',()=>{start=null;box.style.display='none';});
 }

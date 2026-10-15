@@ -115,7 +115,7 @@ function initApp(){
   ['gridStepInp','snapGridChk','angleStepInp','snapAngleChk'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.addEventListener('change', ()=>draw());
-    if(el && el.tagName==='INPUT' && el.type==='number') el.addEventListener('input', ()=>draw());
+    // Commit on change/blur; typing a grid value does not rebuild geometry.
   });
   // Matn asbobi tugmalari
   const tAdd=document.getElementById('textAddBtn');
@@ -126,7 +126,8 @@ function initApp(){
     document.getElementById('hint').innerHTML = n ? (n+' ta matn o\'chirildi.') : 'O\'chirish uchun matnni bosib tanlang.';
   });
   const pngBtn=document.getElementById('exportPngBtn');
-  if(pngBtn) pngBtn.addEventListener('click', exportPNG);
+  if(pngBtn) pngBtn.addEventListener('click', ()=>exportPNG());
+  document.getElementById('exportPngRegionBtn')?.addEventListener('click', startPNGRegionExport);
   draw();
   renderList();
   renderDrawnList();

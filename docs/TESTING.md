@@ -1,3 +1,18 @@
+# Preview.3 tekshiruvlari — 2026-10-15
+
+Mahalliy regressiya sinovlari va yangi input/PNG xulq-atvor testlari bajariladi.
+Windows CI’da haqiqiy klaviatura bilan 8 katakni uch marta tahrirlash,
+fokusning joyida qolishi, panel ustida redraw bo‘lmasligi, bekor qilish,
+hududiy PNG faylning piksellari va oddiy PNG eksport tekshiriladi.
+
+Hozir Windows natijasi kutilmoqda. O‘tgan deb belgilash faqat CI tugagach.
+User aytgan barcha 10–30 soniyali holatlar uning kompyuterida qayta
+tekshirilmagan; kodda aynan takrorlangan fokus yo‘li va fon hisoblari tuzatildi.
+
+Quyidagi yozuv oldingi preview.2 ga tegishli.
+
+---
+
 # GitHub relizi uchun tekshiruv — 2026-10-11
 
 **Windows tekshiruvlari o‘tdi.**
