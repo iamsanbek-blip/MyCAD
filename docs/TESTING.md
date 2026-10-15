@@ -1,10 +1,21 @@
-# 1.1.1-preview.1
+# 1.1.1-preview.1 — tekshirildi (2026-10-15)
 
-Node syntax/assets, 18 legacy, 24 workspace va 4 panel-model test o‘tdi.
-Windows source/packaged GUI va portable natijalari BUILD-REPORT.json da;
-bu qayd yozilganida CI hali kutilmoqda. 3D testi WebGL, panel qalinligi,
-o‘lchamlar, orbit, undo/redo, v3 roundtrip va XY Ortho chiziqni tekshiradi.
-Windows 10/11 qo‘lda va SAC sinovi bajarilmadi.
+GitHub Actions run **38726650306**, commit `527ec43375a2720c18736a2c19327514d3af52c9`.
+Windows Server 2022 x64, Electron 31.7.7.
+
+- Syntax/assets: 51 JS, 0 xato; 18 legacy fayl + 24 workspace + 4 panel-model test.
+- Source va packaged GUI: WebGL, 48px shablonlar, 16mm panel, aniq o‘lcham va
+  rotation, alohida qalinlik, undo/redo, nusxa, orbit, v3 roundtrip, sahifalar,
+  XY Ortho chiziq — o‘tdi. Geometriyaning Z qalinligi ham tekshirildi.
+- 8 raqamli katak × 3 yozish: eng sekin ketma-ketlik source 68ms, packaged 65ms.
+- PNG hudud va butun chizma eksporti haqiqiy yuklangan faylda tekshirildi.
+- Portable launcher standart GPU flaglarida ochildi va oyna tirik qoldi.
+- EXE: 65,738,586 bytes; SHA256:
+  `5af10ef08d3f0a42febd2e2617a2f745a0082a480e68e1d50d95a19527cf6f92`.
+
+Dalillar: relizdagi BUILD-REPORT.json va Actions windows-verification artefakti.
+GUI fayl-dialog tanlovlari mock qilingan. Windows 10/11 qo‘lda, SmartScreen/SAC
+va foydalanuvchi grafik kartasida sinov bajarilmagan. EXE imzosiz preview.
 
 ---
 
