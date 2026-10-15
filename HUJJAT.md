@@ -6,7 +6,7 @@ alohida saqlanadi. Drive’da ham alohida yangi versiya papkasi yaratilgan.
 Raqamli katakdagi takrorlangan fokus xatosi, panel ustidagi snap/geometry
 hisoblari va klaviatura hodisalari tuzatildi. PNG hududini to‘rtburchak bilan
 belgilash qo‘shildi. Batafsil: `docs/INPUT-PNG-PREVIEW3.md`.
-Sinovning joriy natijasi `docs/TESTING.md` da.
+Windows CI o‘tdi va preview.3 relizi chiqarildi. Dalillar `docs/TESTING.md` da.
 
 Quyidagi ma’lumotlar oldingi preview.2 tarixidir.
 

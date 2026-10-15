@@ -1,13 +1,36 @@
 # Preview.3 tekshiruvlari — 2026-10-15
 
-Mahalliy regressiya sinovlari va yangi input/PNG xulq-atvor testlari bajariladi.
-Windows CI’da haqiqiy klaviatura bilan 8 katakni uch marta tahrirlash,
-fokusning joyida qolishi, panel ustida redraw bo‘lmasligi, bekor qilish,
-hududiy PNG faylning piksellari va oddiy PNG eksport tekshiriladi.
+**Mahalliy va Windows sinovlari o‘tdi.**
+[Windows CI](https://github.com/iamsanbek-blip/MyCAD/actions/runs/38691041063).
+Windows Server 2022, Electron 31.7.7, x64.
 
-Hozir Windows natijasi kutilmoqda. O‘tgan deb belgilash faqat CI tugagach.
-User aytgan barcha 10–30 soniyali holatlar uning kompyuterida qayta
-tekshirilmagan; kodda aynan takrorlangan fokus yo‘li va fon hisoblari tuzatildi.
+- 49 JavaScript fayli/asset tekshiruvi, 18 regressiya fayli, 24 workspace testi.
+- Haqiqiy keyboard event bilan 8 katakda 3 davra son/decimal/manfiy qiymat
+  kiritish: manba va paketlangan Rugby.exe da o‘tdi; fokus joyida qoldi.
+- Katak ustida sichqoncha harakatida geometriya redraw chaqirilmasligi o‘tdi.
+- Fokusni boshqa katakka o‘tkazgandan keyin eski katak uni qaytarib olmasligi o‘tdi.
+- PNG hududini bekor qilish tarix/geometriyani o‘zgartirmadi.
+- Teskari yo‘nalishda to‘rtburchak bilan belgilangan hududdan haqiqiy PNG yuklandi:
+  1600×1600, ichkaridagi qizil shakl bor, tashqaridagi ko‘k shakl yo‘q.
+- Oddiy PNG eksportda ikkala shakl ham borligi piksel bilan tekshirildi.
+- Tayyor portable launcherning o‘zi ham Windowsda ochildi.
+
+Reliz: [v1.1.0-preview.3](https://github.com/iamsanbek-blip/MyCAD/releases/tag/v1.1.0-preview.3).
+EXE: 65 617 203 bayt. SHA256:
+
+```text
+16588ce8f85d975107500aaba07e9a1c0538aaa7561fa5781e55d1374f04ab85
+```
+
+Reliz kodi: `6fe451831295644c5d3e610108a2d59c0bbdf42c`.
+BUILD-REPORT.json manba/paket/launcher natijalarini saqlaydi. CI artefaktida
+input-region.json o‘lchangan vaqtlarni va piksel sonlarini, region-export.png
+haqiqiy eksport natijasini saqlaydi.
+
+Foydalanuvchining kompyuteridagi barcha 10–30 soniyali vaziyatlar takrorlanmagan.
+Koddagi fokus o‘g‘irlash yo‘li alohida takrorlanib tuzatildi. Windows 10/11 da
+qo‘lda qabul sinovi, haqiqiy Save/Open tanlovlari, SmartScreen/SAC va imzolash
+hali tekshirilmagan. Native file-dialog tanlovlari GUI testda mock qilingan.
 
 Quyidagi yozuv oldingi preview.2 ga tegishli.
 
