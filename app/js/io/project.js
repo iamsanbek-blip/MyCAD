@@ -1,9 +1,10 @@
 /* Project codec and transactional page replacement. Geometry is handled by pages.js. */
+let restoringProject=false;
 const PROJECT_VERSION = RugbyDocument.VERSION;
 function buildProject(){
   rememberActivePage();
   const pages=documentPages.map(({history,historyIndex,...data})=>data);
-  return RugbyDocument.encode(pages,activePageId);
+  return {...RugbyDocument.encode(pages,activePageId),workspace:appMode};
 }
 function saveProject(){ return saveProjectQuick(); }
 function loadProject(text, fileName){
@@ -11,16 +12,17 @@ function loadProject(text, fileName){
   try{ incoming=RugbyDocument.decode(text); }
   catch(err){ alert('Loyiha ochilmadi: '+err.message); return false; }
   settlePageInteraction();rememberActivePage();
-  const previous=documentPages, previousId=activePageId;
+  const previous=documentPages, previousId=activePageId,previousMode=appMode;
   try{
     documentPages=incoming.pages;activePageId=incoming.activePageId;
     applyPageData(activePage());
+    restoringProject=true;try{setAppMode(incoming.workspace||(panelScene.panels.length?'model3d':'draw'));}finally{restoringProject=false;}
     const name=document.getElementById('importedName');if(name)name.textContent=fileName||'Loyiha';
     setHint('Ochildi: '+(fileName||'loyiha')+' · '+documentPages.length+' sahifa');
     return true;
   }catch(err){
     documentPages=previous;activePageId=previousId;
-    try{applyPageData(activePage());}catch(restoreError){console.error(restoreError);}
+    try{applyPageData(activePage());restoringProject=true;setAppMode(previousMode);}catch(restoreError){console.error(restoreError);}finally{restoringProject=false;}
     alert('Loyiha ochilmadi: '+err.message);return false;
   }
 }

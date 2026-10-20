@@ -282,10 +282,7 @@ function exportPNG(region=null){
 
   off.toBlob(blob=>{
     if(!blob){ alert('PNG yaratib bo\'lmadi.'); return; }
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a'); a.href=url; a.download=crop?'drawing-region.png':'drawing.png';
-    document.body.appendChild(a); a.click();
-    setTimeout(()=>{ try{document.body.removeChild(a);}catch(e){} URL.revokeObjectURL(url); }, 1500);
+    downloadFile(blob,crop?'drawing-region.png':'drawing.png','image/png');
   }, 'image/png');
 }
 

@@ -55,12 +55,13 @@
     if (raw.view && Number.isFinite(raw.view.scale) && raw.view.scale > 0 &&
         Number.isFinite(raw.view.ox) && Number.isFinite(raw.view.oy)) page.view = clone(raw.view);
     if (raw.settings && typeof raw.settings === 'object' && !Array.isArray(raw.settings)) page.settings = clone(raw.settings);
-    page.scene3d=Panels.normalize(raw.scene3d);
+    // Optional importedDrawings remembers conversions so switching modes never duplicates panels.
+    page.scene3d=raw.scene3d===undefined&&raw.panel3d!==undefined?Panels.fromLegacy(raw.panel3d):Panels.normalize(raw.scene3d);
     validateNumbers(page);
     return page;
   }
   function decode(input) {
-    const p = typeof input === 'string' ? JSON.parse(input) : input;
+    const p = typeof input === 'string' ? JSON.parse(input.replace(/^\uFEFF/,'')) : input;
     if (!p || p.format !== FORMAT) throw new Error('Bu Rugby loyiha fayli emas.');
     if (!Number.isInteger(p.version) || p.version < 1 || p.version > VERSION) throw new Error('Loyiha versiyasi qo‘llanmaydi.');
     if (p.units && p.units !== 'mm') throw new Error('Loyiha birligi mm bo‘lishi kerak.');
@@ -69,7 +70,7 @@
     const pages = rawPages.map(normalizePage);
     if (new Set(pages.map(v => v.id)).size !== pages.length) throw new Error('Sahifa ID takrorlangan.');
     const activePageId = pages.some(v => v.id === p.activePageId) ? p.activePageId : pages[0].id;
-    return {format:FORMAT,version:VERSION,units:'mm',pages,activePageId};
+    return {format:FORMAT,version:VERSION,units:'mm',pages,activePageId,workspace:['edit','draw','model3d'].includes(p.workspace)?p.workspace:null};
   }
   function encode(pages, activePageId) {
     return {...decode({format:FORMAT,version:VERSION,units:'mm',pages,activePageId}), saved:new Date().toISOString()};

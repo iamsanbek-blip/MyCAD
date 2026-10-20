@@ -3,6 +3,7 @@
 let documentPages = [], activePageId = null, pagesHydrating = false;
 const PAGE_CONTROL_IDS = ['nestSheetW','nestSheetH','nestMargin','nestGap','gridStepInp','snapGridChk','angleStepInp','snapAngleChk'];
 function capturePageData(){
+  if(typeof panelEditSession!=='undefined'&&panelEditSession){const {history,historyIndex,...data}=panelEditSession.backup;return RugbyPanels.copy(data);}
   const settings={};
   PAGE_CONTROL_IDS.forEach(id=>{const e=document.getElementById(id);if(e)settings[id]=e.type==='checkbox'?e.checked:e.value;});
   return {
@@ -18,9 +19,10 @@ function activePage(){return documentPages.find(p=>p.id===activePageId);}
 function rememberActivePage(){
   const page=activePage();if(!page)return;
   Object.assign(page,capturePageData());
-  page.history=history;page.historyIndex=historyIndex;
+  page.history=panelEditSession?panelEditSession.backup.history:history;page.historyIndex=panelEditSession?panelEditSession.backup.historyIndex:historyIndex;
 }
 function settlePageInteraction(){
+  if(typeof panelEditSession!=='undefined'&&panelEditSession)panelEditFinish(false,false);
   panelView?.cancel();
   cancelPNGRegionExport();
   // Roll back live previews: changing a tab must never commit a half-move.
@@ -43,7 +45,7 @@ function repaintPage(){
 function applyPageData(page){
   const was=pagesHydrating;pagesHydrating=true;
   try{
-    panelScene=RugbyPanels.normalize(page.scene3d);panelSelected=null;
+    panelScene=RugbyPanels.normalize(page.scene3d);panelSelected=null;panelSelection=[];
     layers=RugbyDocument.clone(page.layers);activeLayer=page.activeLayer;activeColor=page.activeColor;
     polygons=[];drawnLines=page.shapes.map(expandShape);dimensions=RugbyDocument.clone(page.dimensions);texts=RugbyDocument.clone(page.texts);
     refImages=RugbyDocument.clone(page.refImages).map(r=>({...r,img:null}));activeRefId=refImages[0]?.id||null;

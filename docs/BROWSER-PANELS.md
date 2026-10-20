@@ -1,0 +1,9 @@
+# Rugby brauzer: panel ustaxonasi
+
+- Gorizontal (XY), Vertikal (YZ), Frontal (XZ) tugmalari 600 × 400 mm panel qo‘shadi. Boshlang‘ich qalinlik 16 mm, o‘zgartirish mumkin.
+- Panel qo‘shilgach ushlash nuqtasini bosing, keyin boshqa paneldagi qo‘yish nuqtasini bosing. Mavjud panel uchun «Nuqtadan joylash». Esc joriy joylashishni bekor qilib, oldingi holatini tiklaydi; yangi panelni olib tashlash uchun Undo.
+- 🧲 yoki Probel magnitni yoqadi/o‘chiradi. Hotkey sozlamalarida o‘zgartirish mumkin. «Magnit nuqtalari» ro‘yxatida Vertex/Endpoint, Midpoint va Center tanlanadi. Tanlashda nuqtalar magnit o‘chiq bo‘lsa ham ko‘rinadi. Center — panel yuzasining tashqi to‘rtburchak markazi; U/L shakllarda u kontur tashqarisida bo‘lishi mumkin.
+- Magnitsiz qo‘yishda kursor kamera tekisligida yuradi; Ortho dominant dunyo o‘qini cheklaydi. Nuqtaga magnitlangan joylash aniq nuqtani ustun qo‘yadi. Bu to‘qnashuv tekshiruvi emas: panellarni joylashgandan so‘ng aylantirib tekshiring.
+- Oddiy Move/Rotate/Scale o‘q tutqichlari mustaqil ishlaydi; nuqtaga aniq yopishtirish uchun «Nuqtadan joylash» ishlating. XY scale qalinlikni o‘zgartirmaydi.
+- Panelga ikki klik yoki «Konturini chizish»: vaqtincha 2D chizishga kirish. To‘rtburchak, uchburchak, beshburchak, L/U tugmalari tayyor konturlar. Chizish asboblari bilan yopiq kontur yasang yoki o‘zgartiring. «3D ga qo‘llash» tanlangan bitta yopiq konturdan panel yasaydi, eski sahifa chizmasini qaytaradi. Qalinlik, burilish va joylashuv saqlanadi. «Bekor» tahrirni tashlaydi. Sahifa almashtirish tahrirni bekor qiladi; saqlash original chizmani saqlaydi.
+- «Raspil / eksport»: joriy yoki barcha sahifalar. Bir sahifadagi bir xil nom, kontur va o‘lchamlar soni jamlanadi. Ustun sarlavhasini suring yoki ← → bosing; shu tartib TXT/CSV ga o‘tadi. Shaklli detallar en/bo‘yi tashqi to‘rtburchak bo‘yicha; eksport CNC trayektoriyasi emas.

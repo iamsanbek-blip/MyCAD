@@ -1,3 +1,36 @@
+# Rugby 1.1.1-preview.2
+
+Ixcham CNC / Drawing / Modeling ishchi oynasi, universal panel, aniq magnit, ko‘p panelni tanlash/o‘chirish va CSV/TXT/XLSX raskroy eksporti.
+
+- [Qisqa qo‘llanma](docs/QUICKSTART-1.1.1.md)
+- [1.1.2 manbalaridan olingan o‘zgarishlar](docs/REVIEW-1.1.2.md)
+- [Sinovlar va cheklovlar](docs/TESTING.md)
+
+Windows portable: **Releases → v1.1.1-preview.2 → Rugby-Portable.exe** (faqat Windows tekshiruvlari o‘tgach chiqariladi). Imzosiz preview; Smart App Control bloklashi mumkin. Sozlamalar foydalanuvchi profilida saqlanadi.
+
+Manbadan ishga tushirish: `npm ci`, `npm run build:3d`, `npm start`. Tekshiruv: `npm run check`, `npm test`, `npm run test:3d`. Windows paketlash: `node scripts/build-preview.cjs`; rasmiy imzolangan chiqarish uchun alohida signing gate saqlangan.
+
+Quyida oldingi hujjatlar va loyiha tarixi keltirilgan.
+
+---
+
+# Rugby Web — brauzerda sinash
+
+2D CAD va 3D panellar asl desktop app/ kodidan ishlaydi. O‘rnatish talab qilinmaydi.
+Loyihani .dbe faylga saqlang; brauzer yopilishidan oldin saqlash kerak.
+Saytdagi tugma korpus namunasini yuklab olmasdan ochadi.
+
+Brauzer build: `node scripts/build-browser.cjs`.
+Tekshiruv: `node scripts/check.cjs`, `node scripts/test.cjs`.
+3D bundleni qayta yig‘ish: `npm ci` va `npm run build:3d`.
+Desktop yig‘ish uchun shu app/ manbasi saqlangan; browser-mode.js Electron’da ishlamaydi.
+Hosting shaxsiy: faqat egasi uchun. 3D WebGL2 talab qiladi.
+
+Yangi browser hosting uchun interaktiv GUI QA bajarilmagan; Node testlari
+va oldingi Windows GUI dalillari alohida. Windows test natijalari docs/TESTING.md da.
+
+---
+
 # Rugby Desktop — 1.1.1-preview.1
 
 Windows uchun 2D chizma va CNC burchak tahrirlash dasturi. Bir faylda bir nechta

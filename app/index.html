@@ -6,8 +6,22 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/workspace.css">
 <link rel="stylesheet" href="css/model3d.css">
+<link rel="stylesheet" href="css/main-menu.css">
+<link rel="stylesheet" href="css/compact-workspace.css">
 </head>
 <body>
+<header id="mainMenuBar" aria-label="Rugby asosiy menyu">
+<div class="menuBrand"><img src="assets/logo-mark.png" alt=""><strong>RUGBY</strong></div>
+<div class="mainMenu"><button id="fileMenuToggle" class="menuTop" aria-expanded="false" aria-controls="fileMenu">File</button><div id="fileMenu" class="menuDropdown" hidden>
+<button data-target="newProjBtn">Yangi loyiha</button><button data-target="openProjBtn">Ochish…</button><button data-target="saveProjBtn">Saqlash</button><button data-target="saveAsProjBtn">Boshqa nom bilan saqlash…</button><hr>
+<button data-target="importBtn" data-drawing="true">Import — DXF…</button><button data-target="refImgBtn" data-drawing="true">Import — rasm…</button><hr>
+<button data-target="exportBtn" data-drawing="true">Export — DXF</button><button data-target="exportSvgBtn" data-drawing="true">Export — SVG</button><button data-target="exportPngBtn" data-drawing="true">Export — PNG</button><button data-target="exportPngRegionBtn" data-drawing="true">PNG — hududni belgilash</button><button id="menuCutList">Raspil — TXT / CSV…</button>
+</div></div>
+<div class="mainMenu"><button id="editMenuToggle" class="menuTop" aria-expanded="false" aria-controls="editMenu">Edit</button><div id="editMenu" class="menuDropdown" hidden>
+<button id="menuUndo">Undo — bekor qilish</button><button id="menuRedo">Redo — qaytarish</button><hr><button id="shortcutSettingsBtn">Hotkey sozlamalari…</button><hr><span class="menuCaption">Til / Language</span><button id="menuLangUz">O‘zbekcha</button><button id="menuLangEn">English</button>
+</div></div>
+<button class="menuMode active" id="modeSelectBtn" title="CNC: Dogbone, T-Bone, fillet">Cnc</button><button class="menuMode" id="modeDrawBtn" title="2D chizma">Drawing</button><button class="menuMode" id="mode3dBtn" title="3D panellar">Modeling</button><span id="projectFileStatus" role="status" aria-live="polite"></span>
+<button id="workspaceExpandBtn" aria-pressed="false" title="Yon panellarni yashirish / ko‘rsatish">⤢ <span>Ishchi maydon</span></button></header>
 <nav id="pageBar" aria-label="Loyiha sahifalari">
   <div id="pageTabs" role="tablist" aria-label="Sahifalar"></div>
   <span id="pageCount" aria-live="polite"></span>
@@ -21,7 +35,8 @@
 <dialog id="shortcutDialog" aria-labelledby="shortcutTitle">
   <h2 id="shortcutTitle">Klaviatura tugmalari</h2>
   <p>Buyruq yonidagi maydonni bosing va yangi kombinatsiyani bosing. Ctrl+A/C/V/Z matn maydonida odatdagidek ishlaydi.</p>
-  <input id="shortcutSearch" placeholder="Buyruq yoki tugmani qidirish…" aria-label="Hotkey qidirish">
+  <select id="shortcutScope" aria-label="Hotkey bo‘limi"><option value="all">Barcha bo‘limlar</option><option value="drawing">Drawing / Cnc</option><option value="modeling">Modeling</option><option value="global">Umumiy</option></select>
+<input id="shortcutSearch" placeholder="Buyruq yoki tugmani qidirish…" aria-label="Hotkey qidirish">
   <div id="shortcutRows"></div>
   <p id="shortcutError" role="alert" aria-live="polite"></p>
   <div class="dialogActions"><button id="shortcutResetBtn" class="secondary">Standart tugmalar</button><span></span><button id="shortcutCancelBtn" class="secondary">Bekor</button><button id="shortcutSaveBtn">Saqlash</button></div>
@@ -33,29 +48,36 @@
 </dialog>
 
 <div id="canvasWrap">
-  <canvas id="cv"></canvas>
-<div id="model3dWorkspace" hidden><aside id="model3dTools"><h3>3D modellash · mm</h3>
-<div class="panelRow"><button id="panelViewiso">Izometriya</button><button id="panelViewtop">Tepa</button><button id="panelViewfront">Old</button><button id="panelViewside">Yon</button></div>
-<p>Chap tugma: aylantirish / tanlash. O‘ng: surish. G‘ildirak: zoom.</p>
-<div class="panelRow"><button id="panelMove">Move</button><button id="panelRotate">Rotate</button><button id="panelScale">En/bo‘y scale</button></div>
-<label><input type="checkbox" id="panelOrtho" checked> Ortho (1 mm / 90°); o‘chiq — Free</label>
-<label><input type="checkbox" id="panelGuides" checked> 2D chizma va chiziqlar</label>
-<div class="panelRow"><button id="panelLine">╱ XY chiziq</button><button id="panelUndo">Undo</button><button id="panelRedo">Redo</button></div>
-<h3>Panel shablonlari · 48 × 48</h3>
-<label>Yangi panel qalinligi, mm<input type="text" inputmode="decimal" id="panelDefaultThickness" value="16"></label>
-<div class="panelRow"><button id="panelNew">+ Yangi panel</button><button id="panelRefreshTemplates">Yangilash</button><button id="panelSaveTemplate">Tanlovni saqlash</button></div>
-<div id="panelTemplates"></div><fieldset id="panelProperties" disabled><legend>Tanlangan panel</legend>
-<label>Nomi<input id="panelName" type="text" maxlength="80"></label><div class="panelFields"><label>En, mm<input id="panelWidth" type="text" inputmode="decimal"></label><label>Bo‘y, mm<input id="panelHeight" type="text" inputmode="decimal"></label><label>Qalinlik, mm<input id="panelThickness" type="text" inputmode="decimal"></label><label>X, mm<input id="panelX" type="text" inputmode="decimal"></label><label>Y, mm<input id="panelY" type="text" inputmode="decimal"></label><label>Z, mm<input id="panelZ" type="text" inputmode="decimal"></label><label>RX, °<input id="panelRX" type="text" inputmode="decimal"></label><label>RY, °<input id="panelRY" type="text" inputmode="decimal"></label><label>RZ, °<input id="panelRZ" type="text" inputmode="decimal"></label></div><button id="panelApply">Qo‘llash / Enter</button><button id="panelDuplicate">Nusxa</button><button id="panelDelete">O‘chirish</button></fieldset>
-<h3 id="panelCount">0 ta panel</h3><div id="panelSceneList"></div><p id="model3dStatus" role="status">Shablonni bosing. En/bo‘y qalinlikni o‘zgartirmaydi.</p>
-</aside><div id="model3dViewport"></div></div>
+  <canvas id="cv"></canvas><div id="cncDeleteDock" aria-label="Tanlovni o‘chirish"></div>
+<div id="model3dWorkspace" hidden>
+<header id="model3dTopbar">
+<div id="modelViewRow"><div id="viewPresets"><button id="panelViewiso" aria-pressed="true">Iso</button><button id="panelViewtop" aria-pressed="false">Top</button><button id="panelViewfront" aria-pressed="false">Front</button><button id="panelViewleft" aria-pressed="false">Left</button><button id="panelViewright" aria-pressed="false">Right</button><button id="panelViewback" aria-pressed="false">Back</button></div><div id="viewMenuWrap"><button id="viewMenuToggle" aria-expanded="false" aria-controls="viewMenu">View ▾</button><div id="viewMenu" hidden><button id="panelToggleSides" aria-pressed="false">◧ Panellar</button><button id="viewWire" aria-pressed="false">Wireframe</button><button id="viewSolid" aria-pressed="true">Solid</button><hr><button id="viewHide">Hide selection</button><button id="viewIsolate">Isolate selection</button><button id="viewUnhide">Unhide all</button></div></div><div class="workMenuWrap" id="panelMenuWrap"><button id="panelMenuToggle" aria-expanded="false" aria-controls="panelMenu">Panel ▾</button><div class="workDropdown" id="panelMenu" hidden><button id="panelCreateMenu">Yangi panel</button><div class="panelBasics"><button id="panelBasicxy">Gorizontal</button><button id="panelBasicyz">Vertikal</button><button id="panelBasicxz">Frontal</button></div><button id="panelConvertDrawing">Drawing → panellar (16 mm)</button><hr><button id="panelPropertiesOpen">Panel xossalari…</button><button id="panelPropertiesExport">Raskroy — Excel / TXT…</button><button id="panelEditContour">✎ Konturini chizish</button><hr><label>Qalinlik <input id="panelDefaultThickness" value="16" inputmode="decimal"> mm</label></div></div><div class="workMenuWrap" id="makeMenuWrap"><button id="makeMenuToggle" aria-expanded="false" aria-controls="makeMenu">Make ▾</button><div class="workDropdown" id="makeMenu" hidden><button id="panelMagnet" aria-pressed="true">🧲 ON</button><details><summary>Magnit nuqtalari ▾</summary><label><input id="snapvertex" type="checkbox" checked> Vertex / Endpoint — burchak</label><label><input id="snapmidpoint" type="checkbox" checked> Midpoint — qirra o‘rtasi</label><label><input id="snapcenter" type="checkbox" checked> Center — yuz markazi</label></details><hr><label><input type="checkbox" id="panelOrtho" checked> Ortho</label><button id="panelFree" aria-pressed="false">Free — erkin</button><label>Qadam <input id="panelStep" value="1" inputmode="decimal"> mm</label><hr><button id="panelRuler">Lineyka — 2 nuqta</button><button id="panelLine">Yordamchi chiziq — XY</button><label><input type="checkbox" id="panelGuides" checked> 2D chizma va chiziqlar</label></div></div><div class="workMenuWrap" id="objectMenuWrap"><button id="objectMenuToggle" aria-expanded="false" aria-controls="objectMenu">Object ▾</button><div class="workDropdown" id="objectMenu" hidden><div class="panelRow"><button id="panelSelectTool">Select</button><button id="panelMove">Move</button><button id="panelRotate">Rotate</button><button id="panelScale">Scale — masshtab</button><button id="panelStretch">Stretch — burchaklarni surish</button><button id="panelUndo" title="Undo">↶</button><button id="panelRedo" title="Redo">↷</button></div><button id="panelPointMove">⊙ Nuqtadan joylash</button><button id="panelDuplicate">Copy — nusxa</button><button id="panelMirrorX">Mirror — lokal X</button><button id="panelMirrorY">Mirror — lokal Y</button><button id="panelDelete">O‘chirish</button><p>Bo‘sh joydan rectangle torting: ichidagi panellar tanlanadi. Shift: tanlovga qo‘shish. Shift+klik: alohida tanlash. Stretch: burchaklarni tanlang → Ko‘chirish → suring yoki ΔX/Y/Z kiriting → Qo‘llash.</p></div></div><span id="viewStateLabel">Iso</span></div>
+
+
+
+
+<span hidden><button id="panelSaveProject">Saqlash</button><button id="panelOpenProject">Ochish</button></span></header>
+<div id="model3dBody">
+<aside id="model3dTools" aria-label="Modeling tezkor asboblari">
+<button id="panelNew" title="Yangi universal panel — N"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 9l17-5 5 4-17 6zM5 9v15l5 4V14m0 14l17-6V8" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><small>Panel</small></button>
+<button id="panelDockMagnet" aria-pressed="true" title="Magnit — Probel">⊓<small>Magnit</small></button>
+<button id="panelExtrudeDrawing" title="Chizmadagi yopiq konturlarni extrude qilish">▱<small>Extrude</small></button>
+<button id="panelSample" title="Korpus namunasini alohida loyiha sifatida ochish">▧<small>Namuna</small></button>
+<details id="panelHelp"><summary title="Boshqarish">?</summary><p>Chap: tanlash / surish. O‘rta: aylantirish. O‘ng: pan. G: A→B. Probel: magnit. Panelga ikki klik: kontur.</p></details>
+</aside><div id="model3dViewport"></div>
+<aside id="model3dInspector">
+<details id="panelInspectorProperties" open><summary>Panel xossalari</summary><fieldset id="panelProperties" disabled><legend>Tanlangan panel</legend>
+<div id="panelPropertyRows"><div class="panelPropertyRow" data-property="Type"><span class="propertyGrip" draggable="true">⠿</span><label for="panelType">Turi</label><input id="panelType" type="text" maxlength="80" placeholder="Korpus / Fasad…"><button type="button" data-shift="-1" aria-label="Turi yuqoriga">↑</button><button type="button" data-shift="1" aria-label="Turi pastga">↓</button></div><div class="panelPropertyRow" data-property="Name"><span class="propertyGrip" draggable="true" title="Qatorni surish">⠿</span><label for="panelName">Nomi</label><input id="panelName" type="text" inputmode="text" aria-label="Nomi"><button type="button" data-shift="-1" aria-label="Nomi yuqoriga">↑</button><button type="button" data-shift="1" aria-label="Nomi pastga">↓</button></div><div class="panelPropertyRow" data-property="Width"><span class="propertyGrip" draggable="true" title="Qatorni surish">⠿</span><label for="panelWidth">Eni, mm</label><input id="panelWidth" type="text" inputmode="decimal" aria-label="Eni, mm"><button type="button" data-shift="-1" aria-label="Eni, mm yuqoriga">↑</button><button type="button" data-shift="1" aria-label="Eni, mm pastga">↓</button></div><div class="panelPropertyRow" data-property="Height"><span class="propertyGrip" draggable="true" title="Qatorni surish">⠿</span><label id="panelHeightLabel" for="panelHeight">Bo‘yi, mm</label><input id="panelHeight" type="text" inputmode="decimal" aria-label="Bo‘yi, mm"><button type="button" data-shift="-1" aria-label="Bo‘yi, mm yuqoriga">↑</button><button type="button" data-shift="1" aria-label="Bo‘yi, mm pastga">↓</button></div><div class="panelPropertyRow" data-property="Thickness"><span class="propertyGrip" draggable="true" title="Qatorni surish">⠿</span><label id="panelThicknessLabel" for="panelThickness">Qalinlik, mm</label><input id="panelThickness" type="text" inputmode="decimal" aria-label="Qalinlik, mm"><button type="button" data-shift="-1" aria-label="Qalinlik, mm yuqoriga">↑</button><button type="button" data-shift="1" aria-label="Qalinlik, mm pastga">↓</button></div><div class="panelPropertyRow" data-property="Quantity"><span class="propertyGrip" draggable="true" title="Qatorni surish">⠿</span><label for="panelQuantity">Soni (raspil)</label><input id="panelQuantity" type="text" inputmode="numeric" aria-label="Soni (raspil)"><button type="button" data-shift="-1" aria-label="Soni (raspil) yuqoriga">↑</button><button type="button" data-shift="1" aria-label="Soni (raspil) pastga">↓</button></div><div class="panelPropertyRow" data-property="X"><span class="propertyGrip" draggable="true" title="Qatorni surish">⠿</span><label for="panelX">X, mm</label><input id="panelX" type="text" inputmode="decimal" aria-label="X, mm"><button type="button" data-shift="-1" aria-label="X, mm yuqoriga">↑</button><button type="button" data-shift="1" aria-label="X, mm pastga">↓</button></div><div class="panelPropertyRow" data-property="Y"><span class="propertyGrip" draggable="true" title="Qatorni surish">⠿</span><label for="panelY">Y, mm</label><input id="panelY" type="text" inputmode="decimal" aria-label="Y, mm"><button type="button" data-shift="-1" aria-label="Y, mm yuqoriga">↑</button><button type="button" data-shift="1" aria-label="Y, mm pastga">↓</button></div><div class="panelPropertyRow" data-property="Z"><span class="propertyGrip" draggable="true" title="Qatorni surish">⠿</span><label for="panelZ">Z, mm</label><input id="panelZ" type="text" inputmode="decimal" aria-label="Z, mm"><button type="button" data-shift="-1" aria-label="Z, mm yuqoriga">↑</button><button type="button" data-shift="1" aria-label="Z, mm pastga">↓</button></div><div class="panelPropertyRow" data-property="RX"><span class="propertyGrip" draggable="true" title="Qatorni surish">⠿</span><label for="panelRX">RX, °</label><input id="panelRX" type="text" inputmode="decimal" aria-label="RX, °"><button type="button" data-shift="-1" aria-label="RX, ° yuqoriga">↑</button><button type="button" data-shift="1" aria-label="RX, ° pastga">↓</button></div><div class="panelPropertyRow" data-property="RY"><span class="propertyGrip" draggable="true" title="Qatorni surish">⠿</span><label for="panelRY">RY, °</label><input id="panelRY" type="text" inputmode="decimal" aria-label="RY, °"><button type="button" data-shift="-1" aria-label="RY, ° yuqoriga">↑</button><button type="button" data-shift="1" aria-label="RY, ° pastga">↓</button></div><div class="panelPropertyRow" data-property="RZ"><span class="propertyGrip" draggable="true" title="Qatorni surish">⠿</span><label for="panelRZ">RZ, °</label><input id="panelRZ" type="text" inputmode="decimal" aria-label="RZ, °"><button type="button" data-shift="-1" aria-label="RZ, ° yuqoriga">↑</button><button type="button" data-shift="1" aria-label="RZ, ° pastga">↓</button></div></div><p class="panelMuted">X/Y/Z — markaz. Soni raspil uchun; sahnada bitta vakil ko‘rinadi.</p><button id="panelApply">Qo‘llash / Enter</button></fieldset></details>
+<details open><summary id="panelCount">0 ta panel</summary><div id="panelSceneList"></div></details>
+<section id="panelExportDock"><h3>Raspil / eksport</h3><p id="panelExportCount" class="panelMuted"></p>
+<label>Format<select id="panelQuickFormat"><option value="csv">CSV — Excel</option><option value="txt">TXT — oddiy matn</option><option value="xlsx">Excel (.xlsx)</option></select></label>
+<div class="panelRow"><button id="panelQuickExport">Eksport…</button><button id="panelQuickCopy">Nusxa</button></div>
+<button id="panelCutOpen">Ro‘yxat va sozlamalar…</button><p id="panelQuickStatus" role="status" class="panelMuted"></p>
+</section></aside></div>
+<footer id="model3dStatus" role="status">Panel tanlang yoki qo‘shing.</footer></div>
+<div id="panelContourBar" hidden><strong>Panel konturi · mm</strong><button id="contourrect">▭</button><button id="contourtriangle">△</button><button id="contourpentagon">⬠</button><button id="contourL">L</button><button id="contourU">U</button><button id="panelContourApply">✓ 3D ga qo‘llash</button><button id="panelContourCancel">Bekor</button><span>Bitta yopiq kontur chizing yoki tahrirlang.</span></div>
   <div id="drawToolbar">
-    <button class="dtBtn" id="shortcutSettingsBtn" title="Hotkey sozlamalari">⌨ Hotkey</button>
-    <div class="dtGroup modeTabs">
-      <button class="dtBtn active" id="modeSelectBtn" title="Fillet/Dogbone/T-Bone tahrirlash">🦴 <span data-i18n="modeBoneEdit">Bone edit</span></button>
-      <button class="dtBtn" id="modeDrawBtn" title="Chiziq/Polyline chizish">✏ <span data-i18n="modeDraw">Chizish</span></button>
-      <button class="dtBtn" id="mode3dBtn">▧ 3D modellash</button>
-    </div>
-    <div class="dtGroup" id="toolGroup" style="display:none;">
+    <div class="dtGroup" id="toolGroup" style="display:none;"><button class="dtBtn" id="drawingExtrudePanels">Extrude → 3D…</button><button class="dtBtn" id="drawingToPanels">→ Modeling</button>
       <button class="dtBtn" id="toolNoneBtn" title="Hech qanday asbob — N">⛔ <span data-i18n="modeNone">None</span></button>
       <button class="dtBtn active" id="toolLineBtn" title="Line/Polyline — L">╱ <span data-i18n="tool_line">Line</span></button>
       <button class="dtBtn" id="toolCircleBtn" title="Circle — C">◯ <span data-i18n="tool_circle">Circle</span></button>
@@ -75,7 +97,7 @@
       <button class="dtBtn ok" id="finishDrawBtn" title="Tugatish — Enter">✓ <span data-i18n="finish">Tugatish</span></button>
       <button class="dtBtn cancel" id="cancelDrawBtn" title="Bekor qilish — Esc">✕ <span data-i18n="cancel_btn">Bekor</span></button>
     </div>
-    <div class="dtGroup" id="deleteGroup">
+    <span id="drawDeleteSlot"></span><div class="dtGroup" id="deleteGroup">
       <button class="dtBtn cancel" id="deleteLineBtn" title="Tanlangan chizmani o'chirish — Delete">🗑 <span data-i18n="tool_delete">O'chirish</span></button>
     </div>
     <div class="dtGroup" id="transformGroup">
@@ -426,6 +448,8 @@
 
   <!-- GEOMETRY — segment, arc, snap, matematika -->
   <script src="js/core/panel-model.js"></script>
+<script src="js/core/panel-cutlist.js"></script>
+<script src="js/core/cut-xlsx.js"></script>
   <script src="js/core/document-codec.js"></script>
   <script src="js/core/shortcut-map.js"></script>
   <script src="js/geometry/core.js"></script>
@@ -494,6 +518,7 @@
   <script src="js/io/raster.js"></script>
   <script src="vendor/three-viewport.js"></script>
   <script src="js/ui/model3d.js"></script>
+<script src="js/ui/panel-workshop.js"></script>
   <script src="js/model/pages.js"></script>
   <script src="js/io/project.js"></script>
   <script src="js/io/filemanager.js"></script>
@@ -505,7 +530,8 @@
   <script src="js/ui/shortcuts.js"></script>
 
   <!-- BOOTSTRAP -->
-  <script src="js/app.js"></script>
+  <script src="js/ui/main-menu.js"></script>
+<script src="js/app.js"></script>
 
 
 <!-- Matn kiritish oynasi. Electron window.prompt() ni QO'LLAB-QUVVATLAMAYDI,
@@ -522,5 +548,10 @@
   </div>
 </div>
 
-</body>
+<script src="js/ui/browser-mode.js"></script>
+<dialog id="fileDeliveryDialog"><h2>Faylni saqlash</h2><p id="fileDeliveryStatus"></p><a id="fileDeliveryLink" download>Yuklab olish</a><p>Yuklash bloklansa, Rugby’ni <a href="https://rugby-cad-workshop.iam-sanbek.chatgpt.site/" target="_blank" rel="noopener">alohida brauzer oynasida oching</a>. Joriy chizmani yo‘qotmaslik uchun quyidagi matndan nusxa olishingiz mumkin.</p><details id="fileDeliveryTextWrap"><summary>Matn nusxasi (DBE / TXT / CSV)</summary><p>Ctrl+A → Ctrl+C. DBE uchun matnni UTF-8 faylga .dbe kengaytmasi bilan saqlang.</p><textarea id="fileDeliveryText" readonly rows="8" spellcheck="false"></textarea></details><div class="dialogActions"><button id="fileDeliveryCancel">Bekor</button><button id="fileDeliveryConfirm">Fayl saqlandi</button></div></dialog>
+<dialog id="panelExtrudeDialog"><h2>Chizma → 3D Extrude</h2><p>Tanlangan yopiq konturlar; tanlov bo‘lmasa, joriy sahifadagi barcha yopiq konturlar.<br>XY joylashuvi saqlanadi, Z=0 dan yuqoriga cho‘ziladi. Rectangle’ning qisqa tomoni panel qalinligi bo‘ladi.<br>Shu chizmadan oldin yaratilgan panel yangi o‘lcham va dastlabki joylashuv bilan yangilanadi. Ctrl+Z bilan qaytarish mumkin.</p><label>Extrude, mm <input id="drawingExtrudeDepth" value="500" inputmode="decimal"></label><p id="panelExtrudeError" role="alert"></p><div class="dialogActions"><button id="panelExtrudeCancel">Bekor</button><button id="panelExtrudeApply">3D panel yaratish</button></div></dialog>
+<dialog id="panelCutDialog"><h2>Raspil ro‘yxati</h2><p>Ustunlarni suring yoki ← → bilan tartiblang. O‘lchamlar millimetrda.<br>Shaklli panellar uchun en/bo‘y — tashqi to‘rtburchak o‘lchami; bu CNC kesish yo‘li emas.</p><label><input id="cutSelected" type="checkbox"> Faqat tanlangan panellar (joriy sahifa)</label><label><input id="cutAllPages" type="checkbox" checked> Barcha sahifalar</label><div class="cutOptions"><label>Qalinlik <select id="cutThickness"><option value="">Hammasi</option></select></label><label>CSV ajratgich <select id="cutSeparator"><option value=";">Nuqtali vergul (;)</option><option value=",">Vergul (,)</option></select></label><label>O‘nlik <select id="cutDecimal"><option value=".">0.5</option><option value=",">0,5</option></select></label><label><input id="cutHeader" type="checkbox" checked> Sarlavha</label></div><p id="cutCount"></p><p id="cutExportStatus" role="status"></p><div class="cutScroll"><table><thead><tr id="cutColumns"></tr></thead><tbody id="cutBody"></tbody></table></div><button id="cutXLSX">Excel (.xlsx)</button><button id="cutTXT">TXT eksport</button><button id="cutCSV">CSV eksport</button><button id="cutCopy">Matnni nusxalash</button><button id="panelCutClose">Yopish</button></dialog>
+<script src="js/ui/compact-workspace.js"></script>
+<script>initCompactWorkspace();initPanelWorkshop();initPanelCompact();initMainMenu();initViewMenu();initWorkMenus();</script></body>
 </html>

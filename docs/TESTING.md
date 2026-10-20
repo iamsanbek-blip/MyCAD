@@ -1,3 +1,19 @@
+# 1.1.1-preview.2 verification (2026-10-20)
+
+- PASS: syntax/assets, 58 renderer JavaScript files.
+- PASS: 18 legacy regression files; 55 workspace/workshop/command/model/migration/export cases.
+- PASS: 17 Three.js math/pointer-double cases: exact endpoint/midpoint snapping, occlusion, fractional target locking, box selection, extrusion, view cameras and stretch.
+- Registry audit dispatches every registered command once in the intended scope and validates default shortcuts/button targets. This is not proof of every interactive path.
+- New migration tests cover 12 legacy orientation/quarter-turn combinations, custom matrix/contour, hidden/quantity/reference lines, v3 roundtrip and transactional rejection.
+- Native export unit test writes real text/binary bytes, replaces a prior file atomically, and rejects unsupported data.
+- Windows source/packaged/portable GUI evidence is generated in the release workflow. Consult BUILD-REPORT.json for the exact tested commit, platform, artifact hash and results. At this source checkpoint that CI run is pending.
+- This host has no approved Sites browser-control capability: direct browser visual QA was not performed here. DOM doubles are not a browser screenshot or Windows test.
+- Windows 10/11 user acceptance, actual chooser interactions, SmartScreen/SAC, accessibility and performance on large production drawings remain manual acceptance items.
+
+Previous verification notes below are historical and do not prove this new build.
+
+---
+
 # 1.1.1-preview.1 — tekshirildi (2026-10-15)
 
 GitHub Actions run **38726650306**, commit `527ec43375a2720c18736a2c19327514d3af52c9`.
@@ -192,3 +208,72 @@ yangi imzosiz preview.2 faylini qayd etadi.
 
 Natijaga Windows versiyasi, EXE SHA256'i, test sanasi va muvaffaqiyatsiz
 qadamlarni yozing. Himoya sozlamalarini o'zgartirish qabul mezoni emas.
+
+## Browser workshop update — 2026-10-16
+
+- Node regression suites and syntax/assets check passed. Added six adapter/export tests covering contour apply/cancel, isolated original drawings, save/page-switch safety, single undo/redo, three orientations, thickness, input-safe Space shortcut and column persistence.
+- Two Three.js math tests passed: both skin surfaces remain 16 mm apart under arbitrary rotation and XY scaling; point-to-point translation lands the chosen source exactly on the target. Run `node --test tests/panel-anchors.test.cjs` after dependency installation.
+- Browser/WebGL interaction QA was not run: supported control-browser tooling is unavailable in this managed environment. DOM doubles and math tests do not verify visual output or physical mouse interactions.
+- Manual acceptance remaining: create each orientation; hover anchors; choose source and target, toggle Space, cancel with Escape; double-click and apply L/U contours; export and reorder cut-list columns. No Windows build was made for this browser iteration.
+
+## Selective 1.1.2 merge into browser 1.1.1 — 2026-10-16
+- Existing regressions and syntax/assets checks passed; 11 focused tests passed (workshop + anchors suites).
+- Added quantity roundtrip/undo/counting and validation, property-order persistence, export filtering/decimal/delimiter options, and orthographic projection invariance tests.
+- HTML nesting and unique IDs passed. Browser graphics/manual interaction checks remain unperformed because supported browser tooling is unavailable.
+- Scope and differences documented in MERGE-1.1.2-INTO-1.1.1.md.
+
+## Fixed application menu — 2026-10-16
+- Stable global Rugby / File / Edit / Cnc / Drawing / Modeling row, separate from contextual toolbar.
+- File actions forward to existing file handlers; drawing import/export switches from Modeling to Drawing. Edit uses shared undo/redo, shortcut settings and language functions.
+- Syntax/assets and existing regressions passed. DOM-double check passed for mutually exclusive dropdowns, closing, and language action. Global CAD keyboard listeners ignore an open menu.
+- Graphical browser testing unavailable; fixed positioning and visual appearance have not been manually verified.
+
+## Compact header and View controls — 2026-10-17 (Tashkent)
+- First row reduced to 36px. Second row is Iso, Top, Front, Left, Right, Back, View; only the active preset has the brand fill, orbit rotation clears the preset to Custom. Zoom/pan retain the matching orientation.
+- View: edge-only Wireframe, Solid, Hide selection, Isolate selection, Unhide all. Visibility is temporary, page-scoped, excluded from raycasting/anchors, and does not delete or alter cut-list data.
+- Existing Node regressions and syntax/assets passed. Camera/anchor/visibility tests passed, including opposite directions, orthographic projection, same-page visibility rebuild and page reset. DOM-double check confirms exclusive active highlight and Custom status.
+- Graphical browser QA unavailable; manual appearance and mouse interaction remain unverified.
+
+## Panel / Make / Object menus — 2026-10-17
+- Added sections immediately after View. Actual inspector inputs moved into Panel (single DOM instance); type is optional persisted text. Existing saved property order gains the new field without resetting user order.
+- Make groups magnet, snap types, Ortho/Free, step, two-point 3D ruler and XY helper line. Object groups select/move/copy/rotate, local contour mirror X/Y, thickness-preserving XY scale (labelled Stretch), exact point placement and delete.
+- Mirror is a local contour reflection, not a world-plane mirror of an assembly. Stretch changes full panel width/height, not a partial vertex selection. Ruler is temporary and creates no saved geometry; helper lines use the existing XY drawing storage.
+- Node regressions, syntax/assets, HTML nesting/unique IDs passed. Added mirror undo/dimension/thickness/type roundtrip and menu exclusivity tests. Supported graphical browser QA unavailable; mouse and visual checks not performed.
+
+## Modeling interaction update — 2026-10-18
+- Build and syntax/assets checks passed (55 JavaScript files). Main Node regression run passed: 18 legacy files plus workspace/workshop suites.
+- Nine additional anchor/camera/stretch tests passed using real Three.js math and DOM doubles. Covers fixed opposite corners, arbitrary rotation, preserved thickness, invalid contour rejection, numeric preview cancel/apply. Workshop tests cover one-time rectangle conversion and save/reload, scoped hotkeys, and atomic multi-panel batches.
+- Graphical WebGL and physical mouse interaction QA was not performed: supported browser tooling is unavailable. These results do not certify browser gesture behavior. No Windows package was built.
+- True corner Stretch now supersedes the full-dimension Stretch description in the previous entry. Scale remains separate.
+
+## Modeling magnet and neutral controls — 2026-10-18
+- Removed viewport magnet button; Make menu and Space retain control. Active tool/view text uses brand color on neutral backgrounds; inactive commands are white. Panel previews are 28px.
+- Placement target picking now permits occluded anchors on visible panels, excludes hidden panels and the moving source, and uses nearer depth for overlapping projected anchors. Moving source is translucent until commit/cancel.
+- Build, syntax/assets and main regressions passed. Ten Three.js anchor/camera/stretch tests passed, including a blocked B corner, exact A-to-B translation, and hidden-target exclusion.
+- Browser/WebGL appearance and physical mouse interaction remain unverified because supported browser tooling is unavailable.
+
+## Move snapping, rectangle selection and XLSX — 2026-10-18
+- Root cause: the free Move drag branch bypassed nearest-anchor lookup entirely. It now captures source A and resolves target B on every drag update, excluding all moving panels. Selected panels move by one common delta; cancel restores originals. Moving panels become translucent. Axis gizmos retain axis constraints.
+- Blank-space left drag selects fully enclosed visible panels; Shift adds them. Selection changes create no geometry history.
+- Panel menu now opens raskroy export; optional selected-panel scope, TXT/CSV and real typed XLSX follow column order and thickness filter. XLSX text cells are literal, not formulas.
+- Syntax/assets and Node regressions passed. Four viewport pointer-event tests passed with mocked renderer/controls but real Three.js geometry: vertex snap, midpoint snap, cancel/magnet off, rectangle selection and hidden exclusion. Anchor/stretch suites also passed.
+- XLSX independently read with Python openpyxl: typed numeric cells, Unicode/formula-like literal names and column order verified; ZIP CRC valid. No Excel desktop or real browser/WebGL gesture test performed (supported browser tooling unavailable).
+
+## Browser Save/Open lifecycle — 2026-10-19
+- Browser Open uses the standard file input, avoiding filesystem picker permission failures inside embedded sites. Reads are serialized, errors preserve the current document, and selecting the same file again is supported.
+- Save falls back to a .dbe download on SecurityError/NotAllowedError/NotSupportedError. Cancellation stays cancelled; failed downloads do not mark the project saved. Native desktop I/O is unchanged.
+- Optional workspace field restores Modeling/Drawing/Cnc on open; old 3D files select Modeling automatically. Rehydration skips automatic rectangle conversion. File identity is visible in the global header; Modeling receives file status messages. UTF-8 BOM accepted.
+- Syntax/assets and regressions passed. Added browser integration coverage with mocked picker/download and fresh renderer context: two-page 2D/3D save-upload roundtrip, thickness, workspace, camera fit invocation, same-file reopen, BOM, invalid upload, failed download and cancelled picker. These are DOM doubles, not real browser file dialogs or WebGL.
+
+## Drawing profile extrusion and snap precision — 2026-10-19
+- Extrude dialog defaults to 500mm. Selected closed contours (or all closed contours when none selected) extend from Z=0, preserving XY footprint. Rectangles, including rotated ones, use the short side as material thickness and extrusion as panel height; other contours use independent extrusion thickness. Explicit repeat extrusion replaces panels from the same source drawing with one undo operation.
+- A grab now uses the same visible anchor as hover instead of reselecting through the panel. B snaps hold within a 24px release radius; Move recalculates the final pointer-up location. Exact placement refuses an unsnapped B while magnet is enabled. The marker ring is centered at the coordinate and its label is offset.
+- Syntax/assets, CSS parsing, all legacy/workspace tests passed. Seventeen Three.js/DOM-double tests passed including rotated extrusion footprint/Z extents, preserved 16mm thickness, final pointer-up snap, lock release, and Stretch regressions. Workshop test covers multiple profiles, replacement without duplication, undo, resize and save/reopen.
+- No real browser/WebGL or visual gesture QA: supported browser tooling unavailable.
+
+## Multi-selection, delivery and command audit — 2026-10-20 (Tashkent)
+- Delete and Copy act on the full Modeling selection, with one undo step. Copies keep relative spacing and no longer inherit sourceDrawingId. Ctrl+A selects visible panels; Ctrl+Shift+E opens the cut list.
+- Browser file fallback now shows a persistent download link inside a modal, plus text fallback for DBE/TXT/CSV and tabular fallback for XLSX. Save awaits explicit confirmation before clearing dirty state. Cancel preserves unsaved state. Native successful filesystem writes keep their existing behavior. This avoids treating an attempted hidden link click as proof of a disk write.
+- Cut-list exports validate nonempty results and surface errors/status in the dialog.
+- All 62 registered default hotkeys passed conflict, button-target and scoped-dispatch checks (command execution stubbed for the exhaustive dispatch audit). Real adapter tests cover multi-delete/copy/undo, settings controls, export button payloads, and save confirmation/cancellation. Existing remap persistence, focus protection, document roundtrip and drawing geometry regressions passed.
+- npm run check and npm test passed; new command-audit suite is part of npm test. DOM/canvas doubles and mock browser APIs were used. No real browser download, native file dialog, WebGL or exhaustive manual settings verification was performed: supported browser-control tooling is unavailable. Browser sandbox download blocking remains possible; persistent user-clickable link, separate-window link and text fallback are supplied instead of claiming silent success.

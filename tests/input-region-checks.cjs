@@ -50,31 +50,17 @@ module.exports=async function checkInputAndRegion(app,page,temporary,artifactDir
     polygons=[];dimensions=[];texts=[];view={scale:1,ox:40,oy:850};detectCorners();draw();
   });
   const before=await page.evaluate(()=>JSON.stringify({drawnLines,dimensions,texts,historyIndex,projectDirty}));
-  await page.locator('#exportPngRegionBtn').click();
+  await page.locator('#fileMenuToggle').click();await page.locator('[data-target="exportPngRegionBtn"]').click();
   await page.keyboard.press('Escape');
   assert.equal(await page.locator('#pngRegionOverlay').count(),0);
   assert.equal(await page.evaluate(()=>JSON.stringify({drawnLines,dimensions,texts,historyIndex,projectDirty})),before);
   checks.push('PNG crop Escape cancels without modifying geometry or history');
 
-  await app.evaluate(({session},dir)=>{
-    globalThis.__rugbyDownload=null;
-    session.defaultSession.on('will-download',(_event,item)=>{
-      item.setSavePath(dir+'/'+item.getFilename());
-      globalThis.__rugbyDownload={name:item.getFilename(),state:'started'};
-      item.once('done',(_ev,state)=>{globalThis.__rugbyDownload.state=state;});
-    });
-  },temporary);
-  async function downloaded(name){
-    const end=Date.now()+15000;
-    while(Date.now()<end){
-      const d=await app.evaluate(()=>globalThis.__rugbyDownload);
-      if(d?.name===name && d.state!=='started'){assert.equal(d.state,'completed');return path.join(temporary,name);}
-      await new Promise(resolve=>setTimeout(resolve,50));
-    }
-    throw new Error('PNG download did not complete: '+name);
-  }
+  const {routeExports,waitFile}=require('./native-save.cjs');
+  await routeExports(app,temporary);
+  const downloaded=name=>waitFile(temporary,name);
   // Drag bottom-right to top-left, proving reversed rectangles also work.
-  await page.locator('#exportPngRegionBtn').click();
+  await page.locator('#fileMenuToggle').click();await page.locator('[data-target="exportPngRegionBtn"]').click();
   const points=await page.evaluate(()=>{
     const r=canvas.getBoundingClientRect(),a=toScreen({x:300,y:100}),b=toScreen({x:100,y:300});
     return {a:{x:a.x+r.left,y:a.y+r.top},b:{x:b.x+r.left,y:b.y+r.top}};
@@ -95,10 +81,10 @@ module.exports=async function checkInputAndRegion(app,page,temporary,artifactDir
   assert.equal(cropPixels.width,1600);assert.equal(cropPixels.height,1600);
   assert.ok(cropPixels.red>10000);assert.equal(cropPixels.blue,0,'Outside blue object must be clipped');
   assert.equal(await page.evaluate(()=>JSON.stringify({drawnLines,dimensions,texts,historyIndex,projectDirty})),before);
-  await page.locator('#exportPngBtn').click();
+  await page.locator('#fileMenuToggle').click();await page.locator('[data-target="exportPngBtn"]').click();
   const full=await downloaded('drawing.png'),fullPixels=await pixels(full);
   assert.ok(fullPixels.red>10000);assert.ok(fullPixels.blue>10000,'Full export still includes both objects');
-  checks.push('real PNG region download is 1600×1600 with inside object only; full PNG includes both objects');
+  checks.push('native PNG region file is 1600×1600 with inside object only; full PNG includes both objects');
   if(artifactDir){fs.mkdirSync(artifactDir,{recursive:true});fs.copyFileSync(cropped,path.join(artifactDir,'region-export.png'));
     fs.writeFileSync(path.join(artifactDir,'input-region.json'),JSON.stringify({status:'passed',timingsMs:timings,cropPixels,fullPixels},null,2));}
   return checks;

@@ -16,4 +16,5 @@ contextBridge.exposeInMainWorld('desktop', {
   saveProjectAs: (content, suggestedName) => ipcRenderer.invoke('project:saveAs', content, suggestedName),
   saveProjectTo: (filePath, content)      => ipcRenderer.invoke('project:save', filePath, content),
   openProject:   ()                       => ipcRenderer.invoke('project:open'),
+  exportFile: (content,name) => ipcRenderer.invoke('file:export',content,name),
 });

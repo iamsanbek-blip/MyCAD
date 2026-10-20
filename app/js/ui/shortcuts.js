@@ -1,5 +1,25 @@
 /* Command registry: add a command here once; settings and dispatch share it. */
 const RUGBY_COMMANDS = [
+  ['model3d.new','Modeling · Yangi panel','N',panelCreateUniversal,'panelNew'],
+  ['model3d.hide','Modeling · Tanlovni yashirish','H',()=>panelView?.hideSelected(),'viewHide'],
+  ['model3d.unhide','Modeling · Hammasini ko‘rsatish','Shift+H',()=>panelView?.unhideAll(),'viewUnhide'],
+  ['model3d.isolate','Modeling · Tanlovni ajratish','Shift+I',()=>panelView?.isolateSelected(),'viewIsolate'],
+  ['model3d.selectAll','Modeling · Hammasini tanlash','Ctrl+A',panelSelectAll],
+  ['model3d.cutlist','Modeling · Raskroy eksport','Ctrl+Shift+E',panelCutOpen,'panelCutOpen'],
+  ['model3d.select','Modeling · Select','V',()=>panelMode('select'),'panelSelectTool'],
+  ['model3d.move','Modeling · Move','M',()=>panelMode('translate'),'panelMove'],
+  ['model3d.rotate','Modeling · Rotate','R',()=>panelMode('rotate'),'panelRotate'],
+  ['model3d.scale','Modeling · Scale','S',()=>panelMode('scale'),'panelScale'],
+  ['model3d.stretch','Modeling · Stretch','W',panelStartStretch,'panelStretch'],
+  ['model3d.copy','Modeling · Copy','Ctrl+D',panelDuplicate,'panelDuplicate'],
+  ['model3d.delete','Modeling · Delete','Delete',panelDelete,'panelDelete'],
+  ['model3d.ortho','Modeling · Ortho','F8',panelToggleOrtho],
+  ['model3d.free','Modeling · Free','F',()=>document.getElementById('panelFree').click(),'panelFree'],
+  ['model3d.point','Modeling · Nuqtadan joylash','G',()=>panelView?.beginPlacement(),'panelPointMove'],
+  ['model3d.mirror','Modeling · Mirror lokal X','I',()=>panelMirror('x'),'panelMirrorX'],
+  ['model3d.line','Modeling · XY chiziq','L',()=>document.getElementById('panelLine').click(),'panelLine'],
+  ['model3d.ruler','Modeling · Lineyka','D',()=>document.getElementById('panelRuler').click(),'panelRuler'],
+  ['model3d.magnet','Modeling · Magnit','Space',()=>{if(appMode==='model3d')panelToggleMagnet();},'panelMagnet'],
   ['view.model3d','3D modellash','Shift+F3',()=>setAppMode('model3d'),'mode3dBtn'],
   ['file.new','Yangi loyiha','Ctrl+N',()=>newProject(),'newProjBtn',true],
   ['file.open','Loyihani ochish','Ctrl+O',()=>openProjectDialog(),'openProjBtn',true],
@@ -57,21 +77,17 @@ function chooseDrawingTool(tool){
   if(appMode!=='draw')setAppMode('draw');setDrawTool(tool);
 }
 function handleShortcut(e){
+  if(typeof mainMenuIsOpen==='function'&&mainMenuIsOpen())return;
   if(e.defaultPrevented||e.isComposing)return;
-  if(isTextInputTarget(e.target)||inInputField())return;
+  const editing=isTextInputTarget(e.target)||inInputField();
   if(typeof pngRegionSelection!=='undefined' && pngRegionSelection)return;
   if(document.querySelector('dialog[open]')||document.getElementById('askOverlay')?.style.display==='flex')return;
   const combo=RugbyShortcuts.fromEvent(e);if(!combo)return;
-  const command=RUGBY_COMMANDS.find(c=>shortcutBindings[c.id]===combo);if(!command)return;
+  const command=RUGBY_COMMANDS.find(c=>shortcutBindings[c.id]===combo&&(RugbyShortcuts.scope(c.id)==='global'||RugbyShortcuts.scope(c.id)===(appMode==='model3d'?'modeling':'drawing')));if(!command)return;
   const el=e.target;const inField=el?.isContentEditable||['INPUT','SELECT','TEXTAREA'].includes(el?.tagName);
-  if(inField&&(!command.inField||(!e.ctrlKey&&!e.metaKey&&!e.altKey)))return;
+  if((inField||editing)&&(!command.inField||!['Ctrl+S','Ctrl+Shift+S','Ctrl+O','Ctrl+N'].includes(combo)))return;
   if(currentDraw&&typedLen!==''&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&combo.length===1)return;
   if(currentDraw&&command.id==='edit.delete')return;
-  if(appMode==='model3d'){
-    const handlers={'edit.delete':panelDelete,'edit.duplicate':panelDuplicate,'tool.move':()=>panelMode('translate'),'tool.rotate':()=>panelMode('rotate'),'tool.scale':()=>panelMode('scale'),'view.ortho':panelToggleOrtho};
-    if(handlers[command.id]){e.preventDefault();e.stopImmediatePropagation();if(!e.repeat)handlers[command.id]();return;}
-    if(!/^(file\.(new|open|save|saveAs)|page\.|edit\.(undo|redo)|settings\.|view\.model3d)/.test(command.id))return;
-  }
   e.preventDefault();e.stopImmediatePropagation();if(e.repeat)return;
   Promise.resolve(command.run()).catch(err=>{console.error(err);alert('Buyruq bajarilmadi: '+err.message);});
 }
@@ -89,9 +105,9 @@ function shortcutError(error){
 function renderShortcutRows(){
   const box=document.getElementById('shortcutRows'),filter=document.getElementById('shortcutSearch').value.toLocaleLowerCase();
   box.replaceChildren();
-  RUGBY_COMMANDS.filter(c=>(c.label+' '+shortcutDraft[c.id]).toLocaleLowerCase().includes(filter)).forEach(c=>{
+  RUGBY_COMMANDS.filter(c=>(document.getElementById('shortcutScope').value==='all'||RugbyShortcuts.scope(c.id)===document.getElementById('shortcutScope').value)&&(c.label+' '+shortcutDraft[c.id]).toLocaleLowerCase().includes(filter)).forEach(c=>{
     const row=document.createElement('div');row.className='shortcutRow';
-    const label=document.createElement('label');label.textContent=c.label;label.htmlFor='key-'+c.id;
+    const label=document.createElement('label');label.textContent=(RugbyShortcuts.scope(c.id)==='drawing'?'Drawing/Cnc · ':'')+c.label;label.htmlFor='key-'+c.id;
     const input=document.createElement('input');input.id='key-'+c.id;input.readOnly=true;input.value=shortcutDraft[c.id]||'—';
     input.setAttribute('aria-label',c.label+' hotkey');input.title='Bosing, keyin yangi kombinatsiyani bosing';
     input.addEventListener('keydown',e=>{
@@ -107,13 +123,14 @@ function renderShortcutRows(){
   });
 }
 function openShortcutSettings(){
-  shortcutDraft={...shortcutBindings};document.getElementById('shortcutSearch').value='';document.getElementById('shortcutError').textContent='';
+  shortcutDraft={...shortcutBindings};document.getElementById('shortcutScope').value=appMode==='model3d'?'modeling':'drawing';document.getElementById('shortcutSearch').value='';document.getElementById('shortcutError').textContent='';
   renderShortcutRows();document.getElementById('shortcutDialog').showModal();document.getElementById('shortcutSearch').focus();
 }
 function wireShortcuts(){
   try{shortcutBindings=RugbyShortcuts.restore(DEFAULT_SHORTCUTS,JSON.parse(localStorage.getItem(SHORTCUT_STORAGE)));}catch{shortcutBindings={...DEFAULT_SHORTCUTS};}
   window.addEventListener('keydown',handleShortcut,true);
   document.getElementById('shortcutSettingsBtn').addEventListener('click',openShortcutSettings);
+  document.getElementById('shortcutScope').addEventListener('change',renderShortcutRows);
   document.getElementById('shortcutSearch').addEventListener('input',renderShortcutRows);
   document.getElementById('shortcutResetBtn').addEventListener('click',()=>{shortcutDraft={...DEFAULT_SHORTCUTS};renderShortcutRows();document.getElementById('shortcutError').textContent='';});
   document.getElementById('shortcutSaveBtn').addEventListener('click',()=>{

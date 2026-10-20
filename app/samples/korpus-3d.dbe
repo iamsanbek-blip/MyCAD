@@ -1,0 +1,586 @@
+{
+  "format": "dogbone-editor-project",
+  "version": 3,
+  "units": "mm",
+  "pages": [
+    {
+      "id": "page_mv9g3854_echl8cs2",
+      "name": "Korpus 600 × 400 × 720",
+      "shapes": [
+        {
+          "uid": "p_mv9g3854_a0ug71yz",
+          "kind": "rect",
+          "points": [
+            {
+              "x": 0,
+              "y": 0
+            },
+            {
+              "x": 400,
+              "y": 0
+            },
+            {
+              "x": 400,
+              "y": 720
+            },
+            {
+              "x": 0,
+              "y": 720
+            }
+          ],
+          "closed": true,
+          "layer": "cut",
+          "color": "#ff6b6b"
+        },
+        {
+          "uid": "p_mv9g3854_weddylam",
+          "kind": "rect",
+          "points": [
+            {
+              "x": 450,
+              "y": 0
+            },
+            {
+              "x": 850,
+              "y": 0
+            },
+            {
+              "x": 850,
+              "y": 720
+            },
+            {
+              "x": 450,
+              "y": 720
+            }
+          ],
+          "closed": true,
+          "layer": "cut",
+          "color": "#ff6b6b"
+        },
+        {
+          "uid": "p_mv9g3854_olnh3r54",
+          "kind": "rect",
+          "points": [
+            {
+              "x": 900,
+              "y": 0
+            },
+            {
+              "x": 1468,
+              "y": 0
+            },
+            {
+              "x": 1468,
+              "y": 400
+            },
+            {
+              "x": 900,
+              "y": 400
+            }
+          ],
+          "closed": true,
+          "layer": "cut",
+          "color": "#ff6b6b"
+        },
+        {
+          "uid": "p_mv9g3854_30q6rm3y",
+          "kind": "rect",
+          "points": [
+            {
+              "x": 1518,
+              "y": 0
+            },
+            {
+              "x": 2086,
+              "y": 0
+            },
+            {
+              "x": 2086,
+              "y": 400
+            },
+            {
+              "x": 1518,
+              "y": 400
+            }
+          ],
+          "closed": true,
+          "layer": "cut",
+          "color": "#ff6b6b"
+        },
+        {
+          "uid": "p_mv9g3854_lrswjrz2",
+          "kind": "rect",
+          "points": [
+            {
+              "x": 2136,
+              "y": 0
+            },
+            {
+              "x": 2704,
+              "y": 0
+            },
+            {
+              "x": 2704,
+              "y": 384
+            },
+            {
+              "x": 2136,
+              "y": 384
+            }
+          ],
+          "closed": true,
+          "layer": "cut",
+          "color": "#ff6b6b"
+        },
+        {
+          "uid": "p_mv9g3854_bmof4rao",
+          "kind": "rect",
+          "points": [
+            {
+              "x": 2754,
+              "y": 0
+            },
+            {
+              "x": 3322,
+              "y": 0
+            },
+            {
+              "x": 3322,
+              "y": 688
+            },
+            {
+              "x": 2754,
+              "y": 688
+            }
+          ],
+          "closed": true,
+          "layer": "cut",
+          "color": "#ff6b6b"
+        }
+      ],
+      "dimensions": [],
+      "texts": [],
+      "corners": [],
+      "refImages": [],
+      "nestSheets": [],
+      "layers": [
+        {
+          "id": "cut",
+          "name": "Cut (Kesish)",
+          "color": "#ff6b6b",
+          "aci": 1,
+          "visible": true,
+          "locked": false
+        },
+        {
+          "id": "engrave",
+          "name": "Engrave (O‘yish)",
+          "color": "#5ee1ff",
+          "aci": 4,
+          "visible": true,
+          "locked": false
+        },
+        {
+          "id": "drill",
+          "name": "Drill (Teshik)",
+          "color": "#ffe680",
+          "aci": 2,
+          "visible": true,
+          "locked": false
+        },
+        {
+          "id": "default",
+          "name": "General",
+          "color": "#ffb454",
+          "aci": 40,
+          "visible": true,
+          "locked": false
+        }
+      ],
+      "activeLayer": "cut",
+      "activeColor": "#ffb454",
+      "view": {
+        "scale": 1,
+        "ox": 0,
+        "oy": 0
+      },
+      "settings": {},
+      "scene3d": {
+        "version": 1,
+        "defaultThickness": 16,
+        "templates": [
+          {
+            "id": "p_mv9g3854_a0ug71yz",
+            "name": "Chap yon",
+            "width": 400,
+            "height": 720,
+            "outline": [
+              {
+                "x": 0,
+                "y": 0
+              },
+              {
+                "x": 400,
+                "y": 0
+              },
+              {
+                "x": 400,
+                "y": 720
+              },
+              {
+                "x": 0,
+                "y": 720
+              }
+            ]
+          },
+          {
+            "id": "p_mv9g3854_weddylam",
+            "name": "O‘ng yon",
+            "width": 400,
+            "height": 720,
+            "outline": [
+              {
+                "x": 0,
+                "y": 0
+              },
+              {
+                "x": 400,
+                "y": 0
+              },
+              {
+                "x": 400,
+                "y": 720
+              },
+              {
+                "x": 0,
+                "y": 720
+              }
+            ]
+          },
+          {
+            "id": "p_mv9g3854_olnh3r54",
+            "name": "Past",
+            "width": 568,
+            "height": 400,
+            "outline": [
+              {
+                "x": 0,
+                "y": 0
+              },
+              {
+                "x": 568,
+                "y": 0
+              },
+              {
+                "x": 568,
+                "y": 400
+              },
+              {
+                "x": 0,
+                "y": 400
+              }
+            ]
+          },
+          {
+            "id": "p_mv9g3854_30q6rm3y",
+            "name": "Tepa",
+            "width": 568,
+            "height": 400,
+            "outline": [
+              {
+                "x": 0,
+                "y": 0
+              },
+              {
+                "x": 568,
+                "y": 0
+              },
+              {
+                "x": 568,
+                "y": 400
+              },
+              {
+                "x": 0,
+                "y": 400
+              }
+            ]
+          },
+          {
+            "id": "p_mv9g3854_lrswjrz2",
+            "name": "Tokcha",
+            "width": 568,
+            "height": 384,
+            "outline": [
+              {
+                "x": 0,
+                "y": 0
+              },
+              {
+                "x": 568,
+                "y": 0
+              },
+              {
+                "x": 568,
+                "y": 384
+              },
+              {
+                "x": 0,
+                "y": 384
+              }
+            ]
+          },
+          {
+            "id": "p_mv9g3854_bmof4rao",
+            "name": "Orqa",
+            "width": 568,
+            "height": 688,
+            "outline": [
+              {
+                "x": 0,
+                "y": 0
+              },
+              {
+                "x": 568,
+                "y": 0
+              },
+              {
+                "x": 568,
+                "y": 688
+              },
+              {
+                "x": 0,
+                "y": 688
+              }
+            ]
+          }
+        ],
+        "panels": [
+          {
+            "id": "p_mv9g3854_kwalsj09",
+            "name": "Chap yon",
+            "outline": [
+              {
+                "x": 0,
+                "y": 0
+              },
+              {
+                "x": 400,
+                "y": 0
+              },
+              {
+                "x": 400,
+                "y": 720
+              },
+              {
+                "x": 0,
+                "y": 720
+              }
+            ],
+            "baseWidth": 400,
+            "baseHeight": 720,
+            "width": 400,
+            "height": 720,
+            "thickness": 16,
+            "position": [
+              -292,
+              0,
+              360
+            ],
+            "rotation": [
+              90,
+              0,
+              90
+            ]
+          },
+          {
+            "id": "p_mv9g3854_tssn27to",
+            "name": "O‘ng yon",
+            "outline": [
+              {
+                "x": 0,
+                "y": 0
+              },
+              {
+                "x": 400,
+                "y": 0
+              },
+              {
+                "x": 400,
+                "y": 720
+              },
+              {
+                "x": 0,
+                "y": 720
+              }
+            ],
+            "baseWidth": 400,
+            "baseHeight": 720,
+            "width": 400,
+            "height": 720,
+            "thickness": 16,
+            "position": [
+              292,
+              0,
+              360
+            ],
+            "rotation": [
+              90,
+              0,
+              90
+            ]
+          },
+          {
+            "id": "p_mv9g3854_ky6x7g9y",
+            "name": "Past",
+            "outline": [
+              {
+                "x": 0,
+                "y": 0
+              },
+              {
+                "x": 568,
+                "y": 0
+              },
+              {
+                "x": 568,
+                "y": 400
+              },
+              {
+                "x": 0,
+                "y": 400
+              }
+            ],
+            "baseWidth": 568,
+            "baseHeight": 400,
+            "width": 568,
+            "height": 400,
+            "thickness": 16,
+            "position": [
+              0,
+              0,
+              8
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "id": "p_mv9g3854_q51kslpa",
+            "name": "Tepa",
+            "outline": [
+              {
+                "x": 0,
+                "y": 0
+              },
+              {
+                "x": 568,
+                "y": 0
+              },
+              {
+                "x": 568,
+                "y": 400
+              },
+              {
+                "x": 0,
+                "y": 400
+              }
+            ],
+            "baseWidth": 568,
+            "baseHeight": 400,
+            "width": 568,
+            "height": 400,
+            "thickness": 16,
+            "position": [
+              0,
+              0,
+              712
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "id": "p_mv9g3854_gz3ixi75",
+            "name": "Tokcha",
+            "outline": [
+              {
+                "x": 0,
+                "y": 0
+              },
+              {
+                "x": 568,
+                "y": 0
+              },
+              {
+                "x": 568,
+                "y": 384
+              },
+              {
+                "x": 0,
+                "y": 384
+              }
+            ],
+            "baseWidth": 568,
+            "baseHeight": 384,
+            "width": 568,
+            "height": 384,
+            "thickness": 16,
+            "position": [
+              0,
+              -8,
+              360
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "id": "p_mv9g3854_chrbijhf",
+            "name": "Orqa",
+            "outline": [
+              {
+                "x": 0,
+                "y": 0
+              },
+              {
+                "x": 568,
+                "y": 0
+              },
+              {
+                "x": 568,
+                "y": 688
+              },
+              {
+                "x": 0,
+                "y": 688
+              }
+            ],
+            "baseWidth": 568,
+            "baseHeight": 688,
+            "width": 568,
+            "height": 688,
+            "thickness": 16,
+            "position": [
+              0,
+              192,
+              360
+            ],
+            "rotation": [
+              90,
+              0,
+              0
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "activePageId": "page_mv9g3854_echl8cs2",
+  "saved": "2026-10-15T11:18:02.489Z"
+}

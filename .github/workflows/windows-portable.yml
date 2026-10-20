@@ -2,7 +2,7 @@ name: Windows portable preview
 
 on:
   push:
-    branches: [main, 'versions/1.1.1-preview.1']
+    branches: [main, 'versions/1.1.1-preview.2']
     paths:
       - 'app/**'
       - 'desktop/**'
@@ -44,6 +44,8 @@ jobs:
         run: npm run check
       - name: Regression tests
         run: npm test
+      - name: 3D geometry and snapping tests
+        run: npm run test:3d
       - name: Windows source GUI test
         run: npm run test:electron
         env:
@@ -79,6 +81,8 @@ jobs:
           name: windows-verification
           path: |
             verification/
+            dist/Rugby-Portable.exe
+            dist/RELEASE-NOTES.md
             dist/SHA256.txt
             dist/BUILD-REPORT.json
           if-no-files-found: warn

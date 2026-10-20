@@ -13,6 +13,7 @@ function cycleMode(c){
 }
 
 document.addEventListener('keydown',(e)=>{
+  if(typeof mainMenuIsOpen==='function'&&mainMenuIsOpen())return;
   if(e.isComposing)return;
   if(appMode==='model3d'){if(e.key==='Escape'){panelView?.cancel();panelLineMode=false;panelView?.setLine(false);}return;}
   if(typeof pngRegionSelection!=='undefined' && pngRegionSelection){

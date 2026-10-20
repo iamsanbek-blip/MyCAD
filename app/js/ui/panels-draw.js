@@ -37,9 +37,11 @@ function updateDrawActionButtons(){
   document.getElementById('drawActionsGroup').style.display = has ? 'flex' : 'none';
 }
 function setAppMode(mode){
+  if(typeof panelEditSession!=='undefined'&&panelEditSession&&mode==='model3d'){panelEditFinish(true);return;}
   if(typeof panelLeave==='function'&&appMode==='model3d')panelLeave();
   if(mode==='model3d')settlePageInteraction();
   appMode = mode;
+  if(typeof syncWorkspaceLayout==='function')syncWorkspaceLayout();
   document.body.classList.toggle('model3d',mode==='model3d');
   document.getElementById('mode3dBtn').classList.toggle('active',mode==='model3d');
   if(transformTool){ finishTransform(); } // switching modes cancels an in-progress transform

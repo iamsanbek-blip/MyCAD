@@ -1,0 +1,38 @@
+/* One compact rail, a useful inspector, and the largest available work area. */
+body{--inspector-width:264px}
+#sidebar{width:var(--inspector-width);flex:0 0 var(--inspector-width)}
+#sidebar .section{padding:9px 12px}#sidebar .brand{display:none}
+#pageBar{right:var(--inspector-width);height:36px;padding:3px 8px;box-sizing:border-box}
+#canvasWrap{margin-bottom:36px}
+#mainMenuBar #workspaceExpandBtn{margin-left:auto;font-size:11px;color:var(--text-dim);padding:5px 8px}
+#mainMenuBar #workspaceExpandBtn[aria-pressed=true]{color:var(--cyan)}
+body.workspaceWide #sidebar,body.workspaceWide #model3dInspector{display:none}
+body.workspaceWide #pageBar{right:0}
+#cncDeleteDock{position:absolute;bottom:12px;left:12px;z-index:14}
+#cncDeleteDock:empty,body.model3d #cncDeleteDock{display:none}
+#cncDeleteDock #deleteGroup{background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:3px}
+#model3dTools{width:60px!important;padding:7px 5px;display:flex;flex-direction:column;gap:8px;overflow:visible}
+#model3dTools>button{width:48px;height:48px;min-height:0;margin:0;padding:4px;display:flex;align-items:center;justify-content:center;flex-direction:column;font-size:23px}
+#model3dTools>button svg{width:28px;height:28px}#model3dTools small{font-size:9px;font-weight:400}
+#model3dTools>button[aria-pressed=true]{color:var(--cyan)!important;background:transparent!important}
+#panelHelp{margin-top:auto!important;position:relative;border:0!important;text-align:center}
+#panelHelp summary{font-size:16px;list-style:none}#panelHelp[open] p{position:absolute;left:52px;bottom:0;width:220px;margin:0;padding:12px;background:var(--panel);border:1px solid var(--line);z-index:30;text-align:left}
+#model3dInspector{width:224px!important;padding:0 10px;display:flex;flex-direction:column;gap:8px;scrollbar-width:thin}
+#model3dInspector details{border-bottom:1px solid #344554;padding:8px 0}
+#model3dInspector summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--text);padding:2px 0 6px}
+#model3dInspector .panelPropertyRow{grid-template-columns:9px 57px minmax(0,1fr) 15px 15px;gap:3px;margin:3px 0}
+#model3dInspector .panelPropertyRow input{height:25px;padding:3px 5px;font-size:11px}
+#model3dInspector .panelPropertyRow button{font-size:9px!important;background:transparent;color:var(--text-dim);border:0}
+#model3dInspector .panelMuted{margin:6px 0;line-height:1.4}
+#model3dInspector #panelApply{padding:6px;border:1px solid #465c6c}
+#panelSceneList{max-height:150px;overflow:auto}
+#panelSceneList button{font-size:10px;font-weight:400;text-align:left;border-bottom:1px solid #344554;padding:7px 3px;overflow-wrap:anywhere}
+#panelSceneList button.active{color:var(--cyan)!important;outline:0;border-left:2px solid var(--cyan)}
+#panelExportDock{margin-top:auto;padding:8px 0 10px;border-top:1px solid #344554}
+#panelExportDock select{padding:5px;font-size:11px}#panelExportDock .panelRow{display:flex;gap:5px;margin:6px 0}
+#panelExportDock button{padding:6px;font-size:11px;border:1px solid #465c6c}#panelExportDock .panelRow button{flex:1}
+#panelMenu{width:240px}.panelBasics{display:flex;gap:3px;flex-wrap:wrap}
+#drawToolbar{left:8px;right:8px;max-width:none;gap:3px;padding:5px}
+#drawToolbar .dtBtn{font-size:11px;padding:4px 6px}#drawToolbar .dtGroup{gap:3px;padding:2px 4px}
+@media(max-width:1000px){body{--inspector-width:230px}#model3dInspector{width:210px!important}#mainMenuBar #workspaceExpandBtn span{display:none}}
+@media(max-width:700px){#model3dInspector{display:none}#model3dTools{width:48px!important;padding:4px 2px}#model3dTools>button{width:42px}body{--inspector-width:210px}}

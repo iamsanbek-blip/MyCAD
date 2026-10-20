@@ -32,3 +32,5 @@ dialog input{background:var(--panel-2);color:var(--text);border:1px solid var(--
 .pngRegionBox{display:none;position:absolute;pointer-events:none;border:2px dashed #20bfff;background:#20bfff22;box-sizing:border-box;}
 .pngRegionHelp{position:absolute;top:8px;left:8px;right:8px;display:flex;gap:12px;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--panel);color:var(--text);border:1px solid var(--cyan);border-radius:6px;pointer-events:none;}
 .pngRegionHelp button{width:auto;pointer-events:auto;}
+
+#fileDeliveryDialog{width:560px}#fileDeliveryLink{display:block;padding:14px;border:1px solid var(--cyan);color:var(--cyan);overflow-wrap:anywhere}#fileDeliveryDialog a{color:var(--cyan)}#fileDeliveryText{width:100%;box-sizing:border-box;color:var(--text);background:var(--panel-2)}

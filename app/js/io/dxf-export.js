@@ -8,49 +8,28 @@
    ========================================================================== */
 
 // ================= export =================
-// robust file download that works from http(s) AND from file:// pages.
-// Strategy: try the Blob + object-URL approach first (best for large files);
-// if anything about it fails (some browsers restrict blob: downloads on
-// file:// pages), fall back to a base64 data: URI, which downloads reliably
-// everywhere. The anchor is added to the DOM (required by Firefox) and the
-// object URL is revoked only after a delay (revoking too early cancels it).
-function downloadFile(content, filename, mime){
-  // Fallback that always works: encode as a data URI.
-  function dataUriDownload(){
-    try{
-      // UTF-8 safe base64
-      const bytes = new TextEncoder().encode(content);
-      let bin=''; bytes.forEach(b=> bin+=String.fromCharCode(b));
-      const b64 = btoa(bin);
-      const a = document.createElement('a');
-      a.href = 'data:'+mime+';base64,'+b64;
-      a.download = filename;
-      a.style.display='none';
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(()=>document.body.removeChild(a), 1500);
-      return true;
-    }catch(err2){
-      alert('Yuklab olishda xatolik (data URI): '+err2.message);
-      return false;
-    }
-  }
-  try{
-    if(typeof URL==='undefined' || !URL.createObjectURL){ return dataUriDownload(); }
-    const blob = new Blob([content], {type:mime});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(()=>{ try{document.body.removeChild(a);}catch(e){} URL.revokeObjectURL(url); }, 1500);
-    return true;
-  }catch(err){
-    // blob path failed (e.g. blob: blocked on file://) → data URI fallback
-    return dataUriDownload();
-  }
+// File delivery is explicit: starting a download is not proof it reached disk.
+let deliveryInFlight=null;
+function downloadFile(content,filename,mime,textFallback=null){
+ if(deliveryInFlight)return Promise.resolve(false);
+ if(window.desktop?.exportFile){
+  deliveryInFlight=(async()=>{try{
+   const data=content instanceof Blob?new Uint8Array(await content.arrayBuffer()):content;
+   return !!(await window.desktop.exportFile(data,filename));
+  }catch(e){alert('Eksport saqlanmadi: '+e.message);return false;}finally{deliveryInFlight=null;}})();
+  return deliveryInFlight;
+ }
+ const dialog=document.getElementById('fileDeliveryDialog'),link=document.getElementById('fileDeliveryLink'),status=document.getElementById('fileDeliveryStatus'),text=document.getElementById('fileDeliveryText');
+ let url;try{url=URL.createObjectURL(new Blob([content],{type:mime}));}catch(e){alert('Fayl tayyorlanmadi: '+e.message);return Promise.resolve(false);}
+ link.href=url;link.download=filename;link.textContent=filename+' — yuklab olish';text.value=typeof content==='string'?content:(textFallback||'');document.getElementById('fileDeliveryTextWrap').hidden=!text.value;
+ status.textContent='Havolani bosing. Fayl Downloads / Yuklamalar papkasida paydo bo‘lgach “Fayl saqlandi” ni bosing.';
+ const confirm=document.getElementById('fileDeliveryConfirm'),cancel=document.getElementById('fileDeliveryCancel');
+ dialog.showModal();
+ deliveryInFlight=new Promise(resolve=>{
+  const finish=ok=>{confirm.removeEventListener('click',yes);cancel.removeEventListener('click',no);dialog.removeEventListener('cancel',escape);dialog.close();link.removeAttribute('href');URL.revokeObjectURL(url);deliveryInFlight=null;resolve(ok);};
+  const yes=()=>finish(true),no=()=>finish(false),escape=e=>{e.preventDefault();finish(false);};confirm.addEventListener('click',yes);cancel.addEventListener('click',no);dialog.addEventListener('cancel',escape);
+ });
+ return deliveryInFlight;
 }
 document.getElementById('exportBtn').addEventListener('click', ()=>{
   const dxf = buildDXF();

@@ -206,6 +206,20 @@ ipcMain.handle('confirm-quit', async (_e, isDirty) => {
 
 ipcMain.handle('app:version', () => app.getVersion());
 
+// Export bytes only to a path chosen in the native Save dialog.
+ipcMain.handle('file:export',async(event,content,name)=>{
+  assertRenderer(event);
+  const {exportPayload,writeExportAtomic}=require('./desktop/export-files');
+  const p=exportPayload(content,name);
+  const {canceled,filePath}=await dialog.showSaveDialog(mainWin,{
+    title:'Eksportni saqlash',defaultPath:p.name,
+    filters:[{name:p.extension.toUpperCase(),extensions:[p.extension]}],
+    properties:['createDirectory','showOverwriteConfirmation']
+  });
+  if(canceled||!filePath)return null;
+  return writeExportAtomic(filePath,p.data);
+});
+
 // ---------------------------------------------------------------------------
 //  LOYIHANI SAQLASH / OCHISH — tizimning O'Z dialoglari orqali
 //

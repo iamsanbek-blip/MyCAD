@@ -40,14 +40,7 @@ function initApp(){
   markProjectSaved(null,null,null);
   const projIn=document.getElementById('projInput');
   if(projIn){
-    projIn.addEventListener('change', (e)=>{
-      const f=e.target.files[0]; if(!f) return;
-      const rd=new FileReader();
-      rd.onload=()=>acceptProjectFile(rd.result,f.name,null,null);
-      rd.onerror=()=>alert('Faylni o\'qib bo\'lmadi.');
-      rd.readAsText(f);
-      e.target.value='';
-    });
+    projIn.addEventListener('change',e=>openProjectUpload(e.target.files?.[0]));
   }
   [['alignLeftBtn','left'],['alignRightBtn','right'],['alignCenterXBtn','centerX'],
    ['alignTopBtn','top'],['alignBottomBtn','bottom'],['alignCenterYBtn','centerY']].forEach(([id,mode])=>{

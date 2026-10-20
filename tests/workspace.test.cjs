@@ -152,3 +152,19 @@ test('PNG region cancel and page switching preserve drawing geometry',()=>{
  h.run('startPNGRegionExport();addPage()');assert.equal(h.run('pngRegionSelection'),null);
  h.run('nextPage(-1)');assert.deepEqual(JSON.parse(h.run('JSON.stringify(drawnLines)')),JSON.parse(before));
 });
+
+test('browser blocked save picker downloads valid DBE and fresh upload restores all pages and Modeling',async()=>{
+ const h=createHarness();let downloaded;h.sb.showSaveFilePicker=async()=>{const e=Error('iframe policy');e.name='SecurityError';throw e;};h.sb.captureDownload=(text,name)=>{downloaded={text,name};return true;};h.run("downloadFile=captureDownload;drawnLines=[{uid:'r1',kind:'rect',closed:true,points:[{x:0,y:0},{x:100,y:0},{x:100,y:200},{x:0,y:200}],layer:activeLayer}];pushHistory();addPage();panelScene.panels.push(RugbyPanels.instantiate(RugbyPanels.template([{x:0,y:0},{x:500,y:0},{x:500,y:700},{x:0,y:700}])));pushHistory();appMode='model3d';projectFileName='mebel.json'");
+ assert.equal(await h.run('saveProjectQuick()'),true);assert.equal(downloaded.name,'mebel.dbe');assert.equal(JSON.parse(downloaded.text).pages.length,2);
+ const fresh=createHarness();fresh.run("panelView={cancel(){},sync(){},select(){},setLine(){},setOrtho(){},setGuides(){},resize(){},fit(){window.fitted=true;},setMagnet(){}};");fresh.sb.file={name:downloaded.name,text:async()=>downloaded.text};assert.equal(await fresh.run('openProjectUpload(file)'),true);assert.equal(fresh.run('appMode'),'model3d');assert.equal(fresh.run('panelScene.panels.length'),1);assert.equal(fresh.run('panelScene.panels[0].thickness'),16);assert.equal(fresh.run('documentPages[0].shapes.length'),1);assert.equal(fresh.run('projectDirty'),false);assert.equal(fresh.sb.fitted,true);
+ // Reopen same file after a previous success, including UTF-8 BOM.
+ fresh.sb.file.text=async()=>'\ufeff'+downloaded.text;assert.equal(await fresh.run('openProjectUpload(file)'),true);assert.equal(fresh.run('fileOperationBusy'),false);
+});
+test('failed download stays dirty; save cancellation never downloads; browser Open uses file input',async()=>{
+ const h=createHarness();rect(h);h.run('downloadFile=()=>false');assert.equal(await h.run('saveProjectQuick()'),false);assert.equal(h.run('projectDirty'),true);
+ h.sb.showSaveFilePicker=async()=>{const e=Error('cancel');e.name='AbortError';throw e;};h.run('downloadFile=()=>{throw Error("should not run")};');assert.equal(await h.run('saveProjectQuick()'),false);
+ let clicked=0;h.document.getElementById('projInput').addEventListener('click',()=>clicked++);h.sb.showOpenFilePicker=()=>{throw Error('blocked API must not be called');};await h.run('openProjectDialog()');assert.equal(clicked,1);
+});
+test('failed upload leaves current document intact and permits next open',async()=>{
+ const h=createHarness();rect(h);h.run("projectFileName='original.dbe'");h.sb.file={name:'bad.dbe',text:async()=>'{bad json'};assert.equal(await h.run('openProjectUpload(file)'),false);assert.equal(h.run('drawnLines.length'),1);assert.equal(h.run('projectFileName'),'original.dbe');assert.equal(h.run('fileOperationBusy'),false);assert.equal(h.run('projectDirty'),true);
+});

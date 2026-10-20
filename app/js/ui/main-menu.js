@@ -1,0 +1,14 @@
+function mainMenuIsOpen(){return ['file','edit','view','panel','make','object'].some(name=>document.getElementById(name+'Menu')?.hidden===false);}
+/* Stable application navigation. Existing buttons retain file-picker behavior. */
+function closeMainMenus(focusId){if(typeof closeWorkMenus==='function')closeWorkMenus();if(typeof closeViewMenu==='function')closeViewMenu();for(const name of ['file','edit']){document.getElementById(name+'Menu').hidden=true;document.getElementById(name+'MenuToggle').setAttribute('aria-expanded','false');}if(focusId)document.getElementById(focusId).focus();}
+function toggleMainMenu(name){const panel=document.getElementById(name+'Menu'),opening=panel.hidden;closeMainMenus();panel.hidden=!opening;document.getElementById(name+'MenuToggle').setAttribute('aria-expanded',String(opening));}
+function runMainMenuAction(button){closeMainMenus();if(button.dataset.drawing&&appMode==='model3d')setAppMode('draw');const target=button.dataset.target;if(target)document.getElementById(target)?.click();}
+function initMainMenu(){for(const name of ['file','edit']){const toggle=document.getElementById(name+'MenuToggle'),menu=document.getElementById(name+'Menu');toggle.addEventListener('click',()=>toggleMainMenu(name));toggle.addEventListener('keydown',e=>{if(e.key==='ArrowDown'){e.preventDefault();closeMainMenus();menu.hidden=false;toggle.setAttribute('aria-expanded','true');menu.querySelector('button')?.focus();}});menu.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();closeMainMenus(toggle.id);return;}if(['ArrowDown','ArrowUp','Home','End'].includes(e.key)){e.preventDefault();const items=Array.from(menu.querySelectorAll('button')),index=items.indexOf(document.activeElement),next=e.key==='Home'?0:e.key==='End'?items.length-1:(index+(e.key==='ArrowDown'?1:-1)+items.length)%items.length;items[next]?.focus();}});}
+ for(const b of document.querySelectorAll('#mainMenuBar [data-target]'))b.addEventListener('click',()=>runMainMenuAction(b));
+ const bind=(id,fn)=>document.getElementById(id).addEventListener('click',()=>{closeMainMenus();fn();});bind('menuUndo',undo);bind('menuRedo',redo);bind('menuLangUz',()=>setLang('uz'));bind('menuLangEn',()=>setLang('en'));bind('menuCutList',panelCutOpen);
+ // Hotkey settings already has its command binding; only close the dropdown.
+ document.getElementById('shortcutSettingsBtn').addEventListener('click',()=>closeMainMenus());
+ for(const id of ['modeSelectBtn','modeDrawBtn','mode3dBtn'])document.getElementById(id).addEventListener('click',()=>closeMainMenus());
+ document.addEventListener('pointerdown',e=>{if(!e.target.closest?.('#mainMenuBar')&&!e.target.closest?.('.workMenuWrap')&&!e.target.closest?.('#viewMenuWrap'))closeMainMenus();});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMainMenus();});
+}
