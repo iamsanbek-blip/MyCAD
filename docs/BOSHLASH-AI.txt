@@ -1,6 +1,6 @@
-RUGBY 1.1.1-preview.5 — AI VA SINXRONLASH
+RUGBY 1.1.1-preview.6 — AI VA SINXRONLASH
 
-Yuklab olish: https://github.com/iamsanbek-blip/MyCAD/releases/download/v1.1.1-preview.5/Rugby-Portable.exe
+Yuklab olish: https://github.com/iamsanbek-blip/MyCAD/releases/download/v1.1.1-preview.6/Rugby-Portable.exe
 
 1. Rugby-Portable.exe faylini yuklab oling va oching.
 2. Yuqoridagi “AI yordamchi” tugmasini bosing.

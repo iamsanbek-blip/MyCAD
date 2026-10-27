@@ -10,6 +10,7 @@ module.exports=async function(app,page,temporary,artifactDir){
  await page.waitForSelector('#assistantReview:not([hidden])');
  assert.equal(await page.evaluate(()=>panelScene.panels.length),before,'Preview does not mutate scene');
  assert.equal(await page.locator('#assistantPreviewRows tr').count(),8);
+ assert.match(await page.locator('#assistantStatus').innerText(),/Reja tayyor/);
  if(artifactDir){fs.mkdirSync(artifactDir,{recursive:true});await page.screenshot({path:path.join(artifactDir,'assistant-preview.png')});}
  await page.locator('#assistantApply').click();
  await page.waitForFunction(n=>panelScene.panels.length===n+8,before);
@@ -30,6 +31,7 @@ module.exports=async function(app,page,temporary,artifactDir){
  await page.getByText('Makroslar va shablon bloklar',{exact:true}).click();
  await page.getByRole('button',{name:'ƒ GUI korpus',exact:true}).click();
  assert.equal(await page.locator('#assistantPreviewRows tr').count(),8);
+ assert.match(await page.locator('#assistantStatus').innerText(),/Reja tayyor/);
  passed.push('new macro persists across renderer reload and is immediately registered as a hotkey command');
  // Drive folder is selected via a stubbed native dialog, but actual sync uses disk.
  const cloud=path.join(temporary,'cloud-profile');fs.mkdirSync(cloud,{recursive:true});

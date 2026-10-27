@@ -105,3 +105,10 @@ test('rapid local saves supersede earlier same-device writes without false confl
  a.setMany({consoleDock:'right'},bases);a.setMany({consoleDock:'bottom'},bases);
  assert.equal(a.view().values.consoleDock,'bottom');assert.equal(a.view().conflicts.length,0);
 });
+
+test('console button accepts synchronous preview results without reporting a false Promise error',()=>{
+ const h=createHarness();h.document.getElementById('assistantLocalCabinet').click();
+ assert.match(h.document.getElementById('assistantStatus').textContent,/Reja tayyor/);
+ assert.equal(h.run('assistantPending.created'),8);
+ assert.equal(h.run('panelScene.panels.length'),0);
+});

@@ -1,7 +1,7 @@
 {
   "name": "rugby",
   "productName": "Rugby",
-  "version": "1.1.1-preview.5",
+  "version": "1.1.1-preview.6",
   "description": "Rugby — CNC Corner Editor. Dogbone, T-bone, fillet, chamfer va nesting.",
   "main": "main.js",
   "author": {

@@ -1,3 +1,10 @@
+# AI tugmasi natijasini tekshirish — 1.1.1-preview.6
+
+- Sinxron preview natijasi Promise deb qabul qilinib ko‘rsatilgan noto‘g‘ri xato tuzatildi.
+- Tugma bosilganda “Reja tayyor” xabari va 8 detal preview tekshiriladigan regressiya sinovi qo‘shildi.
+- AI/profil suite: 17 test. Windows GUI ham aynan shu xabarni tekshiradi.
+- Yakuniy Windows run natijasi reliz dalillari bilan qayd etiladi.
+
 # Yakuniy AI UI va profil tuzatishi — 1.1.1-preview.5
 
 - AI konsol sarlavhasidagi tugma eni va makros tugmalari tartibi tuzatildi.
