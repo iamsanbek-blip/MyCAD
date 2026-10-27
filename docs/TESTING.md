@@ -7,9 +7,13 @@
   uch mustaqil profil orqali Drive-papka almashuvi, offline qayta ulanish,
   konflikt/tombstone, private GitHub SHA update va mock OpenAI web/vision so‘rovlari.
 - `npm run test:3d`: barcha geometriya, anchoring va stretch testlari o‘tdi.
-- Windows GUI va EXE sinovi: yangi commit uchun GitHub Actions natijasi kutilmoqda.
-  `tests/assistant-gui.cjs` haqiqiy Electron IPC/disk bilan ko‘rik, undo,
-  makrosni reload qilish va profil papkasiga yozishni tekshiradi.
+- Windows Server 2022: source GUI, packaged GUI va portable launcher sinovlari o‘tdi.
+  `tests/assistant-gui.cjs` haqiqiy Electron IPC/disk bilan 8 panel ko‘rigi, bitta
+  Undo, makrosni reload qilish va profil papkasiga yozishni tekshirdi.
+  Dalil: https://github.com/iamsanbek-blip/MyCAD/actions/runs/40520150329
+  EXE relizi: https://github.com/iamsanbek-blip/MyCAD/releases/tag/v1.1.1-preview.4
+  Build commit: 80ac43563455ad265c891665a37d9433c69ed845.
+  EXE SHA256: 2d1f6ea474bb0d710f60a9370ba9a918388cc9ae2221dd22bf3ceec312b2ecb0.
 - Real OpenAI API chaqiruvi, real private GitHub tokeni va ikki fizik kompyuterning
   Google Drive klienti bilan end-to-end sinov bajarilmadi; mos foydalanuvchi ulanishlari kerak.
 - Windows 10/11 qo‘lda qabul sinovi va code signing bajarilmadi.
