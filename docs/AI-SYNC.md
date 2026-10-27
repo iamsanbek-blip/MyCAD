@@ -1,4 +1,4 @@
-# Rugby 1.1.1-preview.4 — AI va shaxsiy profil
+# Rugby 1.1.1-preview.5 — AI va shaxsiy profil
 
 Yuqoridagi **AI yordamchi** tugmasi yoki **Ctrl+Shift+A** oynani ochadi.
 Topshiriq yozing, kerak bo‘lsa o‘lchamli JPG/PNG tanlang, **AI bilan reja tuzish**ni bosing.

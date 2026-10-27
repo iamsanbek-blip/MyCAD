@@ -99,3 +99,9 @@ test('saved macros survive restart, appear in F10 and hotkeys preview rather tha
 test('an open shortcut editor keeps its draft while remote profile changes arrive',()=>{
  const h=createHarness();h.run("openShortcutSettings();shortcutDraft['draw.line']='Q';assistantAcceptProfile({values:{shortcuts:{...DEFAULT_SHORTCUTS,'draw.line':'Y'}},conflicts:[]})");assert.equal(h.run("shortcutDraft['draw.line']"),'Q');h.run("document.getElementById('shortcutDialog').close()");assert.equal(h.run("shortcutBindings['draw.line']"),'Y');
 });
+
+test('rapid local saves supersede earlier same-device writes without false conflicts',t=>{
+ const a=new ProfileStore(temp(t));a.set('consoleDock','left');const bases=a.view().versions;
+ a.setMany({consoleDock:'right'},bases);a.setMany({consoleDock:'bottom'},bases);
+ assert.equal(a.view().values.consoleDock,'bottom');assert.equal(a.view().conflicts.length,0);
+});

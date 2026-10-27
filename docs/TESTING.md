@@ -1,3 +1,11 @@
+# Yakuniy AI UI va profil tuzatishi — 1.1.1-preview.5
+
+- AI konsol sarlavhasidagi tugma eni va makros tugmalari tartibi tuzatildi.
+- Ketma-ket shu qurilmada saqlashlar eski lokal variantni supersede qiladi;
+  boshqa qurilmadagi parallel o‘zgarishlar konflikt sifatida saqlanadi.
+- `npm run test:assistant`: 16 test; `npm run check`, `npm test` va `npm run test:3d` o‘tdi.
+- preview.5 uchun Windows GUI/portable qayta tekshiruvi keyingi CI run orqali qayd etiladi.
+
 # AI va sinxronlash — 2026-10-27, 1.1.1-preview.4
 
 - `npm run check`: 65 JavaScript fayli, 0 syntax/asset xato.

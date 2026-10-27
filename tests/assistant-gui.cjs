@@ -10,6 +10,7 @@ module.exports=async function(app,page,temporary,artifactDir){
  await page.waitForSelector('#assistantReview:not([hidden])');
  assert.equal(await page.evaluate(()=>panelScene.panels.length),before,'Preview does not mutate scene');
  assert.equal(await page.locator('#assistantPreviewRows tr').count(),8);
+ if(artifactDir){fs.mkdirSync(artifactDir,{recursive:true});await page.screenshot({path:path.join(artifactDir,'assistant-preview.png')});}
  await page.locator('#assistantApply').click();
  await page.waitForFunction(n=>panelScene.panels.length===n+8,before);
  await page.locator('#assistantClose').click();

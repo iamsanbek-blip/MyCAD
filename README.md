@@ -1,4 +1,4 @@
-# Rugby 1.1.1-preview.4 — AI va profil sinxronlash
+# Rugby 1.1.1-preview.5 — AI va profil sinxronlash
 
 **AI yordamchi**: o‘lchamli JPG/PNG, korpus/polka, hisob, hotkey va qayta ishlatiladigan makroslar. Shaxsiy profil Google Drive for desktop papkasi yoki PRIVATE GitHub repo orqali sinxronlanadi. AI kaliti va profil ulanishi bir marta sozlanadi. [Ulash va foydalanish](docs/AI-SYNC.md).
 
@@ -8,7 +8,7 @@ Ixcham CNC / Drawing / Modeling ishchi oynasi, universal panel, aniq magnit, ko�
 - [1.1.2 manbalaridan olingan o‘zgarishlar](docs/REVIEW-1.1.2.md)
 - [Sinovlar va cheklovlar](docs/TESTING.md)
 
-Windows portable: **Releases → v1.1.1-preview.4 → Rugby-Portable.exe** (faqat Windows tekshiruvlari o‘tgach chiqariladi). Imzosiz preview; Smart App Control bloklashi mumkin. Sozlamalar foydalanuvchi profilida saqlanadi.
+Windows portable: **Releases → v1.1.1-preview.5 → Rugby-Portable.exe** (faqat Windows tekshiruvlari o‘tgach chiqariladi). Imzosiz preview; Smart App Control bloklashi mumkin. Sozlamalar foydalanuvchi profilida saqlanadi.
 
 Manbadan ishga tushirish: `npm ci`, `npm run build:3d`, `npm start`. Tekshiruv: `npm run check`, `npm test`, `npm run test:3d`. Windows paketlash: `node scripts/build-preview.cjs`; rasmiy imzolangan chiqarish uchun alohida signing gate saqlangan.
 
