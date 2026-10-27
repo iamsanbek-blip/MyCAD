@@ -8,7 +8,7 @@ Ixcham CNC / Drawing / Modeling ishchi oynasi, universal panel, aniq magnit, ko�
 - [1.1.2 manbalaridan olingan o‘zgarishlar](docs/REVIEW-1.1.2.md)
 - [Sinovlar va cheklovlar](docs/TESTING.md)
 
-Windows portable: **Releases → v1.1.1-preview.5 → Rugby-Portable.exe** (faqat Windows tekshiruvlari o‘tgach chiqariladi). Imzosiz preview; Smart App Control bloklashi mumkin. Sozlamalar foydalanuvchi profilida saqlanadi.
+Windows portable: **[Rugby-Portable.exe — 1.1.1-preview.5](https://github.com/iamsanbek-blip/MyCAD/releases/download/v1.1.1-preview.5/Rugby-Portable.exe)** (Windows source/packaged GUI va launcher tekshiruvlari o‘tdi). Imzosiz preview; Smart App Control bloklashi mumkin. Sozlamalar foydalanuvchi profilida saqlanadi.
 
 Manbadan ishga tushirish: `npm ci`, `npm run build:3d`, `npm start`. Tekshiruv: `npm run check`, `npm test`, `npm run test:3d`. Windows paketlash: `node scripts/build-preview.cjs`; rasmiy imzolangan chiqarish uchun alohida signing gate saqlangan.
 

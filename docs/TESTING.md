@@ -4,7 +4,13 @@
 - Ketma-ket shu qurilmada saqlashlar eski lokal variantni supersede qiladi;
   boshqa qurilmadagi parallel o‘zgarishlar konflikt sifatida saqlanadi.
 - `npm run test:assistant`: 16 test; `npm run check`, `npm test` va `npm run test:3d` o‘tdi.
-- preview.5 uchun Windows GUI/portable qayta tekshiruvi keyingi CI run orqali qayd etiladi.
+- Windows source GUI, packaged GUI va portable launcher qayta sinovlari o‘tdi.
+  Dalil: https://github.com/iamsanbek-blip/MyCAD/actions/runs/40521376927
+  Reliz: https://github.com/iamsanbek-blip/MyCAD/releases/tag/v1.1.1-preview.5
+  Build commit: c36fc8f03cf923a86f7929148cc3477e998cfd86.
+  EXE SHA256: 1f2f4330e3678d70c55e0c6b214d279a21256e3bf81b748cfa711d92678fa074.
+  Native dialog tanlovi mock; haqiqiy OpenAI va cloud hisoblari bilan end-to-end
+  sinov hamda Windows 10/11 qo‘lda qabul sinovi bajarilmagan.
 
 # AI va sinxronlash — 2026-10-27, 1.1.1-preview.4
 

@@ -94,6 +94,7 @@ Ilova yopiq paytda Rugby sinxronlash ishlamaydi. Drive mijozining o‘zi ishlash
 Manba: OpenAI Responses, rasm kiritish va web search rasmiy interfeyslari:
 https://developers.openai.com/api/docs/guides/images-vision
 https://developers.openai.com/api/docs/guides/tools-web-search
+Google Drive for desktop: https://support.google.com/drive/answer/13401938
 GitHub Contents API: https://docs.github.com/en/rest/repos/contents
 
 `npm run check`, `npm test`, `npm run test:3d`, `npm run test:assistant`.
