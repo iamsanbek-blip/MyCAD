@@ -3,7 +3,14 @@
 - Sinxron preview natijasi Promise deb qabul qilinib ko‘rsatilgan noto‘g‘ri xato tuzatildi.
 - Tugma bosilganda “Reja tayyor” xabari va 8 detal preview tekshiriladigan regressiya sinovi qo‘shildi.
 - AI/profil suite: 17 test. Windows GUI ham aynan shu xabarni tekshiradi.
-- Yakuniy Windows run natijasi reliz dalillari bilan qayd etiladi.
+- `npm run check`, `npm test`, `npm run test:3d` o‘tdi.
+- Windows Server 2022 source GUI, packaged GUI va portable launcher sinovlari o‘tdi.
+  Dalil: https://github.com/iamsanbek-blip/MyCAD/actions/runs/40566975764
+  Reliz: https://github.com/iamsanbek-blip/MyCAD/releases/tag/v1.1.1-preview.6
+  Build commit: c4981b934c0222787b3015fe1fc58f644066d02b.
+  EXE SHA256: ed0de29afed3fec77625e38cfdf2738e8852ae9d1dece8c19d96a515ad9e138c.
+  Native dialog tanlovi mock; haqiqiy OpenAI va cloud hisoblari bilan end-to-end
+  sinov hamda Windows 10/11 qo‘lda qabul sinovi bajarilmagan.
 
 # Yakuniy AI UI va profil tuzatishi — 1.1.1-preview.5
 
