@@ -8,7 +8,7 @@
     const parts=[]; if(e.ctrlKey||e.metaKey)parts.push('Ctrl');if(e.altKey)parts.push('Alt');if(e.shiftKey)parts.push('Shift');
     return parts.concat(key).join('+');
   }
-  function scope(id){return id.startsWith('model3d.')?'modeling':/^(file\.|page\.|settings\.|view\.model3d$|edit\.(undo|redo|redoAlt)$)/.test(id)?'global':'drawing';}
+  function scope(id){return id.startsWith('model3d.')?'modeling':/^(file\.|page\.|settings\.|macro\.|view\.model3d$|edit\.(undo|redo|redoAlt)$)/.test(id)?'global':'drawing';}
   function validate(combo, id, bindings){
     if(!combo) return '';
     const bits=combo.split('+'), key=bits.pop();

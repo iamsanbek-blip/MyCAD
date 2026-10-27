@@ -31,6 +31,9 @@ fs.writeFileSync('dist/BUILD-REPORT.json', JSON.stringify({
 }, null, 2) + '\n');
 fs.writeFileSync('dist/RELEASE-NOTES.md', `Windows x64 uchun Rugby ${pkg.version}.\n\n` +
   '**Rugby-Portable.exe** faylini yuklab oling va ikki marta bosing. O‘rnatish, ZIP yoki CMD kerak emas.\n\n' +
+  '- AI yordamchi: o‘lchamli JPG/PNG, internet tahlili, korpus/polka, hisob, makros va hotkeylar. OpenAI API kaliti alohida ulanadi.\n' +
+  '- Profil: Google Drive for desktop papkasi yoki PRIVATE GitHub repo orqali avtomatik sinxronlash.\n' +
+  '- Yangi makros/shablon va hotkeylar qayta o‘rnatmasdan keladi; asosiy EXE kodi alohida reliz bilan yangilanadi.\n' +
   '- 3D modellash: universal panel, 16 mm qalinlik, Ortho/Free va qalinlikni saqlaydigan transform.\n' +
   '- Ixcham ishchi oyna; CNC o‘chirish pastda; Modeling o‘ngida raskroy CSV/TXT/XLSX eksport.\n' +
   '- Windows’da eksportlar Save dialogi orqali diskka yoziladi. 1.1.2 modellari o‘qiladi.\n' +

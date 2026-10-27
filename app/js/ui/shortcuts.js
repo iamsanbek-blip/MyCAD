@@ -1,5 +1,6 @@
 /* Command registry: add a command here once; settings and dispatch share it. */
 const RUGBY_COMMANDS = [
+  ['settings.assistant','AI yordamchi','Ctrl+Shift+A',()=>assistantOpen(),'assistantToggle'],
   ['model3d.new','Modeling · Yangi panel','N',panelCreateUniversal,'panelNew'],
   ['model3d.hide','Modeling · Tanlovni yashirish','H',()=>panelView?.hideSelected(),'viewHide'],
   ['model3d.unhide','Modeling · Hammasini ko‘rsatish','Shift+H',()=>panelView?.unhideAll(),'viewUnhide'],
@@ -69,7 +70,7 @@ const RUGBY_COMMANDS = [
 ].map(([id,label,key,run,button,inField])=>({id,label,key,run,button,inField:!!inField}));
 const SHORTCUT_STORAGE='rugby.shortcuts.v1';
 const DEFAULT_SHORTCUTS=Object.fromEntries(RUGBY_COMMANDS.map(c=>[c.id,c.key]));
-let shortcutBindings={...DEFAULT_SHORTCUTS},shortcutDraft=null;
+let shortcutBindings={...DEFAULT_SHORTCUTS},shortcutDraft=null,shortcutProfileBase=null;
 function chooseDrawingTool(tool){
   if(appMode==='draw'&&drawTool==='line'&&currentDraw&&(tool==='line'||tool==='arc')){
     lineSubmode=tool==='arc'?'arc':'straight';lineArcMode=tool==='arc';currentDraw.pendingArcMid=null;updateLineModeBadge();return;
@@ -123,6 +124,7 @@ function renderShortcutRows(){
   });
 }
 function openShortcutSettings(){
+  shortcutProfileBase=typeof assistantProfile==='undefined'?undefined:assistantProfile.versions;
   shortcutDraft={...shortcutBindings};document.getElementById('shortcutScope').value=appMode==='model3d'?'modeling':'drawing';document.getElementById('shortcutSearch').value='';document.getElementById('shortcutError').textContent='';
   renderShortcutRows();document.getElementById('shortcutDialog').showModal();document.getElementById('shortcutSearch').focus();
 }
@@ -133,8 +135,8 @@ function wireShortcuts(){
   document.getElementById('shortcutScope').addEventListener('change',renderShortcutRows);
   document.getElementById('shortcutSearch').addEventListener('input',renderShortcutRows);
   document.getElementById('shortcutResetBtn').addEventListener('click',()=>{shortcutDraft={...DEFAULT_SHORTCUTS};renderShortcutRows();document.getElementById('shortcutError').textContent='';});
-  document.getElementById('shortcutSaveBtn').addEventListener('click',()=>{
-    try{localStorage.setItem(SHORTCUT_STORAGE,JSON.stringify(shortcutDraft));}
+  document.getElementById('shortcutSaveBtn').addEventListener('click',async()=>{
+    try{const pending=assistantRemember({shortcuts:{...shortcutDraft}},shortcutProfileBase);if(pending?.then)await pending;localStorage.setItem(SHORTCUT_STORAGE,JSON.stringify(shortcutDraft));}
     catch{document.getElementById('shortcutError').textContent='Sozlamani saqlab bo‘lmadi. Diskdagi joyni tekshiring.';return;}
     shortcutBindings={...shortcutDraft};refreshShortcutLabels();document.getElementById('shortcutDialog').close();setHint('Hotkey sozlamalari saqlandi.');
   });

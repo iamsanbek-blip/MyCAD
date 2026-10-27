@@ -1,8 +1,8 @@
 {
   "name": "rugby",
   "productName": "Rugby",
-  "version": "1.1.1-preview.2",
-  "description": "Rugby \u2014 CNC Corner Editor. Dogbone, T-bone, fillet, chamfer va nesting.",
+  "version": "1.1.1-preview.4",
+  "description": "Rugby — CNC Corner Editor. Dogbone, T-bone, fillet, chamfer va nesting.",
   "main": "main.js",
   "author": {
     "name": "Rugby",
@@ -20,7 +20,8 @@
     "dist:both": "electron-builder --win nsis portable --x64",
     "dist:unsigned:linux": "electron-builder --win --dir --x64 -c.forceCodeSigning=false -c.win.signAndEditExecutable=false && node patch-exe.js && electron-builder --win portable --x64 --prepackaged dist/win-unpacked -c.forceCodeSigning=false -c.win.signAndEditExecutable=false -c.portable.artifactName=Rugby-Unsigned-Dev.exe",
     "build:3d": "node scripts/build-3d.cjs",
-    "test:3d": "node tests/modeling-move.test.cjs && node tests/panel-anchors.test.cjs && node tests/panel-stretch.test.cjs"
+    "test:3d": "node tests/modeling-move.test.cjs && node tests/panel-anchors.test.cjs && node tests/panel-stretch.test.cjs",
+    "test:assistant": "node tests/assistant.test.cjs"
   },
   "devDependencies": {
     "electron": "^31.0.0",
@@ -34,7 +35,7 @@
     "forceCodeSigning": true,
     "appId": "uz.rugby.editor",
     "productName": "Rugby",
-    "copyright": "Copyright \u00a9 2026 Rugby",
+    "copyright": "Copyright © 2026 Rugby",
     "electronLanguages": [
       "en-US",
       "ru"

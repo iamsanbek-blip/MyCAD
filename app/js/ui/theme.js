@@ -118,6 +118,7 @@ function saveThemePrefs(){
   try{
     localStorage.setItem('rugby.theme', currentTheme);
     localStorage.setItem('rugby.grid', gridVisible ? '1' : '0');
+    if(assistantBooted)assistantRememberQuiet({theme:currentTheme,grid:gridVisible});
   }catch(e){ /* xotira yo'q — muhim emas */ }
 }
 function loadThemePrefs(){

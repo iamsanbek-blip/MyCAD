@@ -1,3 +1,23 @@
+# AI va sinxronlash — 2026-10-27, 1.1.1-preview.4
+
+- `npm run check`: 65 JavaScript fayli, 0 syntax/asset xato.
+- `npm test`: 18 eski regression fayli va barcha behavior suite o‘tdi.
+- `npm run test:assistant`: 15 test o‘tdi: aniq korpus/polka, AABB oraliq, hisob,
+  deklarativ reja validatsiyasi, stale reja, bir undo, makros qayta yuklash,
+  uch mustaqil profil orqali Drive-papka almashuvi, offline qayta ulanish,
+  konflikt/tombstone, private GitHub SHA update va mock OpenAI web/vision so‘rovlari.
+- `npm run test:3d`: barcha geometriya, anchoring va stretch testlari o‘tdi.
+- Windows GUI va EXE sinovi: yangi commit uchun GitHub Actions natijasi kutilmoqda.
+  `tests/assistant-gui.cjs` haqiqiy Electron IPC/disk bilan ko‘rik, undo,
+  makrosni reload qilish va profil papkasiga yozishni tekshiradi.
+- Real OpenAI API chaqiruvi, real private GitHub tokeni va ikki fizik kompyuterning
+  Google Drive klienti bilan end-to-end sinov bajarilmadi; mos foydalanuvchi ulanishlari kerak.
+- Windows 10/11 qo‘lda qabul sinovi va code signing bajarilmadi.
+
+Quyidagi natijalar oldingi versiyalar tarixidir.
+
+---
+
 # 1.1.1-preview.2 verification (2026-10-20)
 
 - PASS: syntax/assets, 58 renderer JavaScript files.

@@ -64,3 +64,17 @@ qilmaydi va kod yangilanishini yaratadi. Setup.exe uchun electron-builder va
 Electron yuklab olingan bo'lishi kerak. `docs/TESTING.md` dagi Windows sinovi
 release chiqarishdan oldin bajariladi.
 
+
+
+## AI va profil — preview.4
+
+`app/js/core/assistant-plan.js` sof, cheklangan amallarni tekshiradi va nusxa
+sahnada hisoblaydi. `ui/assistant.js` ko‘rik va revision tekshiruvini bajaradi,
+so‘ng bir history yozuvi bilan qo‘llaydi. Mavjud .dbe sxemasi o‘zgarmagan.
+`desktop/assistant-ipc.js` faqat asosiy rendererga chegaralangan IPC ochadi;
+`ai-service.js` OpenAI kalitini rendererga bermasdan Responses API chaqiradi.
+`profile-store.js` DAG ota-ona IDlari bilan multi-value registr saqlaydi;
+`profile-sync.js` har qurilmaga alohida JSON replika almashadi. Concurrent yozuvlar
+saqlanadi, o‘chirish tombstone, yangi tanlov variantlarni birlashtiradi.
+Kod ishga tushirish, shell yoki arbitrary plugin yuklash kanali yo‘q.
+`connection.json` va `credentials.json` profil sinxronlash payloadiga kirmaydi.

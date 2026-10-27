@@ -12,7 +12,7 @@
 //  uchun sekin kompyuterda ham oq ekran ko'rinmaydi.
 // ============================================================================
 
-const { app, BrowserWindow, protocol, net, dialog, ipcMain, shell, nativeImage }
+const { app, BrowserWindow, protocol, net, dialog, ipcMain, shell, nativeImage, safeStorage }
   = require('electron');
 const path = require('path');
 const url  = require('url');
@@ -288,6 +288,12 @@ app.whenReady().then(() => {
   if(!hasInstanceLock)return;
   queuedOpenFile=queuedOpenFile||pendingFileArg(process.argv);
   if (process.platform === 'win32') app.setAppUserModelId('uz.rugby.editor');
+  try{require('./desktop/assistant-ipc').registerAssistant({app,ipcMain,dialog,safeStorage,assertRenderer,getWindow:()=>mainWin});}
+  catch(error){
+    // A damaged optional profile must not prevent CAD projects from opening.
+    ipcMain.removeHandler('assistant:load');
+    ipcMain.handle('assistant:load',event=>{assertRenderer(event);throw Error('AI profili ochilmadi: '+error.message+' Zaxira nusxasini tekshiring.');});
+  }
   registerAppProtocol();
   createSplash();
   createMain();
