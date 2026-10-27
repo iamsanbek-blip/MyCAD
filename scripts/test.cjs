@@ -8,4 +8,5 @@ const workshop=spawnSync(process.execPath,['tests/panel-workshop.test.cjs'],{cwd
 const audit=spawnSync(process.execPath,['tests/command-audit.test.cjs'],{cwd:root,stdio:'inherit'});if(audit.status!==0)failed++;
 const panels=spawnSync(process.execPath,['tests/panel-model.test.cjs'],{cwd:root,stdio:'inherit'});if(panels.status!==0)failed++;
 const compat=spawnSync(process.execPath,['tests/compat-export.test.cjs'],{cwd:root,stdio:'inherit'});if(compat.status!==0)failed++;
+const assistant=spawnSync(process.execPath,['tests/assistant.test.cjs'],{cwd:root,stdio:'inherit'});if(assistant.status!==0)failed++;
 console.log(`${files.length} legacy regression files + workspace behavior suite; ${failed} failing suites.`);process.exitCode=failed?1:0;

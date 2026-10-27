@@ -1,0 +1,43 @@
+RUGBY 1.1.1-preview.6 — AI VA SINXRONLASH
+
+Yuklab olish: https://github.com/iamsanbek-blip/MyCAD/releases/download/v1.1.1-preview.6/Rugby-Portable.exe
+
+1. Rugby-Portable.exe faylini yuklab oling va oching.
+2. Yuqoridagi “AI yordamchi” tugmasini bosing.
+3. “AI va sinxronlash sozlamalari”ni oching.
+4. AI uchun o‘zingizning OpenAI API kalitingizni kiriting va “Ulanishni saqlash”ni bosing.
+   Kalitni chatga yubormang. ChatGPT’dagi ulanish EXE ichiga avtomatik o‘tmaydi.
+
+KEYIN TOPSHIRIQ YOZING:
+“Eni 900, balandligi 2000, chuqurligi 600 mm korpus.
+MDF 16 mm. Ichiga 4 ta polka qo‘sh; sof oraliqlar teng bo‘lsin.”
+
+AI rejasidagi o‘lchamlarni tekshiring → “Qo‘llash”.
+Chizmani Ctrl+Z bilan qaytarishingiz mumkin.
+Chizma rasmi bo‘lsa JPG yoki PNG tanlang. Yetishmagan o‘lchamlarni yozing.
+“Internetdan ma’lumot izlash”ni yoqsangiz, javobda manba havolalari ham chiqadi.
+
+YANGI FUNKSIYANI SAQLASH:
+Reja tayyor bo‘lgach “Funksiya sifatida saqlash”ni bosing, nom bering.
+F10 orqali shu makrosga hotkey belgilang.
+Makrosni qayta ishlatganda reja ochiladi; “Qo‘llash” orqali bajariladi.
+
+BOSHQA KOMPYUTERDA HAM SHU SOZLAMALAR BO‘LSIN:
+Har bir kompyuterda Google Drive for desktop’ga bir xil hisob bilan kiring.
+Drive ichida shaxsiy “Rugby profil” papkasini yarating va oflayn mavjud qiling.
+Rugby’da “Profil sinxronlash → Google Drive papkasi”ni tanlang.
+“Drive papkasini tanlash va ulash” orqali o‘sha papkani ko‘rsating.
+Boshqa kompyuterda ham xuddi shu bulut papkasini tanlang.
+Rugby ochiq paytda har 30 soniyada tekshiradi. Drive klienti ham ishlashi kerak.
+
+Natija: hotkey, makros, shablon blok, konsol joyi va qo‘llanadigan sozlamalar
+qayta o‘rnatmasdan keladi. Internet bo‘lmasa lokal saqlanadi va keyin yuboriladi.
+Yangi kompyuterda AI kalitini alohida kiritasiz.
+
+Google Drive o‘rniga private GitHub repo va Contents read/write token ishlatish ham mumkin.
+Batafsil: AI-SYNC-QOLLANMA.md.
+
+Eslatma: qo‘shimcha funksiyalar makros/shablon ko‘rinishida saqlanadi.
+Asosiy EXE kodini o‘zgartirish yangi reliz talab qiladi.
+Loyihalaringizni .dbe fayl sifatida alohida saqlang.
+Bu imzosiz sinov versiyasi; Smart App Control bloklashi mumkin.

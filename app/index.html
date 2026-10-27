@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="css/model3d.css">
 <link rel="stylesheet" href="css/main-menu.css">
 <link rel="stylesheet" href="css/compact-workspace.css">
+<link rel="stylesheet" href="css/assistant.css">
 </head>
 <body>
 <header id="mainMenuBar" aria-label="Rugby asosiy menyu">
@@ -21,6 +22,7 @@
 <button id="menuUndo">Undo — bekor qilish</button><button id="menuRedo">Redo — qaytarish</button><hr><button id="shortcutSettingsBtn">Hotkey sozlamalari…</button><hr><span class="menuCaption">Til / Language</span><button id="menuLangUz">O‘zbekcha</button><button id="menuLangEn">English</button>
 </div></div>
 <button class="menuMode active" id="modeSelectBtn" title="CNC: Dogbone, T-Bone, fillet">Cnc</button><button class="menuMode" id="modeDrawBtn" title="2D chizma">Drawing</button><button class="menuMode" id="mode3dBtn" title="3D panellar">Modeling</button><span id="projectFileStatus" role="status" aria-live="polite"></span>
+<button id="assistantToggle" title="AI yordamchi · Ctrl+Shift+A">AI yordamchi</button>
 <button id="workspaceExpandBtn" aria-pressed="false" title="Yon panellarni yashirish / ko‘rsatish">⤢ <span>Ishchi maydon</span></button></header>
 <nav id="pageBar" aria-label="Loyiha sahifalari">
   <div id="pageTabs" role="tablist" aria-label="Sahifalar"></div>
@@ -527,7 +529,9 @@
   <script src="js/tools/nest-raster.js"></script>
   <script src="js/tools/cnc.js"></script>
 
+  <script src="js/core/assistant-plan.js"></script>
   <script src="js/ui/shortcuts.js"></script>
+  <script src="js/ui/assistant.js"></script>
 
   <!-- BOOTSTRAP -->
   <script src="js/ui/main-menu.js"></script>
@@ -553,5 +557,43 @@
 <dialog id="panelExtrudeDialog"><h2>Chizma → 3D Extrude</h2><p>Tanlangan yopiq konturlar; tanlov bo‘lmasa, joriy sahifadagi barcha yopiq konturlar.<br>XY joylashuvi saqlanadi, Z=0 dan yuqoriga cho‘ziladi. Rectangle’ning qisqa tomoni panel qalinligi bo‘ladi.<br>Shu chizmadan oldin yaratilgan panel yangi o‘lcham va dastlabki joylashuv bilan yangilanadi. Ctrl+Z bilan qaytarish mumkin.</p><label>Extrude, mm <input id="drawingExtrudeDepth" value="500" inputmode="decimal"></label><p id="panelExtrudeError" role="alert"></p><div class="dialogActions"><button id="panelExtrudeCancel">Bekor</button><button id="panelExtrudeApply">3D panel yaratish</button></div></dialog>
 <dialog id="panelCutDialog"><h2>Raspil ro‘yxati</h2><p>Ustunlarni suring yoki ← → bilan tartiblang. O‘lchamlar millimetrda.<br>Shaklli panellar uchun en/bo‘y — tashqi to‘rtburchak o‘lchami; bu CNC kesish yo‘li emas.</p><label><input id="cutSelected" type="checkbox"> Faqat tanlangan panellar (joriy sahifa)</label><label><input id="cutAllPages" type="checkbox" checked> Barcha sahifalar</label><div class="cutOptions"><label>Qalinlik <select id="cutThickness"><option value="">Hammasi</option></select></label><label>CSV ajratgich <select id="cutSeparator"><option value=";">Nuqtali vergul (;)</option><option value=",">Vergul (,)</option></select></label><label>O‘nlik <select id="cutDecimal"><option value=".">0.5</option><option value=",">0,5</option></select></label><label><input id="cutHeader" type="checkbox" checked> Sarlavha</label></div><p id="cutCount"></p><p id="cutExportStatus" role="status"></p><div class="cutScroll"><table><thead><tr id="cutColumns"></tr></thead><tbody id="cutBody"></tbody></table></div><button id="cutXLSX">Excel (.xlsx)</button><button id="cutTXT">TXT eksport</button><button id="cutCSV">CSV eksport</button><button id="cutCopy">Matnni nusxalash</button><button id="panelCutClose">Yopish</button></dialog>
 <script src="js/ui/compact-workspace.js"></script>
+<section id="assistantConsole" data-dock="right" hidden aria-label="AI yordamchi va profil">
+  <div class="assistantHead"><strong>Rugby AI</strong><span id="assistantSyncBadge">Mahalliy profil</span><button id="assistantClose" aria-label="AI oynasini yopish">×</button></div>
+  <div class="assistantBody">
+    <p>Topshiriq yozing → rejani tekshiring → qo‘llang.</p>
+    <label for="assistantPrompt">Topshiriq va aniq o‘lchamlar, mm</label>
+    <textarea id="assistantPrompt" rows="4" placeholder="Eni 900, balandligi 2000, chuqurligi 600 mm korpus. MDF 16 mm, 4 ta polka, sof oraliqlar teng."></textarea>
+    <label><input id="assistantWeb" type="checkbox"> Internetdan ma’lumot izlash</label>
+    <label>O‘lchamli chizma — JPG / PNG <input id="assistantImage" type="file" accept="image/png,image/jpeg"></label>
+    <div class="assistantRow"><span id="assistantImageName">Rasm tanlanmagan</span><button id="assistantClearImage">Rasmni olib tashlash</button></div>
+    <p>Yuborilganda topshiriq, tanlangan panellarning o‘lchamlari va tanlangan rasm OpenAI’ga jo‘natiladi.</p>
+    <button id="assistantAsk" class="assistantPrimary">AI bilan reja tuzish</button>
+    <section id="assistantReview" hidden aria-label="O‘zgarishlar ko‘rigi">
+      <p id="assistantSummary"></p>
+      <table id="assistantTable" hidden><thead><tr><th>Detal</th><th>En × bo‘y × qalinlik, mm</th><th>Markaz X / Y / Z</th></tr></thead><tbody id="assistantPreviewRows"></tbody></table>
+      <details><summary>Aniq amallar</summary><pre id="assistantDetails"></pre></details>
+      <div id="assistantSources"></div><details><summary>Internet tahlili</summary><pre id="assistantEvidence"></pre></details>
+      <div class="assistantRow"><button id="assistantApply" class="assistantPrimary" disabled>Qo‘llash</button><button id="assistantRecalculate">Qayta hisoblash</button><button id="assistantSaveMacro" disabled>Funksiya sifatida saqlash</button></div>
+    </section>
+    <details><summary>Makroslar va shablon bloklar</summary><p>Makrosni tanlang, rejani ko‘ring va qo‘llang. F10 orqali unga hotkey belgilash mumkin.</p><div id="assistantLibrary"></div><button id="assistantSaveBlock">Tanlangan 3D panellarni blok saqlash</button></details>
+    <details><summary>Internet talab qilmaydigan amallar</summary><button id="assistantLocalCabinet">900 × 600 × 2000 korpus namunasi</button><label>Hisob <input id="assistantExpression" value="(2000 - 6 * 16) / 5"></label><button id="assistantLocalCalc">Hisoblash</button></details>
+    <details id="assistantConnection"><summary>AI va sinxronlash sozlamalari</summary>
+      <label>Konsol joyi <select id="assistantDockSelect"><option value="right">O‘ng</option><option value="left">Chap</option><option value="bottom">Past</option></select></label>
+      <label>OpenAI API kaliti <input id="assistantKey" type="password" autocomplete="off" placeholder="Kalitni kiriting; bo‘sh qolsa mavjud kalit saqlanadi"></label>
+      <label><input id="assistantForgetKey" type="checkbox"> Saqlangan AI kalitini o‘chirish</label>
+      <label>AI model <input id="assistantModel" value="gpt-4.1"></label><p id="assistantKeyState"></p>
+      <p>API kaliti alohida ulanadi. API ishlatish OpenAI hisobingiz bo‘yicha to‘lanadi.</p>
+      <label>Profil sinxronlash <select id="assistantProvider"><option value="off">Faqat shu kompyuter</option><option value="folder">Google Drive papkasi</option><option value="github">GitHub private repository</option></select></label>
+      <div id="assistantFolderOptions" hidden><p>Google Drive for desktop orqali sinxronlanadigan papkani tanlang. Barcha kompyuterlarda aynan shu bulut papkasini tanlang va oflayn mavjud qiling.</p><p id="assistantFolder"></p><button id="assistantChooseFolder">Drive papkasini tanlash va ulash</button></div>
+      <div id="assistantGithubOptions" hidden><label>Private repository <input id="assistantRepo" placeholder="foydalanuvchi/rugby-profile"></label><label>Mavjud branch <input id="assistantBranch" value="main"></label><label>Fine-grained token — Contents read/write <input id="assistantGithubKey" type="password" autocomplete="off"></label><label><input id="assistantForgetGithub" type="checkbox"> Saqlangan GitHub tokenini o‘chirish</label><p>Bo‘sh bo‘lmagan PRIVATE repository va mavjud branch kerak. Profil ochiq MyCAD’ga yuborilmaydi.</p></div>
+      <button id="assistantSaveConnection">Ulanishni saqlash</button><p id="assistantSyncDetails"></p>
+      <div class="assistantRow"><button id="assistantSyncNow">Hozir sinxronlash</button><button id="assistantBackup">Profilni eksport</button><button id="assistantRestore">Profilni tiklash</button></div>
+      <p>Dastur ochiq paytda har 30 soniyada tekshiriladi. Internet bo‘lmasa o‘zgarish kompyuterda qoladi. Hotkey, makros, blok, konsol joyi va tanlangan sozlamalar sinxronlanadi. Chizmalar .dbe fayl sifatida alohida saqlanadi.</p>
+      <div id="assistantConflicts"></div>
+    </details>
+  </div>
+  <p id="assistantStatus" role="status" aria-live="polite">Tayyor</p>
+</section>
+
 <script>initCompactWorkspace();initPanelWorkshop();initPanelCompact();initMainMenu();initViewMenu();initWorkMenus();</script></body>
 </html>

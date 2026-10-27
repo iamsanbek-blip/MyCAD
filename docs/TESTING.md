@@ -1,3 +1,55 @@
+# AI tugmasi natijasini tekshirish — 1.1.1-preview.6
+
+- Sinxron preview natijasi Promise deb qabul qilinib ko‘rsatilgan noto‘g‘ri xato tuzatildi.
+- Tugma bosilganda “Reja tayyor” xabari va 8 detal preview tekshiriladigan regressiya sinovi qo‘shildi.
+- AI/profil suite: 17 test. Windows GUI ham aynan shu xabarni tekshiradi.
+- `npm run check`, `npm test`, `npm run test:3d` o‘tdi.
+- Windows Server 2022 source GUI, packaged GUI va portable launcher sinovlari o‘tdi.
+  Dalil: https://github.com/iamsanbek-blip/MyCAD/actions/runs/40566975764
+  Reliz: https://github.com/iamsanbek-blip/MyCAD/releases/tag/v1.1.1-preview.6
+  Build commit: c4981b934c0222787b3015fe1fc58f644066d02b.
+  EXE SHA256: ed0de29afed3fec77625e38cfdf2738e8852ae9d1dece8c19d96a515ad9e138c.
+  Native dialog tanlovi mock; haqiqiy OpenAI va cloud hisoblari bilan end-to-end
+  sinov hamda Windows 10/11 qo‘lda qabul sinovi bajarilmagan.
+
+# Yakuniy AI UI va profil tuzatishi — 1.1.1-preview.5
+
+- AI konsol sarlavhasidagi tugma eni va makros tugmalari tartibi tuzatildi.
+- Ketma-ket shu qurilmada saqlashlar eski lokal variantni supersede qiladi;
+  boshqa qurilmadagi parallel o‘zgarishlar konflikt sifatida saqlanadi.
+- `npm run test:assistant`: 16 test; `npm run check`, `npm test` va `npm run test:3d` o‘tdi.
+- Windows source GUI, packaged GUI va portable launcher qayta sinovlari o‘tdi.
+  Dalil: https://github.com/iamsanbek-blip/MyCAD/actions/runs/40521376927
+  Reliz: https://github.com/iamsanbek-blip/MyCAD/releases/tag/v1.1.1-preview.5
+  Build commit: c36fc8f03cf923a86f7929148cc3477e998cfd86.
+  EXE SHA256: 1f2f4330e3678d70c55e0c6b214d279a21256e3bf81b748cfa711d92678fa074.
+  Native dialog tanlovi mock; haqiqiy OpenAI va cloud hisoblari bilan end-to-end
+  sinov hamda Windows 10/11 qo‘lda qabul sinovi bajarilmagan.
+
+# AI va sinxronlash — 2026-10-27, 1.1.1-preview.4
+
+- `npm run check`: 65 JavaScript fayli, 0 syntax/asset xato.
+- `npm test`: 18 eski regression fayli va barcha behavior suite o‘tdi.
+- `npm run test:assistant`: 15 test o‘tdi: aniq korpus/polka, AABB oraliq, hisob,
+  deklarativ reja validatsiyasi, stale reja, bir undo, makros qayta yuklash,
+  uch mustaqil profil orqali Drive-papka almashuvi, offline qayta ulanish,
+  konflikt/tombstone, private GitHub SHA update va mock OpenAI web/vision so‘rovlari.
+- `npm run test:3d`: barcha geometriya, anchoring va stretch testlari o‘tdi.
+- Windows Server 2022: source GUI, packaged GUI va portable launcher sinovlari o‘tdi.
+  `tests/assistant-gui.cjs` haqiqiy Electron IPC/disk bilan 8 panel ko‘rigi, bitta
+  Undo, makrosni reload qilish va profil papkasiga yozishni tekshirdi.
+  Dalil: https://github.com/iamsanbek-blip/MyCAD/actions/runs/40520150329
+  EXE relizi: https://github.com/iamsanbek-blip/MyCAD/releases/tag/v1.1.1-preview.4
+  Build commit: 80ac43563455ad265c891665a37d9433c69ed845.
+  EXE SHA256: 2d1f6ea474bb0d710f60a9370ba9a918388cc9ae2221dd22bf3ceec312b2ecb0.
+- Real OpenAI API chaqiruvi, real private GitHub tokeni va ikki fizik kompyuterning
+  Google Drive klienti bilan end-to-end sinov bajarilmadi; mos foydalanuvchi ulanishlari kerak.
+- Windows 10/11 qo‘lda qabul sinovi va code signing bajarilmadi.
+
+Quyidagi natijalar oldingi versiyalar tarixidir.
+
+---
+
 # 1.1.1-preview.2 verification (2026-10-20)
 
 - PASS: syntax/assets, 58 renderer JavaScript files.

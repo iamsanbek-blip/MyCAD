@@ -125,6 +125,7 @@ function initApp(){
   draw();
   renderList();
   renderDrawnList();
+  initAssistant();
   window.desktop?.ready?.();
 }
 if(document.readyState==='complete' || document.readyState==='interactive'){
