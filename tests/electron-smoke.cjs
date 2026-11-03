@@ -49,7 +49,7 @@ if (process.platform === 'linux' && process.getuid?.() === 0) electronArgs.unshi
     await mainWindow.evaluate(window => window.setContentSize(1600, 950));
     await page.waitForFunction(() => window.innerWidth === 1600 && window.innerHeight === 950);
 
-    await page.locator('#modeDrawBtn').click();
+    await page.locator('#mbDraw').click();   // rejim tugmasi endi yuqori menyuda (Drawing)
     await page.locator('#toolRectBtn').click();
     await page.locator('#cv').click({position: {x:200,y:400}});
     await page.locator('#cv').click({position: {x:420,y:570}});
@@ -57,7 +57,7 @@ if (process.platform === 'linux' && process.getuid?.() === 0) electronArgs.unshi
     await page.keyboard.press('Escape');
     await page.locator('#pageAddBtn').click();
     assert.equal(await page.evaluate(() => drawnLines.length), 0);
-    await page.locator('#modeDrawBtn').click();
+    await page.locator('#mbDraw').click();   // rejim tugmasi endi yuqori menyuda (Drawing)
     await page.locator('#toolCircleBtn').click();
     await page.locator('#cv').click({position: {x:500,y:470}});
     await page.locator('#cv').click({position: {x:565,y:470}});

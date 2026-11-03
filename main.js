@@ -15,6 +15,10 @@
 const { app, BrowserWindow, protocol, net, dialog, ipcMain, shell, nativeImage }
   = require('electron');
 const path = require('path');
+// Modeling (3D) WebGL'i ishonchli ishga tushishi uchun: videokarta drayveri Chromium "blocklist"ida bo'lsa ham
+// GPU ishlatiladi; GPU umuman ishlamasa — dasturiy (SwiftShader) WebGL'ga o'tiladi (sekinroq, lekin 3D ko'rinadi).
+app.commandLine.appendSwitch('ignore-gpu-blocklist');
+app.commandLine.appendSwitch('enable-unsafe-swiftshader');
 const url  = require('url');
 // The graphical smoke test gets an isolated profile; normal launches are unchanged.
 if(process.env.NODE_ENV==='test' && process.env.RUGBY_TEST_USER_DATA_DIR){

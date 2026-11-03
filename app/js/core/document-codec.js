@@ -54,6 +54,7 @@
     if (raw.view && Number.isFinite(raw.view.scale) && raw.view.scale > 0 &&
         Number.isFinite(raw.view.ox) && Number.isFinite(raw.view.oy)) page.view = clone(raw.view);
     if (raw.settings && typeof raw.settings === 'object' && !Array.isArray(raw.settings)) page.settings = clone(raw.settings);
+    if (raw.panel3d && typeof raw.panel3d === 'object' && !Array.isArray(raw.panel3d)) page.panel3d = clone(raw.panel3d);
     validateNumbers(page);
     return page;
   }

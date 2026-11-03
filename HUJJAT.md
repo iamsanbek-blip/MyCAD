@@ -1,3 +1,25 @@
+# Rugby 1.1.2 — yangilanish (2026-10-30)
+
+Batafsil: `docs/PANEL3D-1.1.2.md` (oxirgi bo'lim). Tekshiruvlar: `docs/TESTING.md`.
+
+- **Cutlist** bo'limi (Modeling'dan keyin): raskroy jadvali, kromka L1/L2(/L3/L4) va W1/W2(/W3/W4) alohida ustunlarda, CSV/TXT eksport, list hisobi. Modeling soddalashtirildi.
+- **Panel Types** (Drawing): Bazis fragmentlarining 2D varianti — 13 tur (Asosiy: blok, I, L, —, ⊢; Ramka ×4; Shkaf ×4, pastki blok 100 mm), boshlash nuqtasi L1/L2/R1/R2, en Tab bo'y, Depth = chizma darajasi (Z), t × ko'paytiruvchi, blok/ramka/shkaf ichiga polka (g'ildirak yoki raqam, H/V).
+- **Tekstura yo'nalishi**: panel xossasi (yo'q / bo'yi / eni), 3D da chiziqlar, eksportda L = tekstura bo'ylab, Aylantirish=0, «Tekstura» ustuni; list hisobi hisobga oladi.
+- **Modeling**: barcha tugmalarga hotkey (44 buyruq, View → Hotkeylar… da almashtiriladi), keng clipping, Top/Bottom aniq 90°, 2D ko'rinishda magnit chuqurlik darajasini o'zgartirmaydi, Stretch — hamma nuqta belgilansa panel har qanday o'q bo'ylab ko'chadi, «Butun korpus» da umumiy o'lcham (gabarit), fon mavzuga ergashadi. Bir nechta panelni birdaniga tahrirlash (qalinlik, o'lcham, tekstura, material, kromka), material bo'yicha tanlash (Shift+M). Cutlist: Material/Qalinlik filtri eksport va List hisobiga; List hisobida m² va kromka uzunligi.
+- **Drawing Stretch**: obyekt tanlangan bo'lsa faqat uning nuqtalari ushlanadi.
+
+---
+
+# Yangi versiya — 1.1.2 (2026-10-15)
+
+«Panel 3D» rejimi qo'shildi (korpus mebel, CNC, raspil). Batafsil: `docs/PANEL3D-1.1.2.md`.
+3D modeli `.dbe` ichida `page.panel3d` sifatida saqlanadi. Node tekshiruvlari (`npm run check`, `npm test`, `node tests/panel3d.cjs`) o'tdi;
+haqiqiy Electron/Windows oynasida 3D ko'rinish hali sinalmagan.
+
+- Yuqori menyu (o'zgarmas tartib, chapdan): Logo, File (Yangi, Ochish, Saqlash, Boshqacha saqlash, Import DXF/rasm, Export DXF/SVG/PNG), Edit (Undo, Redo, Hotkey, Til, ko'rinish, chizish maydoni rangi), Object (Explode, Join, Soddalash, Group/Ungroup, Array, Tekislash — asboblar panelidan ko'chirilgan), Cnc (eski Bone edit), Drawing (eski Chizish), Modeling (eski Panel 3D). Menyu mavjud tugmalarni bosadi — mantiq o'zgarmagan. Fayllar: `app/js/ui/menubar.js`, `app/css/menubar.css`.
+
+---
+
 # Yangi versiya — 1.1.0-preview.3 (2026-10-15)
 
 GitHub branch: `versions/1.1.0-preview.3`. Eski `main` va preview.2 relizi

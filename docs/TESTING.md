@@ -1,3 +1,17 @@
+# Rugby 1.1.2 tekshiruvlari — 2026-10-30 (Linux, Electron 31.7.7)
+
+**Windows'da haqiqiy GUI sinovi o'tkazilmagan.** Quyidagilar Linux'da (xvfb) bajarildi.
+
+- `npm run check`: 53 JavaScript fayli, 0 xato. `npm test`: 18 regressiya fayli + 24 workspace testi o'tdi.
+- `tests/panel3d.cjs`, `tests/panel3d-export.cjs` (OBJ, list hisobi, Cutlist eksport ustunlari, kromka L/W, tekstura, Stretch ko'chirish) o'tdi.
+- Haqiqiy Electron oynasida (Playwright `_electron`): `electron-smoke`, `input-region-checks`, `modeling-smoke` (menyu, WebGL, Cutlist, kromka, hotkeylar va ularni almashtirish, Top + magnit daraja, umumiy o'lcham, tekstura, mavzu foni), `panel-types-smoke` (13 tur, polka g'ildirak/raqam/V, blok bo'laklari, shkaf blok 100 mm, Depth 100/0 → 100 mm farq), `stretch-select` (Drawing Stretch tanlov) — hammasi o'tdi.
+- `modeling-smoke` va `electron-smoke` portable EXE dan olingan `app.asar` (EXE ichidagi bilan baytma-bayt bir xil) ustida ham o'tdi.
+- Web versiya (bitta HTML) Chromium'da: sahifa xatolarisiz ochildi, Panel Types va Cutlist ishladi.
+
+EXE: `Rugby-1.1.2-Portable-Unsigned.exe`, 65683487 bayt, imzosiz. SHA256: `705bb9ac446b19383807e414b78b99caf52838cb0b7782a5d42810c5bbc32e55`. app.asar SHA256: `03488f58b6d472cf98697bf7e94093f5f4a6e1cf54bc197eb9056851d1f51dba`.
+
+---
+
 # Preview.3 tekshiruvlari — 2026-10-15
 
 **Mahalliy va Windows sinovlari o‘tdi.**
@@ -171,3 +185,12 @@ yangi imzosiz preview.2 faylini qayd etadi.
 
 Natijaga Windows versiyasi, EXE SHA256'i, test sanasi va muvaffaqiyatsiz
 qadamlarni yozing. Himoya sozlamalarini o'zgartirish qabul mezoni emas.
+
+
+## 1.1.2 — Panel 3D (2026-10-15)
+- `npm run check`: 0 xato. `npm test`: 24 o'tdi. `node tests/panel3d.cjs`: DXF parser va hujjat round-trip o'tdi.
+- BAJARILMAGAN: haqiqiy Electron/WebGL oynasida 3D ko'rinish, sudrash, chizish, Windows build. Ular qo'lda sinalishi kerak.
+
+## 2026-10-31 — List hisobi va material bo'yicha tanlash
+- `xvfb-run -a node tests/modeling-smoke.cjs`: o'tdi (List hisobi: m², kromka, to'liq eni; Material filtri eksport va hisobga; Select by material — ro'yxat va Shift+M).
+- `npm run check`, `npm test`, `panel-types-smoke`, `stretch-select`, `electron-smoke`: o'tdi. Web build Chromium'da skrinshot bilan tekshirildi. EXE qayta yig'ilmadi.

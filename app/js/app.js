@@ -35,6 +35,7 @@ function initApp(){
   // Fayl boshqaruvi (New / Open / Save / Save As) — js/io/filemanager.js
   initPages();
   wireFileManager();
+  if(typeof Panel3D!=="undefined") Panel3D.wire();   // Modeling hotkeylari Rugby hotkeylaridan oldin ro'yxatdan o'tadi
   wireShortcuts();
   markProjectSaved(null,null,null);
   const projIn=document.getElementById('projInput');

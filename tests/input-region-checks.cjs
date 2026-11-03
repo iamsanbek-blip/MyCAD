@@ -13,6 +13,7 @@ module.exports=async function checkInputAndRegion(app,page,temporary,artifactDir
   for(let round=0;round<3;round++){
     for(const id of ids){
       const field=page.locator('#'+id),value=round===0?'12.75':round===1?'-0.15':'70';
+      await page.evaluate(id=>{const m=document.getElementById(id).closest('.mbItem');if(m)m.classList.add('open');},id);   // joinDistInp endi yuqori menyu (Object) ichida
       await field.click();
       const box=await field.boundingBox();
       await page.evaluate(()=>{window.__inputDraws=0;window.__inputOriginalDraw=draw;draw=function(){window.__inputDraws++;return window.__inputOriginalDraw();};});

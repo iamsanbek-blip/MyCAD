@@ -196,7 +196,7 @@ document.addEventListener('keydown',(e)=>{
   }
 
   if(appMode==='draw'){
-    const rectSizing = (drawTool==='rect' && currentDraw && currentDraw.points.length===1);
+    const rectSizing = ((drawTool==='rect'||drawTool==='ptype') && currentDraw && currentDraw.points.length===1);
     // Rectangle: "," / Tab / x switches from WIDTH to HEIGHT (AutoCAD-style W x H)
     if(rectSizing && (e.key===',' || e.key==='Tab' || e.key==='x' || e.key==='X')){
       e.preventDefault();

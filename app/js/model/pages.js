@@ -10,7 +10,8 @@ function capturePageData(){
     shapes:drawnLines.map(compactShape), dimensions:RugbyDocument.clone(dimensions), texts:RugbyDocument.clone(texts),
     refImages:refImages.map(r=>{const {img,...data}=r;return RugbyDocument.clone(data);}),
     corners:corners.map(c=>({key:cornerKey(c),mode:c.mode,size:c.size,offset:c.offset||0,tboneDir:c.tboneDir||'auto',tboneMirror:!!c.tboneMirror})),
-    view:{...view}, nestSheets:RugbyDocument.clone(nestSheets), settings
+    view:{...view}, nestSheets:RugbyDocument.clone(nestSheets), settings,
+    panel3d:(typeof Panel3D!=='undefined')?Panel3D.snapshot():undefined
   };
 }
 function activePage(){return documentPages.find(p=>p.id===activePageId);}
@@ -50,6 +51,7 @@ function applyPageData(page){
     PAGE_CONTROL_IDS.forEach(id=>{const e=document.getElementById(id);if(!e)return;
       const v=page.settings?.[id];if(e.type==='checkbox')e.checked=v===undefined?e.defaultChecked:!!v;else e.value=v===undefined?e.defaultValue:v;
     });
+    if(typeof Panel3D!=='undefined')Panel3D.load(page.panel3d);
     corners=[];detectCorners(new Map(page.corners.map(c=>[c.key,c])));
     history=page.history||[];historyIndex=Number.isInteger(page.historyIndex)?page.historyIndex:history.length-1;
     if(!history.length){history=[];historyIndex=-1;pushHistory();}

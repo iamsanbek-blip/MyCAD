@@ -5,8 +5,79 @@
 <title>Rugby — CNC Corner Editor</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/workspace.css">
+  <link rel="stylesheet" href="css/panel3d.css">
+  <link rel="stylesheet" href="css/menubar.css">
+  <link rel="stylesheet" href="css/panel-types.css">
 </head>
 <body>
+<header id="menuBar" role="menubar" aria-label="Asosiy menyu">
+  <div class="mbBrand"><img src="assets/logo-mark.png" alt="" draggable="false"><b>RUGBY</b></div>
+  <div class="mbItem" id="mbFile">
+    <button class="mbBtn" aria-haspopup="true" aria-expanded="false">File</button>
+    <div class="mbMenu" role="menu">
+      <div class="mbHead">Loyiha</div>
+      <button class="mbIt" data-click="newProjBtn">Yangi<span class="kb">Alt+N</span></button>
+      <button class="mbIt" data-click="openProjBtn">Ochish…<span class="kb">Ctrl+O</span></button>
+      <button class="mbIt" data-click="saveProjBtn">Saqlash<span class="kb">Ctrl+S</span></button>
+      <button class="mbIt" data-click="saveAsProjBtn">Boshqacha saqlash…<span class="kb">Ctrl+Shift+S</span></button>
+      <div class="mbHead">Import</div>
+      <button class="mbIt" data-click="importBtn">DXF fayl…<span class="kb">Ctrl+I</span></button>
+      <button class="mbIt" data-click="refImgBtn">Referens rasm (shablon)…</button>
+      <button class="mbIt" data-act="obj-in">OBJ — 3D panellar (Modeling)…</button>
+      <div class="mbHead">Export</div>
+      <button class="mbIt" data-click="exportBtn">DXF</button>
+      <button class="mbIt" data-click="exportSvgBtn">SVG</button>
+      <button class="mbIt" data-click="exportPngBtn">PNG</button>
+      <button class="mbIt" data-click="exportPngRegionBtn">PNG — hududni belgilash</button>
+      <button class="mbIt" data-act="obj-m">OBJ — Blender (metr)</button>
+      <button class="mbIt" data-act="obj-mm">OBJ — millimetr</button>
+    </div>
+  </div>
+  <div class="mbItem" id="mbEdit">
+    <button class="mbBtn" aria-haspopup="true" aria-expanded="false">Edit</button>
+    <div class="mbMenu" role="menu">
+      <div class="mbHead">Tarix</div>
+      <button class="mbIt" data-act="undo">Undo<span class="kb">Ctrl+Z</span></button>
+      <button class="mbIt" data-act="redo">Redo<span class="kb">Ctrl+Y</span></button>
+      <div class="mbHead">Sozlamalar</div>
+      <button class="mbIt" data-click="shortcutSettingsBtn">Hotkey sozlamalari…</button>
+      <button class="mbIt" data-click="langSwitchBtn">Til / Language<span class="kb" id="mbLangKb">EN</span></button>
+      <div class="mbHead">Ko'rinish</div>
+      <button class="mbIt" data-click="centerViewBtn">Markazga qaytish</button>
+      <button class="mbIt" data-click="hideSelBtn">Tanlanganni yashirish</button>
+      <button class="mbIt" data-click="unhideAllBtn">Hammasini ko'rsatish</button>
+      <div class="mbHead">Chizish maydoni rangi</div>
+      <div class="mbSlot" id="mbThemeSlot"></div>
+    </div>
+  </div>
+  <div class="mbItem" id="mbObject">
+    <button class="mbBtn" aria-haspopup="true" aria-expanded="false">Object</button>
+    <div class="mbMenu" role="menu">
+      <div class="mbHead">Shakl</div>
+      <button class="mbIt" data-click="explodeBtn">Explode<span class="kb">E</span></button>
+      <button class="mbIt" data-click="joinBtn">Join<span class="kb">J</span></button>
+      <div class="mbSlot" id="mbJoinSlot"></div>
+      <button class="mbIt" data-click="simplifyBtn">Soddalash</button>
+      <div class="mbHead">Guruh va massiv</div>
+      <button class="mbIt" data-click="groupBtn">Group<span class="kb">Ctrl+G</span></button>
+      <button class="mbIt" data-click="ungroupBtn">Ungroup<span class="kb">Ctrl+Shift+G</span></button>
+      <button class="mbIt" data-click="arrayBtn">Array</button>
+      <div class="mbHead">Tekislash</div>
+      <button class="mbIt" data-click="alignLeftBtn">Chapga</button>
+      <button class="mbIt" data-click="alignCenterXBtn">Vertikal o'q bo'yicha markazlash</button>
+      <button class="mbIt" data-click="alignRightBtn">O'ngga</button>
+      <button class="mbIt" data-click="alignTopBtn">Yuqoriga</button>
+      <button class="mbIt" data-click="alignCenterYBtn">Gorizontal o'q bo'yicha markazlash</button>
+      <button class="mbIt" data-click="alignBottomBtn">Pastga</button>
+      <button class="mbIt" data-click="distHBtn">Gorizontal teng taqsimlash</button>
+      <button class="mbIt" data-click="distVBtn">Vertikal teng taqsimlash</button>
+    </div>
+  </div>
+  <button class="mbMode" id="mbCnc" data-target="modeSelectBtn" title="Fillet / Dogbone / T-Bone tahrirlash (eski Bone edit)">Cnc</button>
+  <button class="mbMode" id="mbDraw" data-target="modeDrawBtn" title="Chiziq, polyline, o'lchamlar (eski Chizish)">Drawing</button>
+  <button class="mbMode" id="mbModel" data-target="modePanel3dBtn" title="3D korpus mebel modeli (eski Panel 3D)">Modeling</button>
+  <button class="mbMode" id="mbCut" data-target="modeCutlistBtn" title="Raskroy ro'yxati: kromka (L1,L2,W1,W2), eksport, list hisobi">Cutlist</button>
+</header>
 <nav id="pageBar" aria-label="Loyiha sahifalari">
   <div id="pageTabs" role="tablist" aria-label="Sahifalar"></div>
   <span id="pageCount" aria-live="polite"></span>
@@ -35,9 +106,11 @@
   <canvas id="cv"></canvas>
   <div id="drawToolbar">
     <button class="dtBtn" id="shortcutSettingsBtn" title="Hotkey sozlamalari">⌨ Hotkey</button>
-    <div class="dtGroup">
+    <div class="dtGroup" id="modeGroup">
       <button class="dtBtn active" id="modeSelectBtn" title="Fillet/Dogbone/T-Bone tahrirlash">🦴 <span data-i18n="modeBoneEdit">Bone edit</span></button>
       <button class="dtBtn" id="modeDrawBtn" title="Chiziq/Polyline chizish">✏ <span data-i18n="modeDraw">Chizish</span></button>
+      <button class="dtBtn" id="modePanel3dBtn" title="Panel 3D — korpus mebel, CNC va raspil uchun 3D model"><span>Panel 3D</span></button>
+      <button class="dtBtn" id="modeCutlistBtn" title="Cutlist — raskroy ro'yxati"><span>Cutlist</span></button>
     </div>
     <div class="dtGroup" id="toolGroup" style="display:none;">
       <button class="dtBtn" id="toolNoneBtn" title="Hech qanday asbob — N">⛔ <span data-i18n="modeNone">None</span></button>
@@ -482,7 +555,12 @@
   <!-- TOOLS — draw, edit, transform, cnc -->
   <script src="js/tools/nest-raster.js"></script>
   <script src="js/tools/cnc.js"></script>
+  <script src="js/tools/panel-types.js"></script>
 
+  <!-- Panel 3D (1.1.2): three.js lokal, offline ishlaydi -->
+  <script src="js/vendor/three.min.js"></script>
+  <script src="js/tools/panel3d.js"></script>
+  <script src="js/ui/menubar.js"></script>
   <script src="js/ui/shortcuts.js"></script>
 
   <!-- BOOTSTRAP -->

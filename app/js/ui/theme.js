@@ -91,6 +91,9 @@ function applyTheme(key, opts){
   R.setProperty('--line',      t.ui.line);
   R.setProperty('--text',      t.ui.text);
   R.setProperty('--text-dim',  t.ui.textDim);
+  R.setProperty('--canvas',    t.canvas);      // Modeling (3D) foni ham shu
+  R.setProperty('--ui-line',   t.ui.line);
+  R.setProperty('--p3fill',    themeIsLight()? '#dfe6f0' : t.ui.panel2);
   document.body.classList.toggle('lightTheme', themeIsLight());
 
   const sel = document.getElementById('themeSel');
@@ -98,6 +101,7 @@ function applyTheme(key, opts){
 
   if(!opts || !opts.silent) saveThemePrefs();
   if(typeof draw === 'function') draw();
+  if(typeof Panel3D!=='undefined' && Panel3D.retheme) Panel3D.retheme();
 }
 
 function setGridVisible(on, opts){

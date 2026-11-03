@@ -124,20 +124,28 @@ let stretchTyped='';
 function startStretch(){
   stretchMode='window'; stretchPicks=[]; stretchSnap=null; stretchBase=null; stretchTyped=''; stretchBoxing=false;
   const b=document.getElementById('stretchBtn'); if(b) b.classList.add('active');
-  document.getElementById('hint').innerHTML='Stretch: ko\'chiriladigan NUQTALAR ustidan ramka torting (Esc: bekor)';
+  document.getElementById('hint').innerHTML=stretchWindowHint();
   draw();
+}
+function stretchWindowHint(){
+  const n=drawnLines.filter(l=>l.selected && isShapeEditable(l)).length;
+  return n ? 'Stretch: faqat <b>tanlangan '+n+' ta obyekt</b> nuqtalari ushlanadi — ramka torting (Esc: bekor)'
+           : 'Stretch: ko\'chiriladigan NUQTALAR ustidan ramka torting — tanlov yo\'q, hamma obyekt (Esc: bekor)';
 }
 function finishStretch(){
   stretchMode=null; stretchPicks=[]; stretchSnap=null; stretchBase=null; stretchTyped=''; stretchBoxing=false;
   const b=document.getElementById('stretchBtn'); if(b) b.classList.remove('active');
   draw();
 }
+// Tanlangan obyekt bo'lsa — faqat shularning nuqtalari ushlanadi; tanlov bo'lmasa — hammasiniki.
+function stretchOnlySelected(){ return drawnLines.some(l=>l.selected && isShapeEditable(l)); }
 // collect every editable vertex inside the screen-space box
 function collectStretchVerts(x0,y0,x1,y1){
   const xa=Math.min(x0,x1), xb=Math.max(x0,x1), ya=Math.min(y0,y1), yb=Math.max(y0,y1);
-  const picks=[];
+  const picks=[], onlySel=stretchOnlySelected();
   drawnLines.forEach((l,li)=>{
     if(!isShapeEditable(l)) return;
+    if(onlySel && !l.selected) return;
     if(l.kind==='circle' && l.center){
       const s=toScreen(l.center);
       if(s.x>=xa&&s.x<=xb&&s.y>=ya&&s.y<=yb) picks.push({li, gi:'center'});
@@ -224,7 +232,7 @@ function stretchDelta(worldPt){
 function updateStretchHint(){
   const h=document.getElementById('hint');
   if(!h) return;
-  if(stretchMode==='window') h.innerHTML='Stretch: ko\'chiriladigan NUQTALAR ustidan ramka torting (Esc: bekor)';
+  if(stretchMode==='window') h.innerHTML=stretchWindowHint();
   else if(stretchMode==='base') h.innerHTML='Stretch: '+stretchPicks.length+' ta nuqta tanlandi — bazaviy nuqtani bosing (Esc: bekor)';
   else if(stretchMode==='move') h.innerHTML='Stretch: '+(stretchTyped||'0')+' mm — yo\'nalishni ko\'rsating, Enter yoki bosing (Esc: bekor)';
 }

@@ -53,11 +53,12 @@ function rectCornerFromWH(base, cursor, w, h){
 }
 // The size currently being typed for the rectangle, or null when nothing typed.
 function pendingRectWH(){
-  if(drawTool!=='rect' || !currentDraw || currentDraw.points.length!==1) return null;
+  if((drawTool!=='rect' && drawTool!=='ptype') || !currentDraw || currentDraw.points.length!==1) return null;
   const w = parseFloat(typedLen);
   if(!isFinite(w) || w<=0) return null;
   let hh = parseFloat(typedLen2);
   if(!isFinite(hh) || hh<=0) hh = w;      // only one value typed -> square
+  if(drawTool==='ptype' && !(parseFloat(typedLen2)>0)) hh = (typeof ptAutoH==='function') ? ptAutoH() : w;  // Panel Types: bo'yi Tab bilan, bo'lmasa sichqonchadan
   return {w, h:hh};
 }
 function genRectPts(a, b){

@@ -48,7 +48,7 @@ const RUGBY_COMMANDS = [
 ].map(([id,label,key,run,button,inField])=>({id,label,key,run,button,inField:!!inField}));
 const SHORTCUT_STORAGE='rugby.shortcuts.v1';
 const DEFAULT_SHORTCUTS=Object.fromEntries(RUGBY_COMMANDS.map(c=>[c.id,c.key]));
-let shortcutBindings={...DEFAULT_SHORTCUTS},shortcutDraft=null;
+let shortcutBindings={...DEFAULT_SHORTCUTS},shortcutDraft=null,p3Draft=null;
 function chooseDrawingTool(tool){
   if(appMode==='draw'&&drawTool==='line'&&currentDraw&&(tool==='line'||tool==='arc')){
     lineSubmode=tool==='arc'?'arc':'straight';lineArcMode=tool==='arc';currentDraw.pendingArcMid=null;updateLineModeBadge();return;
@@ -62,6 +62,7 @@ function handleShortcut(e){
   if(document.querySelector('dialog[open]')||document.getElementById('askOverlay')?.style.display==='flex')return;
   const combo=RugbyShortcuts.fromEvent(e);if(!combo)return;
   const command=RUGBY_COMMANDS.find(c=>shortcutBindings[c.id]===combo);if(!command)return;
+  if(typeof Panel3D!=='undefined'&&Panel3D.isOpen&&Panel3D.isOpen()&&!/^(file\.|settings\.|page\.)/.test(command.id))return;   // Modeling ochiq: Drawing/CNC hotkeylari ishlamaydi
   const el=e.target;const inField=el?.isContentEditable||['INPUT','SELECT','TEXTAREA'].includes(el?.tagName);
   if(inField&&(!command.inField||(!e.ctrlKey&&!e.metaKey&&!e.altKey)))return;
   if(currentDraw&&typedLen!==''&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&combo.length===1)return;
@@ -99,9 +100,29 @@ function renderShortcutRows(){
     clear.addEventListener('click',()=>{shortcutDraft[c.id]='';input.value='—';document.getElementById('shortcutError').textContent='';});
     row.append(label,input,clear);box.appendChild(row);
   });
+  if(typeof Panel3D!=='undefined'&&Panel3D.hotkeys&&p3Draft){   // Modeling (Panel 3D) — alohida bo'lim va alohida saqlash
+    const hk=Panel3D.hotkeys,list=hk.commands.filter(c=>(c.label+' '+p3Draft[c.id]).toLocaleLowerCase().includes(filter));
+    if(list.length){
+      const h=document.createElement('h3');h.textContent='Modeling (Panel 3D) — Drawing/CNC tugmalaridan alohida';h.style.cssText='margin:14px 0 6px;font-size:13px;color:var(--cyan)';box.appendChild(h);
+      list.forEach(c=>{
+        const row=document.createElement('div');row.className='shortcutRow';
+        const label=document.createElement('label');label.textContent=c.label;label.htmlFor='p3key-'+c.id;
+        const input=document.createElement('input');input.id='p3key-'+c.id;input.readOnly=true;input.value=p3Draft[c.id]||'—';input.title='Bosing, keyin yangi kombinatsiyani bosing';
+        input.addEventListener('keydown',e=>{
+          if(e.key==='Tab')return;e.preventDefault();e.stopPropagation();if(e.key==='Escape'){input.blur();return;}
+          const combo=hk.combo(e);if(!combo)return;const error=hk.validate(combo,c.id,p3Draft);
+          document.getElementById('shortcutError').textContent=error?(error.startsWith('conflict:')?'Modeling’da bu tugma band: '+hk.commands.find(x=>x.id===error.slice(9))?.label:error):'';
+          if(!error){p3Draft[c.id]=combo;input.value=combo;}
+        });
+        const clear=document.createElement('button');clear.type='button';clear.className='secondary';clear.textContent='Bo‘shatish';
+        clear.addEventListener('click',()=>{p3Draft[c.id]='';input.value='—';document.getElementById('shortcutError').textContent='';});
+        row.append(label,input,clear);box.appendChild(row);
+      });
+    }
+  }
 }
 function openShortcutSettings(){
-  shortcutDraft={...shortcutBindings};document.getElementById('shortcutSearch').value='';document.getElementById('shortcutError').textContent='';
+  shortcutDraft={...shortcutBindings};p3Draft=(typeof Panel3D!=='undefined'&&Panel3D.hotkeys)?Panel3D.hotkeys.get():null;document.getElementById('shortcutSearch').value='';document.getElementById('shortcutError').textContent='';
   renderShortcutRows();document.getElementById('shortcutDialog').showModal();document.getElementById('shortcutSearch').focus();
 }
 function wireShortcuts(){
@@ -109,10 +130,11 @@ function wireShortcuts(){
   window.addEventListener('keydown',handleShortcut,true);
   document.getElementById('shortcutSettingsBtn').addEventListener('click',openShortcutSettings);
   document.getElementById('shortcutSearch').addEventListener('input',renderShortcutRows);
-  document.getElementById('shortcutResetBtn').addEventListener('click',()=>{shortcutDraft={...DEFAULT_SHORTCUTS};renderShortcutRows();document.getElementById('shortcutError').textContent='';});
+  document.getElementById('shortcutResetBtn').addEventListener('click',()=>{shortcutDraft={...DEFAULT_SHORTCUTS};if(p3Draft)p3Draft=Panel3D.hotkeys.defaults();renderShortcutRows();document.getElementById('shortcutError').textContent='';});
   document.getElementById('shortcutSaveBtn').addEventListener('click',()=>{
     try{localStorage.setItem(SHORTCUT_STORAGE,JSON.stringify(shortcutDraft));}
     catch{document.getElementById('shortcutError').textContent='Sozlamani saqlab bo‘lmadi. Diskdagi joyni tekshiring.';return;}
+    if(p3Draft&&Panel3D.hotkeys.save(p3Draft)===false){document.getElementById('shortcutError').textContent='Modeling hotkeylarini saqlab bo‘lmadi.';return;}
     shortcutBindings={...shortcutDraft};refreshShortcutLabels();document.getElementById('shortcutDialog').close();setHint('Hotkey sozlamalari saqlandi.');
   });
   document.getElementById('shortcutCancelBtn').addEventListener('click',()=>document.getElementById('shortcutDialog').close());

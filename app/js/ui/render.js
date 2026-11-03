@@ -601,6 +601,9 @@ function drawInner(){
       const wh = pendingRectWH();
       previewPts = wh ? genRectPts(pts[0], rectCornerFromWH(pts[0], (mouseRawWorld||preview), wh.w, wh.h))
                       : genRectPts(pts[0], preview);
+    } else if(drawTool==='ptype'){
+      const wh = pendingRectWH();
+      ptypePreview(ctx, pts[0], wh ? rectCornerFromWH(pts[0], (mouseRawWorld||preview), wh.w, wh.h) : preview);
     } else if(drawTool==='arc'){
       if(pts.length===1){ previewPts=[pts[0], preview]; } // rubber-band to the through point
       else if(pts.length===2){ previewPts = genArcThrough(pts[0], pts[1], preview, 24); } // arc through the moving end
@@ -623,7 +626,7 @@ function drawInner(){
     const ang = Math.round(normAngle(Math.atan2(preview.y-refPt.y, preview.x-refPt.x))*180/Math.PI);
     const b = toScreen(preview);
     ctx.fillStyle='#dce6f5'; ctx.font='12px sans-serif';
-    const unitLabel = (drawTool==='circle'||drawTool==='polygon') ? ' mm (radius)' : ' mm @ '+ang+'\u00b0';
+    const unitLabel = drawTool==='ptype' ? ' mm' : (drawTool==='circle'||drawTool==='polygon') ? ' mm (radius)' : ' mm @ '+ang+'\u00b0';
     const label = (typedLen!=='' ? typedLen : distWorld.toFixed(1)) + unitLabel;
     ctx.fillText(label, b.x+10, b.y-10);
   } else if(appMode==='draw'){
@@ -633,6 +636,8 @@ function drawInner(){
     ctx.strokeStyle='rgba(94,225,255,.35)'; ctx.lineWidth=1;
     ctx.beginPath(); ctx.moveTo(s.x-8,s.y); ctx.lineTo(s.x+8,s.y); ctx.moveTo(s.x,s.y-8); ctx.lineTo(s.x,s.y+8); ctx.stroke();
   }
+  // Panel Types: polka soni bosqichi (fragment qo'yilgan, polkalar tanlanmoqda)
+  if(typeof ptShelfDraw==='function') ptShelfDraw(ctx);
 
   // ---- transform base point + reference line ----
   if(transformTool && transformBase){

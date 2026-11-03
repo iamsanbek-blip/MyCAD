@@ -10,11 +10,11 @@
 // ---- draw-mode UI wiring ----
 function updateTypedBadge(){
   const badge = document.getElementById('typedLenBadge');
-  if(appMode==='draw' && drawTool==='rect' && currentDraw && currentDraw.points.length===1 && (typedLen!=='' || typedLen2!=='')){
+  if(appMode==='draw' && (drawTool==='rect'||drawTool==='ptype') && currentDraw && currentDraw.points.length===1 && (typedLen!=='' || typedLen2!=='')){
     badge.style.display='inline-block';
     const wTxt = typedLen==='' ? '?' : typedLen;
-    const hTxt = typedLen2==='' ? (typingSecond ? '?' : (typedLen===''?'?':typedLen)) : typedLen2;
-    badge.textContent = 'En '+wTxt+' × Bo\'y '+hTxt+' mm  ('+(typingSecond?'bo\'y':'en')+' — "," bilan almashtirish, Enter)';
+    const hTxt = typedLen2==='' ? (typingSecond ? '?' : (drawTool==='ptype' ? 'sichqoncha' : (typedLen===''?'?':typedLen))) : typedLen2;
+    badge.textContent = 'En '+wTxt+' × Bo\'y '+hTxt+' mm  ('+(typingSecond?'bo\'y':'en')+' — Tab yoki "," bilan almashtirish, Enter)';
     return;
   }
   if(appMode==='draw' && currentDraw && typedLen!==''){
@@ -49,6 +49,7 @@ function setAppMode(mode){
   document.getElementById('orthoGroup').style.display = mode==='draw' ? 'flex' : 'none';
   document.getElementById('snapGroup').style.display = mode==='draw' ? 'flex' : 'none';
   document.getElementById('toolGroup').style.display = mode==='draw' ? 'flex' : 'none';
+  {const pg=document.getElementById('ptGroup');if(pg)pg.style.display = mode==='draw' ? 'flex' : 'none';}
   // O'ZGARTIRILDI: ilgari transform/o'lcham paneli faqat "Chizish" rejimida
   // ko'rinardi, shuning uchun Bone edit + Nesting'da 2-panel yo'qolib qolardi.
   // Bu asboblar bosishlarni rejimdan qat'i nazar ushlaydi (input-mouse.js ularni
@@ -87,7 +88,8 @@ function setDrawTool(tool){
   if(map[tool]) document.getElementById(map[tool]).classList.add('active');
   const labels = {line:'Line/Polyline — to\'g\'ri (A: arc)', circle:'Circle', rect:'Rectangle — en,bo\'y (masalan: 100 , 50 Enter)', arc:'Arc (3 nuqta)', polygon:'Polygon ('+polygonSides+')', none:'Yo\'q (Esc)'};
   const lbl = document.getElementById('currentToolLabel');
-  if(lbl) lbl.textContent = labels[tool] || tool;
+  if(lbl) lbl.textContent = tool==='ptype' ? 'Panel Types — boshlang\'ich nuqta, keyin qarama-qarshi burchak (en, Tab, bo\'y, Enter)' : (labels[tool] || tool);
+  if(typeof ptRefresh==='function') ptRefresh();
   updateTypedBadge(); updateDrawActionButtons();
   draw();
 }
@@ -289,7 +291,7 @@ canvas.addEventListener('dblclick', (e)=>{
 canvas.addEventListener('contextmenu', e=>e.preventDefault());
 
 function toolPointsNeeded(tool){
-  return {line:Infinity, circle:2, rect:2, arc:3, polygon:2, none:0}[tool] || Infinity;
+  return {line:Infinity, circle:2, rect:2, arc:3, polygon:2, ptype:2, none:0}[tool] || Infinity;
 }
 function completePrimitiveIfReady(){
   if(!currentDraw) return;
@@ -304,6 +306,12 @@ function completePrimitiveIfReady(){
         points:genCirclePts(center,radius),
         // four cardinal grips: right(+x), left(-x), top(+y), bottom(-y)
         grips:[{x:center.x+radius,y:center.y},{x:center.x-radius,y:center.y},{x:center.x,y:center.y+radius},{x:center.x,y:center.y-radius}]});
+    }
+  } else if(drawTool==='ptype'){
+    if(ptCommit(pts[0],pts[1])==='defer'){   // ramka: endi polka soni so'raladi
+      currentDraw=null; typedLen=''; typedLen2=''; typingSecond=false;
+      updateTypedBadge(); updateDrawActionButtons(); draw();
+      return;
     }
   } else if(drawTool==='rect'){
     const rp = genRectPts(pts[0],pts[1]);
