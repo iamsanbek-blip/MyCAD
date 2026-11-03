@@ -41,11 +41,13 @@ function updateTransformTypedHint(){
   const hint=document.getElementById('hint');
   if(!transformTool) return;
   const unit = transformTool==='rotate' ? '°' : '×';
-  hint.innerHTML = 'Transform: '+transformTool.toUpperCase()+' — '+(transformTyped||'0')+unit+' (Enter: qo\'llash, Esc: bekor)';
+  const g=(typeof typedGhost==='function')?typedGhost():'';
+  hint.innerHTML = 'Transform: '+transformTool.toUpperCase()+' — '+(transformTyped||'0')+(g?'<span class="ghostTxt">'+g+'</span>':'')+unit+' (Enter: qo\'llash, '+(g?'→/Tab: davomi, ':'')+'Esc: bekor)';
 }
 function updateMoveDistHint(){
   const hint=document.getElementById('hint');
-  hint.innerHTML = 'Move: '+(transformTyped||'0')+' mm — sichqoncha bilan yo\'nalishni ko\'rsating, Enter (Ctrl/Shift: +Copy)';
+  const g=(typeof typedGhost==='function')?typedGhost():'';
+  hint.innerHTML = 'Move: '+(transformTyped||'0')+(g?'<span class="ghostTxt">'+g+'</span>':'')+' mm — sichqoncha bilan yo\'nalishni ko\'rsating, Enter (Ctrl/Shift: +Copy)'+(g?' · →/Tab: davomi':'');
 }
 
 function isShapeEditable(l){ const ly=layerOf(l); return !l.hidden && ly.visible && !ly.locked; }
@@ -234,5 +236,5 @@ function updateStretchHint(){
   if(!h) return;
   if(stretchMode==='window') h.innerHTML=stretchWindowHint();
   else if(stretchMode==='base') h.innerHTML='Stretch: '+stretchPicks.length+' ta nuqta tanlandi — bazaviy nuqtani bosing (Esc: bekor)';
-  else if(stretchMode==='move') h.innerHTML='Stretch: '+(stretchTyped||'0')+' mm — yo\'nalishni ko\'rsating, Enter yoki bosing (Esc: bekor)';
+  else if(stretchMode==='move'){ const g=(typeof typedGhost==='function')?typedGhost():''; h.innerHTML='Stretch: '+(stretchTyped||'0')+(g?'<span class="ghostTxt">'+g+'</span>':'')+' mm — yo\'nalishni ko\'rsating, Enter yoki bosing (Esc: bekor)'+(g?' · →/Tab: davomi':''); }
 }

@@ -108,12 +108,10 @@ canvas.addEventListener('mousedown', (e)=>{
   // active transform tool intercepts clicks before any drawing/selection logic
   if(transformTool){
     const w = toWorld(sx,sy);
-    const snap = findSnapCandidate(w);
-    // base point (step 1) is placed exactly; later points honor ortho when no snap
+    // base point (step 1) is placed exactly; later points honor ortho/angle unless a STRONG snap pins the point
     let p;
-    if(snap) p = snap.point;
-    else if(transformStep===1) p = w;
-    else p = applyOrtho(transformBase, w);
+    if(transformStep===1){ const snap = findSnapCandidate(w); p = snap ? snap.point : w; }
+    else p = resolveTransformPoint(transformBase, w).pt;
     if(transformStep===1){
       transformBase = p;
       transformSnapshot = snapshotSelected();

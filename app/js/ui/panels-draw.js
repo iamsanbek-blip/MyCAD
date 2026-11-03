@@ -12,14 +12,16 @@ function updateTypedBadge(){
   const badge = document.getElementById('typedLenBadge');
   if(appMode==='draw' && (drawTool==='rect'||drawTool==='ptype') && currentDraw && currentDraw.points.length===1 && (typedLen!=='' || typedLen2!=='')){
     badge.style.display='inline-block';
-    const wTxt = typedLen==='' ? '?' : typedLen;
-    const hTxt = typedLen2==='' ? (typingSecond ? '?' : (drawTool==='ptype' ? 'sichqoncha' : (typedLen===''?'?':typedLen))) : typedLen2;
-    badge.textContent = 'En '+wTxt+' × Bo\'y '+hTxt+' mm  ('+(typingSecond?'bo\'y':'en')+' — Tab yoki "," bilan almashtirish, Enter)';
+    const g=(typeof typedGhost==='function')?typedGhost():'', gs=g?'<span class="ghostTxt">'+g+'</span>':'';   // smart kiritish: taklif xira
+    const wTxt = typedLen==='' ? '?' : typedLen+(typingSecond?'':gs);
+    const hTxt = typedLen2==='' ? (typingSecond ? '?' : (drawTool==='ptype' ? 'sichqoncha' : (typedLen===''?'?':typedLen))) : typedLen2+(typingSecond?gs:'');
+    badge.innerHTML = 'En '+wTxt+' × Bo\'y '+hTxt+' mm  ('+(typingSecond?'bo\'y':'en')+' — Tab yoki "," bilan almashtirish, Enter'+(g?', →: davomi':'')+')';
     return;
   }
   if(appMode==='draw' && currentDraw && typedLen!==''){
     badge.style.display='inline-block';
-    badge.textContent = typedLen+' mm (Enter)';
+    const g=(typeof typedGhost==='function')?typedGhost():'';
+    badge.innerHTML = typedLen+(g?'<span class="ghostTxt">'+g+'</span>':'')+' mm (Enter'+(g?', →/Tab: davomi':'')+')';
   } else {
     badge.style.display='none';
   }

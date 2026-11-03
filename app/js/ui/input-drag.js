@@ -72,8 +72,8 @@ window.addEventListener('mousemove',(e)=>{
   // SCALE step 2: just picking the reference point B — track cursor, no transform yet
   if(transformTool==='scale' && transformStep===2){
     const w = toWorld(sx,sy);
-    const snap = findSnapCandidate(w);
-    mouseWorld = snap ? snap.point : applyOrtho(transformBase, w);
+    const {pt:tp, snap} = resolveTransformPoint(transformBase, w);
+    mouseWorld = tp;
     hoverSnap = snap;
     draw();
     return;
@@ -81,8 +81,8 @@ window.addEventListener('mousemove',(e)=>{
   // SCALE step 3: live preview using factor = dist(A->cursor)/refLen
   if(transformTool==='scale' && transformStep===3){
     const w = toWorld(sx,sy);
-    const snap = findSnapCandidate(w);
-    const p = snap ? snap.point : applyOrtho(transformBase, w);
+    const {pt:tp, snap} = resolveTransformPoint(transformBase, w);
+    const p = tp;
     mouseWorld = p; hoverSnap = snap;
     applyLiveTransform(p);
     draw();
@@ -91,8 +91,8 @@ window.addEventListener('mousemove',(e)=>{
   // ROTATE step 2: picking reference direction B — track cursor, no rotation yet
   if(transformTool==='rotate' && transformStep===2){
     const w = toWorld(sx,sy);
-    const snap = findSnapCandidate(w);
-    mouseWorld = snap ? snap.point : applyOrtho(transformBase, w);
+    const {pt:tp, snap} = resolveTransformPoint(transformBase, w);
+    mouseWorld = tp;
     hoverSnap = snap;
     draw();
     return;
@@ -100,8 +100,8 @@ window.addEventListener('mousemove',(e)=>{
   // ROTATE step 3: live rotation = angle(A->cursor) - refAng
   if(transformTool==='rotate' && transformStep===3){
     const w = toWorld(sx,sy);
-    const snap = findSnapCandidate(w);
-    const p = snap ? snap.point : applyOrtho(transformBase, w);
+    const {pt:tp, snap} = resolveTransformPoint(transformBase, w);
+    const p = tp;
     mouseWorld = p; hoverSnap = snap;
     applyLiveTransform(p);
     draw();
@@ -109,8 +109,8 @@ window.addEventListener('mousemove',(e)=>{
   }
   if(transformTool && transformStep===2){ // move / mirror
     const w = toWorld(sx,sy);
-    const snap = findSnapCandidate(w);
-    let p = snap ? snap.point : applyOrtho(transformBase, w);
+    const {pt:tp, snap} = resolveTransformPoint(transformBase, w);
+    let p = tp;
     // Masofa yozilganda: AVVAL yo'nalish cheklanadi (ortho / burchak snap),
     // KEYIN aynan shu yo'nalishda `dist` masofa qo'yiladi.
     // TUZATILDI: ilgari yo'nalish XOM kursordan (w) olinardi va ortho

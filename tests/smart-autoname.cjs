@@ -31,9 +31,11 @@ const ROLES=['chap boka',"o'ng boka",'dno','krisha','polka 2','polka 1','orqa de
     assert.deepEqual(await ev(()=>[fmtNum(3040,2),fmtNum(0.01,2),fmtNum(12.5,2),fmtNum(-0.001,2),fmtNum(7.25,1),dimPrecision()]),['3040','0.01','12.5','0','7.3',2]);
     passed.push("O'lcham yozuvi: 3040 · 0.01 · 12.5 (ortiqcha nol yo'q), standart aniqlik 0.00");
 
-    // 2. Chizma sozlamalari eslab qolinadi (matn 70)
-    await ev(()=>{for(const[id,v]of[['dimTextSize','70'],['textSize','70']]){const e=document.getElementById(id);e.value=v;e.dispatchEvent(new Event('change',{bubbles:true}))}});
-    await boot();assert.deepEqual(await ev(()=>[dimTextSize(),textSizeInput()]),[70,70]);passed.push("Qayta ochilganda o'lcham matni va matn balandligi 70 saqlanadi");
+    // 2. Chizma matnlari: standart 70; o'zgartirilsa eslab qolinadi
+    assert.deepEqual(await ev(()=>[dimTextSize(),textSizeInput()]),[70,70],'standart 70');
+    const setTxt=v=>ev(v=>{for(const id of['dimTextSize','textSize']){const e=document.getElementById(id);e.value=v;e.dispatchEvent(new Event('change',{bubbles:true}))}},v);
+    await setTxt('55');await boot();assert.deepEqual(await ev(()=>[dimTextSize(),textSizeInput()]),[55,55]);await setTxt('70');
+    passed.push("Matn va o'lcham matni standart 70; o'zgartirilsa (55) qayta ochilganda saqlanadi");
 
     // 3. Modeling: nom maydonida tarix + lug'at, Tab — davomni qabul
     await page.locator('#mbModel').click();await page.waitForFunction(()=>Panel3D.isOpen());
@@ -69,6 +71,31 @@ const ROLES=['chap boka',"o'ng boka",'dno','krisha','polka 2','polka 1','orqa de
     assert.equal((await ev(()=>SmartInput.get().h.num)).length,15);
     await boot();assert.equal((await ev(()=>SmartInput.get().h.num))[0],'129');assert.ok((await ev(()=>SmartInput.get().h.name)).includes('Yon devor maxsus'));
     passed.push('Tarix: har turdan oxirgi 15 ta, qayta ochilganda saqlanadi');
+
+    // 5b. Drawing: kanvasga yoziladigan uzunlik — «3» → xira «040», → qabul, Enter → chiziq aynan 3040; tarixga yoziladi
+    await ev(()=>SmartInput.remember('num','3040'));
+    await page.locator('#mbDraw').click();await ev(()=>{document.getElementById('orthoOnBtn').click()});
+    const bb=await page.locator('#cv').boundingBox(),at=async(x,y)=>{await page.mouse.move(bb.x+x,bb.y+y,{steps:5});await page.mouse.down();await page.mouse.up()};
+    const n0=await ev(()=>drawnLines.length);
+    await page.locator('#toolLineBtn').click();await at(150,500);await page.mouse.move(bb.x+400,bb.y+503,{steps:6});
+    await page.keyboard.type('3');assert.equal(await ev(()=>typedGhost()),'040');assert.match(await page.locator('#typedLenBadge').innerHTML(),/ghostTxt">040/);
+    await page.keyboard.press('ArrowRight');assert.equal(await ev(()=>typedLen),'3040');await page.keyboard.press('Enter');await page.keyboard.press('Escape');
+    const L=await ev(n0=>{const l=drawnLines[n0];return Math.hypot(l.points[1].x-l.points[0].x,l.points[1].y-l.points[0].y)},n0);
+    assert.ok(Math.abs(L-3040)<1e-6,'chiziq 3040: '+L);
+    await page.locator('#toolLineBtn').click();await at(150,600);await page.mouse.move(bb.x+400,bb.y+603,{steps:6});await page.keyboard.type('1250');await page.keyboard.press('Enter');await page.keyboard.press('Escape');
+    assert.equal((await ev(()=>SmartInput.get().h.num))[0],'1250');
+    passed.push("Drawing chiziq: «3» → xira «040», → — 3040 mm aynan; yozilgan 1250 tarixga tushdi");
+
+    // 5c. Drawing Move + Ortho + setka magniti: qiya bosilsa ham faqat bitta o'q bo'ylab (oldin setka Ortho'ni bosib ketardi)
+    await ev(()=>{const g=document.getElementById('snapGridChk');g.checked=true;g.dispatchEvent(new Event('change'))});
+    await page.locator('#toolRectBtn').click();await at(600,300);await at(750,420);await page.keyboard.press('Escape');
+    const k=await ev(()=>drawnLines.length-1),p0=await ev(k=>({...drawnLines[k].points[0]}),k);
+    await ev(k=>{drawnLines.forEach(l=>l.selected=false);drawnLines[k].selected=true;draw()},k);
+    await page.keyboard.press('m');await at(600,300);await page.mouse.move(bb.x+500,bb.y+330,{steps:6});await page.mouse.move(bb.x+404,bb.y+352,{steps:6});await page.mouse.down();await page.mouse.up();
+    const p1=await ev(k=>({...drawnLines[k].points[0]}),k);
+    assert.ok(Math.abs(p1.y-p0.y)<1e-9&&Math.abs(p1.x-p0.x)>1,'Move ortho: '+JSON.stringify([p0,p1]));
+    await ev(()=>{const g=document.getElementById('snapGridChk');g.checked=false;g.dispatchEvent(new Event('change'))});
+    passed.push(`Drawing Move: Ortho + setka — faqat X bo'ylab (Δx=${(p1.x-p0.x).toFixed(1)}, Δy=0)`);
 
     // 6. Avto-nom: Front, tanlovsiz — ikki yonma-yon korpus (bokalar bir-biriga tegadi) → A., B.
     await page.locator('#mbModel').click();await page.waitForFunction(()=>Panel3D.isOpen());

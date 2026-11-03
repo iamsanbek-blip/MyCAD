@@ -130,5 +130,7 @@ function openDialog(){
 
 function init(){restorePrefs();const b=document.getElementById('smartSettingsBtn');if(b)b.addEventListener('click',openDialog)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-window.SmartInput={open:openDialog,remember,suggest,get:()=>JSON.parse(JSON.stringify(cfg)),clear:()=>{cfg.h={};save()}};
+// Kanvasga yoziladigan qiymat (Drawing: uzunlik, radius, masofa, burchak) uchun: yozilganning davomi (faqat tarixdan, boshlanishi mos)
+function complete(cat,typed){if(!cfg.on||!typed)return '';const t=norm(typed),v=(cfg.h[cat]||[]).find(x=>{const n=norm(x);return n!==t&&n.startsWith(t)});return v?String(v).slice(typed.length):''}
+window.SmartInput={open:openDialog,remember,suggest,complete,get:()=>JSON.parse(JSON.stringify(cfg)),clear:()=>{cfg.h={};save()}};
 })();

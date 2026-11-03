@@ -7,6 +7,21 @@
    o'zgartirmang — kod global scope'da ishlaydi va tartibga bog'liq.
    ========================================================================== */
 
+// ---- Smart kiritish: kanvasga yoziladigan qiymat (chiziq uzunligi, radius, to'rtburchak eni×bo'yi, Move masofasi,
+// Rotate/Scale qiymati, Stretch) — oxirgi qiymatlardan davom taklif qilinadi; → yoki Tab — qabul; Enter — tarixga yoziladi.
+function typedCtx(){
+  if(typeof stretchMode!=='undefined' && stretchMode==='move')
+    return {get:()=>stretchTyped, set:v=>{stretchTyped=v;}, all:()=>[stretchTyped], refresh:()=>{applyStretch(stretchDelta(mouseWorld)); updateStretchHint(); draw();}};
+  if(transformTool && ((transformStep===2 && transformTool==='move') || (transformStep===3 && (transformTool==='rotate'||transformTool==='scale'))))
+    return {get:()=>transformTyped||'', set:v=>{transformTyped=v;}, all:()=>[transformTyped], refresh:()=>{ if(transformTool==='move') updateMoveDistHint(); else updateTransformTypedHint(); draw(); }};
+  if(appMode==='draw' && currentDraw){
+    const rect=((drawTool==='rect'||drawTool==='ptype') && currentDraw.points.length===1), sec=rect && typingSecond;
+    return {rect, get:()=>sec?typedLen2:typedLen, set:v=>{ if(sec) typedLen2=v; else typedLen=v; }, all:()=>[typedLen,typedLen2], refresh:()=>{updateTypedBadge(); draw();}};
+  }
+  return null;
+}
+function typedGhost(){ const c=typedCtx(); return c && c.get() && window.SmartInput ? SmartInput.complete('num', c.get()) : ''; }
+
 function cycleMode(c){
   const idx = MODES.indexOf(c.mode);
   c.mode = MODES[(idx+1)%MODES.length];
@@ -37,6 +52,16 @@ document.addEventListener('keydown',(e)=>{
 
   if(inField) return;
   if(document.querySelector('dialog[open]'))return;
+  { const tc=typedCtx();
+    if(tc && !e.ctrlKey && !e.metaKey && !e.altKey){
+      const g=typedGhost();
+      if(g && (e.key==='ArrowRight' || (e.key==='Tab' && !e.shiftKey))){
+        tc.set(tc.get()+g);
+        if(!(e.key==='Tab' && tc.rect)){ e.preventDefault(); tc.refresh(); return; }
+        tc.refresh();   // to'rtburchak: Tab — davomni qabul qilib bo'yga o'tadi (pastdagi odatiy Tab)
+      }
+      if(e.key==='Enter' && window.SmartInput) tc.all().forEach(v=>{ if(v) SmartInput.remember('num', v); });
+    } }
   // Matn rejimi: Escape chiqadi, Delete tanlangan matnlarni o'chiradi
   if(typeof textTool!=='undefined' && textTool && e.key==='Escape'){
     e.preventDefault(); finishTextTool();

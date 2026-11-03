@@ -3,7 +3,10 @@
 **Windows'da sinov o'tkazilmagan, EXE yig'ilmagan.**
 
 - `npm run check` (54 JS fayli, 0 xato), `npm test` (18 regressiya fayli + 24 workspace testi), `panel3d`, `panel3d-export` o'tdi.
-- Yangi `tests/smart-autoname.cjs` (web build, Chromium 1243, haqiqiy klaviatura) — 12 tekshiruv o'tdi: o'lcham yozuvi 3040 / 0.01 / 12.5 va
+- Qo'shimcha (o'sha kun): `tests/smart-autoname.cjs` 14 tekshiruvga kengaydi — matnlar standart 70 va 55 saqlanishi; Drawing chiziq «3» →
+  xira «040» → 3040 mm aynan, 1250 tarixga; Drawing Move + Ortho + setka: Δy = 0 (eski build'da shu harakat Δ = (−270, −70) berdi — xato
+  1.1.2 da ham bor edi). Qolgan barcha testlar va Electron GUI testlari qayta o'tdi.
+- `tests/smart-autoname.cjs` (web build, Chromium 1243, haqiqiy klaviatura) — dastlab 12 tekshiruv o'tdi: o'lcham yozuvi 3040 / 0.01 / 12.5 va
   standart 0.00; qayta ochilganda o'lcham matni va matn balandligi 70; nom «yon d» → kulrang davom, Tab, Enter; lug'at «ch» → «chap boka»;
   raqam «3» → ↓ Enter → eni 3040; Esc faqat ro'yxatni yopadi, bo'sh maydonda ↓; tarix 15 ta va qayta ochilganda saqlanadi; Avto-nom Front'da
   ikki yonma-yon korpus «A. …», «B. …» (polka 1/2 pastdan); CSV — «A. chap boka» bitta katakda, A… keyin B…; Back ko'rinishda chap/o'ng almashadi,

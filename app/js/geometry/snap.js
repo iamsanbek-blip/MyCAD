@@ -320,6 +320,15 @@ function constraintsActive(){
   const a=document.getElementById('snapAngleChk');
   return !!orthoMode || !!(a && a.checked);
 }
+// Move / Rotate / Scale / Mirror uchun nuqta: kuchli snap (uch, o'rta, markaz, kesishish...) aniq nuqta beradi;
+// kuchsiz snap (Near, Grid) Ortho/burchak cheklovini BOSIB KETMAYDI — u cheklov o'qiga proyeksiyalanadi.
+// TUZATILDI: ilgari transformda har qanday snap Ortho'ni o'chirardi (setka yoki yaqin chiziq bo'lsa Move qiya ketardi).
+function resolveTransformPoint(base, w){
+  const snap = findSnapCandidate(w);
+  if(!base || snapIsStrong(snap) || !constraintsActive()) return {pt: snap ? {x:snap.point.x,y:snap.point.y} : w, snap};
+  const src = snap ? snap.point : w;
+  return {pt: applyAngleSnap(base, applyOrtho(base, src)), snap: null};
+}
 // Single place that decides where a click/preview point really lands.
 function resolveDrawPoint(rawWorldPt){
   const snap = findSnapCandidate(rawWorldPt);

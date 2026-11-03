@@ -7,7 +7,11 @@
 - **Avto-nom** (Modeling, Alt+N yoki Object ▸ Avto-nom): korpusni tanlab ro'para ko'rinishda bosing — chap/o'ng boka, oraliq boka 1.., krisha, dno,
   polka 1.. (pastdan), orqa devor, fasad. Bir nechta korpus bo'lsa «A. chap boka», «B. …» (CSV/Excel'da bitta katak, qatorlar korpus bo'yicha guruhlanadi).
   Tanlovsiz — butun sahna korpuslarga o'zi ajratiladi (perpendikulyar detallar yuza bilan tegsa — bitta korpus). Korpusning eski harfi saqlanadi.
-- **Chizma sozlamalari eslab qolinadi**: o'lcham matni, aniqlik, birlik, matn balandligi (masalan 70 — har ochilganda qayta kiritilmaydi).
+- **Drawing'da kanvasga yoziladigan qiymatlar** (chiziq uzunligi, aylana radiusi, to'rtburchak eni × bo'yi, Move masofasi, Rotate/Scale, Stretch)
+  ham smart: «3» → xira «040», → yoki Tab — qabul (to'rtburchakda Tab — qabul va bo'yga o'tish), Enter — tarixga yoziladi.
+- **Tuzatildi — Drawing Move/Rotate/Scale/Mirror + Ortho**: setka yoki yaqin chiziq (Near) magniti Ortho'ni bosib ketardi va Move qiya ketardi
+  (eski 1.1.2 da ham bor edi). Endi kuchsiz magnit Ortho o'qiga proyeksiyalanadi; uch/o'rta/markaz kabi aniq nuqtalar avvalgidek ustun.
+- **Chizma matnlari standart 70 mm** (o'lcham matni va matn balandligi); o'zgartirilsa eslab qolinadi (aniqlik, birlik ham).
 - **O'lcham yozuvi**: aniqlik — eng ko'p o'nlik xona, ortiqcha nollar ko'rsatilmaydi (3040.00 → 3040, 0.01 → 0.01, 12.50 → 12.5); standart 0.00.
   Chizmadagi jonli yozuvlar (masofa, Δ, burchak) ham shunday. Eski fayllardagi o'lchamlar ham nolsiz ko'rinadi.
 

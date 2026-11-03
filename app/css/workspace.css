@@ -47,3 +47,4 @@ dialog input{background:var(--panel-2);color:var(--text);border:1px solid var(--
 #smartDialog .smartCats{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow:auto;margin:10px 0}
 #smartDialog .smartCat{display:grid;grid-template-columns:150px 1fr auto;gap:10px;align-items:center;font-size:12px;padding:6px 8px;border:1px solid var(--line);border-radius:6px}
 #smartDialog .smartCat span{color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.ghostTxt{opacity:.5}

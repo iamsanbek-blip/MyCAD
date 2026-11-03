@@ -124,6 +124,10 @@ function dimArrowHead(s, a, L, W){
 // O'lcham yozuvi: aniqlik — maksimal o'nlik xona; ortiqcha nollar ko'rsatilmaydi (3040.00 → 3040, 0.01 → 0.01, 12.50 → 12.5)
 function fmtNum(v, prec){ const p=Math.max(0,Math.min(6,Math.round(+(prec==null?1:prec))||0)); let s=(+v).toFixed(p); if(s.indexOf('.')>=0) s=s.replace(/\.?0+$/,''); return s==='-0'?'0':s; }
 
+// Smart kiritish: yozilgan qiymat + taklif qilingan davomi (xira) — kanvas yozuvlari uchun
+function typedGhostSafe(){ try{ return typeof typedGhost==='function' ? typedGhost() : ''; }catch(e){ return ''; } }
+function fillParts(parts, x, y){ ctx.save(); ctx.textAlign='left'; let cx=x; for(const p of parts){ const dim=Array.isArray(p), t=dim?p[0]:p; if(!t) continue; const a=ctx.globalAlpha; if(dim) ctx.globalAlpha=a*0.45; ctx.fillText(t,cx,y); ctx.globalAlpha=a; cx+=ctx.measureText(t).width; } ctx.restore(); }
+
 function drawOneDimension(d, ghost){
   // ---- YOY / AYLANA UZUNLIGI ----
   if(d.kind==='arclen'){
@@ -282,10 +286,11 @@ function drawStretchOverlay(){
       ctx.strokeStyle='rgba(255,138,216,.8)'; ctx.setLineDash([5,4]); ctx.lineWidth=1.5;
       ctx.beginPath(); ctx.moveTo(b.x,b.y); ctx.lineTo(m.x,m.y); ctx.stroke(); ctx.setLineDash([]);
       const d=len(sub(mouseWorld, stretchBase));
-      const label=(stretchTyped!==''? stretchTyped : fmtNum(d,2))+' mm';
+      const sg=stretchTyped!==''?typedGhostSafe():'';
+      const label=(stretchTyped!==''? stretchTyped : fmtNum(d,2))+sg+' mm';
       ctx.font='13px sans-serif'; const tw=ctx.measureText(label).width;
       ctx.fillStyle='#0b1220cc'; ctx.fillRect(m.x+12, m.y-20, tw+8, 18);
-      ctx.fillStyle='#ff8ad8'; ctx.fillText(label, m.x+16, m.y-7);
+      ctx.fillStyle='#ff8ad8'; if(sg) fillParts([stretchTyped,[sg],' mm'], m.x+16, m.y-7); else ctx.fillText(label, m.x+16, m.y-7);
     }
   }
 }
@@ -629,7 +634,8 @@ function drawInner(){
     ctx.fillStyle='#dce6f5'; ctx.font='12px sans-serif';
     const unitLabel = drawTool==='ptype' ? ' mm' : (drawTool==='circle'||drawTool==='polygon') ? ' mm (radius)' : ' mm @ '+ang+'\u00b0';
     const label = (typedLen!=='' ? typedLen : fmtNum(distWorld,2)) + unitLabel;
-    ctx.fillText(label, b.x+10, b.y-10);
+    if(typedLen!==''){ const g=typingSecond?'':typedGhostSafe(); fillParts([typedLen,[g],unitLabel], b.x+10, b.y-10); }
+    else ctx.fillText(label, b.x+10, b.y-10);
   } else if(appMode==='draw'){
     // no start point yet: show a small crosshair snap preview even before the first click
     const preview = getPreviewPoint();
@@ -676,7 +682,7 @@ function drawInner(){
         const d=sub(mouseWorld,transformBase);
         const dist=len(d);
         label='Δ '+fmtNum(d.x,2)+', '+fmtNum(d.y,2)+' | '+fmtNum(dist,2)+' mm';
-        if(transformTyped!==''){ label='➜ '+transformTyped+' mm (yo\'nalishni bosing/Enter)'; }
+        if(transformTyped!==''){ label=['➜ '+transformTyped,[typedGhostSafe()],' mm (yo\'nalishni bosing/Enter)']; }
       }
       else if(transformTool==='scale'){
         if(transformStep===2){ label='referens: '+fmtNum(len(sub(mouseWorld,transformBase)),2)+' mm'; }
@@ -687,7 +693,7 @@ function drawInner(){
         else { const a=(Math.atan2(mouseWorld.y-transformBase.y,mouseWorld.x-transformBase.x)-(transformRefAng||0))*180/Math.PI; label=fmtNum(a,2)+'°'; }
       }
       else if(transformTool==='mirror'){ label='Mirror o\'qi'; }
-      ctx.fillText(label, m.x+10, m.y-10);
+      if(Array.isArray(label)) fillParts(label, m.x+10, m.y-10); else ctx.fillText(label, m.x+10, m.y-10);
     }
   }
 
