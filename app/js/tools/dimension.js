@@ -84,7 +84,7 @@ function dimClickAt(p){
       if(!a){ document.getElementById('hint').innerHTML='Shu yerda yoy yoki aylana yo\'q — ustiga bosing.'; return true; }
       dimArcPick=a; dimStep=2;
       document.getElementById('hint').innerHTML =
-        'Uzunlik: <b>'+a.len.toFixed(dimPrecision())+' '+dimUnit()+'</b> &middot; endi yozuv joyini bosing';
+        'Uzunlik: <b>'+fmtNum(a.len, dimPrecision())+' '+dimUnit()+'</b> &middot; endi yozuv joyini bosing';
       draw(); return true;
     }
     dimensions.push({kind:'arclen', cx:dimArcPick.cx, cy:dimArcPick.cy, r:dimArcPick.r,

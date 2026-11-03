@@ -1,3 +1,22 @@
+# Smart kiritish va Avto-nom tekshiruvlari — 2026-11-03 (Linux)
+
+**Windows'da sinov o'tkazilmagan, EXE yig'ilmagan.**
+
+- `npm run check` (54 JS fayli, 0 xato), `npm test` (18 regressiya fayli + 24 workspace testi), `panel3d`, `panel3d-export` o'tdi.
+- Yangi `tests/smart-autoname.cjs` (web build, Chromium 1243, haqiqiy klaviatura) — 12 tekshiruv o'tdi: o'lcham yozuvi 3040 / 0.01 / 12.5 va
+  standart 0.00; qayta ochilganda o'lcham matni va matn balandligi 70; nom «yon d» → kulrang davom, Tab, Enter; lug'at «ch» → «chap boka»;
+  raqam «3» → ↓ Enter → eni 3040; Esc faqat ro'yxatni yopadi, bo'sh maydonda ↓; tarix 15 ta va qayta ochilganda saqlanadi; Avto-nom Front'da
+  ikki yonma-yon korpus «A. …», «B. …» (polka 1/2 pastdan); CSV — «A. chap boka» bitta katakda, A… keyin B…; Back ko'rinishda chap/o'ng almashadi,
+  harf saqlanadi; yopuvchi krishali yonma-yon korpuslar ham ajraladi, tanlab nomlash A, B; Alt+N; Edit ▸ Smart kiritish (20).
+- `tests/modeling-precision.cjs` (13) qayta o'tdi. Electron 31.7.7 (xvfb): `modeling-smoke`, `electron-smoke`, `panel-types-smoke`,
+  `stretch-select` o'tdi.
+- Skrinshot: «o» yozilganda kulrang «o'ng boka» va ro'yxat (lug'at belgisi bilan).
+
+Tekshirilmagan: Electron ichida localStorage saqlanishi (mavzu shu yo'l bilan saqlanadi), Drawing'dagi kanvasga yoziladigan masofa (input emas —
+smart kiritish unga ulanmagan), Windows.
+
+---
+
 # Rugby 1.1.2 — Modeling aniqligi tekshiruvlari — 2026-11-03 (Linux)
 
 **Windows'da sinov o'tkazilmagan, EXE yig'ilmagan** (so'rov bo'yicha: avval web versiya). Quyidagilar Linux konteynerida bajarildi.

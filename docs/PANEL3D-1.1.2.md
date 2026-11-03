@@ -111,3 +111,12 @@ Shkaf turlari: pastki blok 100 mm (`PT_BLOCK_H`), ustida t qalinlikdagi o'rta pa
 - Stretch: ushlangan uch (ko'pi belgilangan bo'lsa ham) kursorga ergashadi va nishonga aynan tushadi; Ortho chegarasi px da.
 - Model qayta yuklansa yoki Undo/Redo bo'lsa faol sudrash to'xtatiladi.
 - Test yordamchilari: `Panel3D._scr`, `_gz`, `_cursor`, `_pivot`, `_act`, `_snap`, `_snapM`, `_setTool`, `_view`, `_select`.
+
+### Avto-nom (`autoName`, `corpusClusters`) — 2026-11-03
+- Buyruq `obj.autoname` (Alt+N), Object ▸ «Avto-nom (korpus detallari)». Tanlov — bitta korpus; tanlovsiz — butun sahna.
+- Rol panelning qalinlik o'qi va korpus gabaritidagi o'rnidan: qalinlik ko'rinishning o'ng o'qi bo'ylab — chap boka / o'ng boka / oraliq boka 1..
+  (chapdan o'ngga); qalinlik Y — dno (pastki chorak), krisha (yuqori chorak), qolgani polka 1.. (pastdan); qalinlik chuqurlik o'qi bo'ylab — orqa
+  yarmida orqa devor, old yarmida fasad (1.. chapdan). Yuqori doim Y; chap/o'ng va orqa/old — joriy kamera (orqadan qaralsa almashadi).
+- Korpuslar: perpendikulyar panellar kamida ikki o'qda 1 mm dan ko'p ustma-ust (yuza bilan) tegsa, oraliq ≤ 3 mm. Parallel panellar va qirra tegishi
+  bog'lamaydi. Harf: bir nechta korpus yoki sahnada boshqa panellar bo'lsa; korpusdagi eski harf saqlanadi, yangilari chapdan o'ngga (A..Z, AA..).
+- Harf nomning o'zida («A. chap boka») — hujjat sxemasi o'zgarmagan; Cutlist CSV/TXT da qatorlar korpus bo'yicha guruhlanadi.

@@ -41,6 +41,7 @@
       <button class="mbIt" data-act="redo">Redo<span class="kb">Ctrl+Y</span></button>
       <div class="mbHead">Sozlamalar</div>
       <button class="mbIt" data-click="shortcutSettingsBtn">Hotkey sozlamalari…</button>
+      <button class="mbIt" id="smartSettingsBtn">Smart kiritish (tarix, takliflar)…</button>
       <button class="mbIt" data-click="langSwitchBtn">Til / Language<span class="kb" id="mbLangKb">EN</span></button>
       <div class="mbHead">Ko'rinish</div>
       <button class="mbIt" data-click="centerViewBtn">Markazga qaytish</button>
@@ -218,10 +219,10 @@
         <input type="text" inputmode="decimal" id="dimTextSize" value="10" style="width:56px; padding:3px;" title="Matn balandligi — REAL o'lcham (mm). Strelka va chiziqlar shunga proporsional."><span style="font-size:10px;">mm</span>
       </label>
       <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);">Aniqlik
-        <select id="dimPrecision" style="width:52px; padding:3px;" title="O'nlik xona soni">
+        <select id="dimPrecision" style="width:52px; padding:3px;" title="Eng ko'p o'nlik xona: kasr bo'lsagina chiqadi (3040 → 3040, 0.01 → 0.01). Tanlov eslab qolinadi">
           <option value="0">0</option>
-          <option value="1" selected>0.0</option>
-          <option value="2">0.00</option>
+          <option value="1">0.0</option>
+          <option value="2" selected>0.00</option>
           <option value="3">0.000</option>
         </select>
       </label>
@@ -482,6 +483,7 @@
      ================================================================== -->
 
   <!-- GEOMETRY — segment, arc, snap, matematika -->
+  <script src="js/ui/smart-input.js"></script>   <!-- birinchi: maydon tugmalari (Tab/↓/Esc) boshqa tinglovchilardan oldin -->
   <script src="js/core/document-codec.js"></script>
   <script src="js/core/shortcut-map.js"></script>
   <script src="js/geometry/core.js"></script>

@@ -121,7 +121,8 @@ function dimArrowHead(s, a, L, W){
   ctx.lineTo(s.x-L*nx - W*px, s.y-L*ny - W*py);
   ctx.closePath(); ctx.fill();
 }
-function fmtNum(v, prec){ return v.toFixed(prec==null?1:prec); }
+// O'lcham yozuvi: aniqlik — maksimal o'nlik xona; ortiqcha nollar ko'rsatilmaydi (3040.00 → 3040, 0.01 → 0.01, 12.50 → 12.5)
+function fmtNum(v, prec){ const p=Math.max(0,Math.min(6,Math.round(+(prec==null?1:prec))||0)); let s=(+v).toFixed(p); if(s.indexOf('.')>=0) s=s.replace(/\.?0+$/,''); return s==='-0'?'0':s; }
 
 function drawOneDimension(d, ghost){
   // ---- YOY / AYLANA UZUNLIGI ----
@@ -145,7 +146,7 @@ function drawOneDimension(d, ghost){
     ctx.beginPath(); ctx.arc(M.x,M.y,3,0,Math.PI*2); ctx.fillStyle=col; ctx.fill();
     ctx.font=ts.toFixed(1)+'px sans-serif';
     ctx.textAlign='left'; ctx.textBaseline='middle';
-    const label=(d.full?'○ ':'⌒ ')+(d.arcLen).toFixed(d.prec!=null?d.prec:1)+' '+(d.unit||'mm');
+    const label=(d.full?'○ ':'⌒ ')+fmtNum(d.arcLen, d.prec)+' '+(d.unit||'mm');
     haloText(label, P.x+8, P.y, ts, col);
     ctx.restore();
     return;
@@ -281,7 +282,7 @@ function drawStretchOverlay(){
       ctx.strokeStyle='rgba(255,138,216,.8)'; ctx.setLineDash([5,4]); ctx.lineWidth=1.5;
       ctx.beginPath(); ctx.moveTo(b.x,b.y); ctx.lineTo(m.x,m.y); ctx.stroke(); ctx.setLineDash([]);
       const d=len(sub(mouseWorld, stretchBase));
-      const label=(stretchTyped!==''? stretchTyped : d.toFixed(1))+' mm';
+      const label=(stretchTyped!==''? stretchTyped : fmtNum(d,2))+' mm';
       ctx.font='13px sans-serif'; const tw=ctx.measureText(label).width;
       ctx.fillStyle='#0b1220cc'; ctx.fillRect(m.x+12, m.y-20, tw+8, 18);
       ctx.fillStyle='#ff8ad8'; ctx.fillText(label, m.x+16, m.y-7);
@@ -318,7 +319,7 @@ function drawOffsetPreview(){
   ctx.setLineDash([]);
   // distance readout near cursor
   const s=toScreen(mouseWorld);
-  ctx.fillStyle='#0b1220cc'; const label=(typed!=null?typed:shownDist).toFixed(2)+' mm';
+  ctx.fillStyle='#0b1220cc'; const label=(typed!=null?fmtNum(+typed,2):fmtNum(shownDist,2))+' mm';
   ctx.font='13px sans-serif'; const tw=ctx.measureText(label).width;
   ctx.fillRect(s.x+12, s.y-20, tw+8, 18);
   ctx.fillStyle='#5ee1ff'; ctx.fillText(label, s.x+16, s.y-7);
@@ -627,7 +628,7 @@ function drawInner(){
     const b = toScreen(preview);
     ctx.fillStyle='#dce6f5'; ctx.font='12px sans-serif';
     const unitLabel = drawTool==='ptype' ? ' mm' : (drawTool==='circle'||drawTool==='polygon') ? ' mm (radius)' : ' mm @ '+ang+'\u00b0';
-    const label = (typedLen!=='' ? typedLen : distWorld.toFixed(1)) + unitLabel;
+    const label = (typedLen!=='' ? typedLen : fmtNum(distWorld,2)) + unitLabel;
     ctx.fillText(label, b.x+10, b.y-10);
   } else if(appMode==='draw'){
     // no start point yet: show a small crosshair snap preview even before the first click
@@ -674,16 +675,16 @@ function drawInner(){
       if(transformTool==='move'){
         const d=sub(mouseWorld,transformBase);
         const dist=len(d);
-        label='Δ '+d.x.toFixed(1)+', '+d.y.toFixed(1)+' | '+dist.toFixed(1)+' mm';
+        label='Δ '+fmtNum(d.x,2)+', '+fmtNum(d.y,2)+' | '+fmtNum(dist,2)+' mm';
         if(transformTyped!==''){ label='➜ '+transformTyped+' mm (yo\'nalishni bosing/Enter)'; }
       }
       else if(transformTool==='scale'){
-        if(transformStep===2){ label='referens: '+len(sub(mouseWorld,transformBase)).toFixed(1)+' mm'; }
+        if(transformStep===2){ label='referens: '+fmtNum(len(sub(mouseWorld,transformBase)),2)+' mm'; }
         else { const f=(len(sub(mouseWorld,transformBase))/(transformRefLen||1)); label='× '+f.toFixed(3); }
       }
       else if(transformTool==='rotate'){
         if(transformStep===2){ label='boshlang\'ich yo\'nalish'; }
-        else { const a=(Math.atan2(mouseWorld.y-transformBase.y,mouseWorld.x-transformBase.x)-(transformRefAng||0))*180/Math.PI; label=a.toFixed(1)+'°'; }
+        else { const a=(Math.atan2(mouseWorld.y-transformBase.y,mouseWorld.x-transformBase.x)-(transformRefAng||0))*180/Math.PI; label=fmtNum(a,2)+'°'; }
       }
       else if(transformTool==='mirror'){ label='Mirror o\'qi'; }
       ctx.fillText(label, m.x+10, m.y-10);

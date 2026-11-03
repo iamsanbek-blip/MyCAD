@@ -1,3 +1,18 @@
+# Rugby 1.1.2 — Smart kiritish va Avto-nom (2026-11-03)
+
+- **Smart kiritish** (`app/js/ui/smart-input.js`, hamma maydonlarga o'zi ulanadi): oxirgi qiymatlar taklif qilinadi — «ch» → «chap boka», «3» → «3040».
+  Tarix maydon turi bo'yicha (nom, raqam, material, izoh, matn), har biridan oxirgi 15 ta (Edit ▸ Smart kiritish… da 5–50, tozalash, o'chirish).
+  Tab yoki → — kulrang davomni qabul qilish; ↓/↑ — ro'yxat (bo'sh maydonda ↓ — oxirgi qiymatlar); ro'yxatdan tanlab Enter — qabul + tasdiq; Esc — yopish.
+  Oddiy Enter o'zgarmaydi. Nom maydonida lug'at: chap boka, o'ng boka, krisha, dno, polka, oraliq boka, orqa devor, fasad.
+- **Avto-nom** (Modeling, Alt+N yoki Object ▸ Avto-nom): korpusni tanlab ro'para ko'rinishda bosing — chap/o'ng boka, oraliq boka 1.., krisha, dno,
+  polka 1.. (pastdan), orqa devor, fasad. Bir nechta korpus bo'lsa «A. chap boka», «B. …» (CSV/Excel'da bitta katak, qatorlar korpus bo'yicha guruhlanadi).
+  Tanlovsiz — butun sahna korpuslarga o'zi ajratiladi (perpendikulyar detallar yuza bilan tegsa — bitta korpus). Korpusning eski harfi saqlanadi.
+- **Chizma sozlamalari eslab qolinadi**: o'lcham matni, aniqlik, birlik, matn balandligi (masalan 70 — har ochilganda qayta kiritilmaydi).
+- **O'lcham yozuvi**: aniqlik — eng ko'p o'nlik xona, ortiqcha nollar ko'rsatilmaydi (3040.00 → 3040, 0.01 → 0.01, 12.50 → 12.5); standart 0.00.
+  Chizmadagi jonli yozuvlar (masofa, Δ, burchak) ham shunday. Eski fayllardagi o'lchamlar ham nolsiz ko'rinadi.
+
+---
+
 # Rugby 1.1.2 — Modeling aniqligi (2026-11-03)
 
 Batafsil: `docs/PANEL3D-1.1.2.md` («2026-11-03» bo'limi). Tekshiruvlar: `docs/TESTING.md`, `tests/modeling-precision.cjs`.

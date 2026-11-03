@@ -17,6 +17,7 @@
     "dist": "electron-builder --win --x64",
     "test:electron": "node tests/electron-smoke.cjs",
     "test:precision": "node tests/modeling-precision.cjs",
+    "test:smart": "node tests/smart-autoname.cjs",
     "dist:portable": "node scripts/release-portable.cjs",
     "dist:both": "electron-builder --win nsis portable --x64",
     "dist:unsigned:linux": "electron-builder --win --dir --x64 -c.forceCodeSigning=false -c.win.signAndEditExecutable=false && node patch-exe.js && electron-builder --win portable --x64 --prepackaged dist/win-unpacked -c.forceCodeSigning=false -c.win.signAndEditExecutable=false -c.portable.artifactName=Rugby-Unsigned-Dev.exe"

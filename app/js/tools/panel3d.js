@@ -244,7 +244,7 @@ const P3KB={p3tSel:'tool.select',p3tMov:'tool.move',p3tRot:'tool.rotate',p3tScl:
   p3oCopy:'obj.copy',p3oMx:'obj.mirrorX',p3oMy:'obj.mirrorY',p3oMz:'obj.mirrorZ',p3oDel:'obj.delete',p3vmHide:'view.hide',p3vmIso:'view.isolate',p3vmUn:'view.unhide',
   p3vmSolid:'view.solid',p3vmWire:'view.wire',p3vmThick:'view.thick',p3vmGrain:'view.grain',p3vmFrame:'view.frame',p3vmFrameSel:'view.frameSel',p3mkMag:'snap.magnet',p3bOrtho:'snap.ortho',p3pnNew:'panel.new',p3pnFromDraw:'panel.fromDraw',p3pnDraw:'panel.draw',
   p3bGrp:'sel.group',p3bDraw:'panel.load2d',p3bRot:'obj.rot90',p3bRL:'body.rotL',p3bRR:'body.rotR',
-  p3c3Sel:'cursor.toSel',p3c3Go:'cursor.selTo',p3c3O:'cursor.origin',p3c3Piv:'snap.pivot'};
+  p3oAuto:'obj.autoname',p3c3Sel:'cursor.toSel',p3c3Go:'cursor.selTo',p3c3O:'cursor.origin',p3c3Piv:'snap.pivot'};
 function p3KbSync(){
   if(!wrap)return;
   for(const id in P3KB){const b=q('#'+id);if(!b)continue;const k=p3Keys[P3KB[id]]||'';
@@ -342,7 +342,9 @@ function clExportData(opts){   // raskroy dasturi uchun CSV/TXT: Uzunlik, Eni, S
   const head=['Uzunlik','Eni','Soni','Nomi','Qalinlik'];if(o.mat)head.push('Material');if(o.note)head.push('Izoh');if(o.rot)head.push('Aylantirish');if(o.tex)head.push('Tekstura');
   for(let j=1;j<=nL;j++)head.push('L'+j);for(let j=1;j<=nW;j++)head.push('W'+j);if(o.km)head.push('Kromka (m)');
   const kv=v=>o.kf==='flag'?(v>0?1:0):f(v);
-  const rows=[...m.values()].map(r=>{const p=r.p,lw=LW(p),row=[f(lw[0]),f(lw[1]),r.n,clean(p.n),f(p.t)];
+  let rv=[...m.values()];   // korpus harfi («A. chap boka») bo'lsa — qatorlar korpus bo'yicha guruhlanadi (Excel'da A…, B… ketma-ket); korpus ichida tartib saqlanadi
+  if(rv.some(r=>KPRE.test(r.p.n||''))){const L=r=>{const m=KPRE.exec(r.p.n||'');return m?(m[1].length+'|'+m[1]):'~'};rv=rv.map((r,i)=>[r,i]).sort((a,b)=>L(a[0])<L(b[0])?-1:L(a[0])>L(b[0])?1:a[1]-b[1]).map(a=>a[0])}
+  const rows=rv.map(r=>{const p=r.p,lw=LW(p),row=[f(lw[0]),f(lw[1]),r.n,clean(p.n),f(p.t)];
     if(o.mat)row.push(clean(p.mat||''));if(o.note)row.push(clean((p.note||'')+(r.over?` (+${r.over} qirra kromka)`:'')));if(o.rot)row.push(canRot(p)?1:0);if(o.tex)row.push(hasGr(p)?1:0);
     r.ev.forEach(v=>row.push(kv(v)));if(o.km)row.push(f(ebInfo(p).len*r.n));return row});
   const ext=o.dl==='tab'?'txt':'csv';
@@ -757,6 +759,58 @@ function mirrorSel(a){   // nusxa: tekislik — butun model markazi (hammasi tan
       if(c.pts)c.pts=k==='w'?c.pts.map(v=>[c.bw-v[0],v[1]]):c.pts.map(v=>[v[0],c.bh-v[1]])}
     panels.push(c);build(c);ids.push(c.id)}
   msel=ids;sel=ids[ids.length-1];paint();props();list();changed()}
+/* --- Avto-nom: korpus detallari ko'rinishga qarab nomlanadi, bir nechta korpus bo'lsa «A. », «B. » ... ---
+   Ro'para ko'rinishda (old tomondan) korpusni tanlab Alt+N (tanlov — bitta korpus; tanlovsiz — butun sahna): yonbosh vertikal — chap boka / o'ng boka / oraliq boka 1..,
+   gorizontal — dno / krisha / polka 1.. (pastdan), ro'para — orqa devor / fasad. Yuqori — doim Y (gravitatsiya); chap/o'ng va
+   orqa/old — joriy kameraga qarab. Korpus — perpendikulyar panellarning yuza bilan tegishi orqali bog'langan to'plam
+   (qirra tegishi, yonma-yon bokalar va uchma-uch krishalar kabi parallel tegishlar korpuslarni birlashtirmaydi). Harf CSV/Excel uchun nomning o'zida: «A. chap boka» (alohida maydon kerak emas). */
+const ROLE={L:'chap boka',R:"o'ng boka",top:'krisha',bot:'dno',shelf:'polka',mid:'oraliq boka',back:'orqa devor',front:'fasad'};
+const KPRE=/^([A-Z]{1,3})\.\s+/;
+const tAx=p=>KEY(p).indexOf('t');
+function boxOf(p){const e=ext(p);return[0,1,2].map(a=>{const c=[p.x,p.y,p.z][a];return[c-e[a]/2,c+e[a]/2]})}
+function corpusClusters(ps,tol=3){
+  const B=ps.map(boxOf),par=ps.map((_,i)=>i),f=i=>par[i]===i?i:(par[i]=f(par[i]));
+  for(let i=0;i<ps.length;i++)for(let j=i+1;j<ps.length;j++){const a=B[i],b=B[j];
+    const ov=[0,1,2].map(k=>Math.min(a[k][1],b[k][1])-Math.max(a[k][0],b[k][0]));   // har o'qda ustma-ust (manfiy — oraliq)
+    if(ov.some(v=>v<-tol)||ov.filter(v=>v>1).length<2)continue;   // yuza bilan tegishi shart: faqat qirra/burchak tegishi (eshik va qo'shni boka) bog'lamaydi
+    if(tAx(ps[i])===tAx(ps[j]))continue;   // parallel panellar to'g'ridan-to'g'ri bog'lanmaydi (yonma-yon bokalar, uchma-uch krishalar) — korpus perpendikulyar birikmalar orqali
+    par[f(i)]=f(j)}
+  const m=new Map();ps.forEach((p,i)=>{const r=f(i);if(!m.has(r))m.set(r,[]);m.get(r).push(p)});return[...m.values()]}
+const letterOf=n=>{let s='';n++;while(n>0){const r=(n-1)%26;s=String.fromCharCode(65+r)+s;n=Math.floor((n-1)/26)}return s};
+function viewFrame(){   // ko'rinish o'qlari: o'ng (ra, rs) va chuqurlik — kameradan uzoqlashish (da, ds)
+  cam.updateMatrixWorld();const r=new THREE.Vector3().setFromMatrixColumn(cam.matrix,0),u=new THREE.Vector3().setFromMatrixColumn(cam.matrix,1),f=cam.getWorldDirection(new THREE.Vector3());
+  const ra=Math.abs(r.x)>=Math.abs(r.z)?0:2,rs=Math.sign(r.getComponent(ra))||1,da=2-ra,fd=f.getComponent(da),ds=Math.abs(fd)>=.2?Math.sign(fd):(Math.sign(u.getComponent(da))||1);
+  return{ra,rs,da,ds}}
+function autoName(){
+  // tanlov bor bo'lsa — tanlangan panellar BITTA korpus; tanlovsiz — butun sahna tegishga qarab korpuslarga ajratiladi
+  const vis=panels.filter(p=>!p.hid);if(!vis.length)return 0;const sel0=selected().filter(p=>!p.hid),grp0=sel0.length?sel0:vis;
+  const V=viewFrame(),cl=sel0.length?[sel0]:corpusClusters(grp0),pos=(p,a)=>[p.x,p.y,p.z][a],inG=new Set(grp0.map(p=>p.id));
+  cl.sort((a,b)=>{const ma=Math.min(...a.map(p=>V.rs*pos(p,V.ra))),mb=Math.min(...b.map(p=>V.rs*pos(p,V.ra)));return ma-mb});   // chapdan o'ngga
+  // harf: sahnada boshqa korpus ham bo'lsa kerak. Boshqa panellardagi harflar band; korpusning o'z eski harfi saqlanadi; yangilari chapdan o'ngga
+  const others=vis.filter(p=>!inG.has(p.id)),used=new Set(others.map(p=>(KPRE.exec(p.n||'')||[])[1]).filter(Boolean));
+  const needL=cl.length>1||others.length>0;
+  const lt=cl.map(c=>{const cnt={};for(const p of c){const m=KPRE.exec(p.n||'');if(m)cnt[m[1]]=(cnt[m[1]]||0)+1}
+    const k=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]).find(k=>!used.has(k));if(k)used.add(k);return k||null});
+  let nx=0;if(needL)for(let i=0;i<cl.length;i++)if(!lt[i]){while(used.has(letterOf(nx)))nx++;lt[i]=letterOf(nx);used.add(lt[i])}
+  let n=0;
+  cl.forEach((c,ci)=>{
+    const bx=[0,1,2].map(a=>[Math.min(...c.map(p=>boxOf(p)[a][0])),Math.max(...c.map(p=>boxOf(p)[a][1]))]),fr=(p,a,s)=>{const[lo,hi]=bx[a],t=hi-lo>1e-9?(pos(p,a)-lo)/(hi-lo):.5;return s<0?1-t:t};
+    const nm={},put=(arr,f)=>arr.forEach((p,i)=>{nm[p.id]=f(p,i,arr.length)}),num=(base,i,cnt)=>cnt>1?`${base} ${i+1}`:base;
+    // vertikal yonbosh (qalinlik — ko'rinishning o'ng o'qi)
+    const S=c.filter(p=>tAx(p)===V.ra).sort((a,b)=>fr(a,V.ra,V.rs)-fr(b,V.ra,V.rs));
+    if(S.length===1)nm[S[0].id]=fr(S[0],V.ra,V.rs)<.5?ROLE.L:ROLE.R;
+    else if(S.length>1){nm[S[0].id]=ROLE.L;nm[S[S.length-1].id]=ROLE.R;put(S.slice(1,-1),(p,i,k)=>num(ROLE.mid,i,k))}
+    // gorizontal (qalinlik — Y): pastki chorakda — dno, yuqori chorakda — krisha, qolgani polka (pastdan)
+    const H=c.filter(p=>tAx(p)===1).sort((a,b)=>a.y-b.y),sh=[];
+    H.forEach((p,i)=>{const t=fr(p,1,1);if(i===0&&t<.25)nm[p.id]=ROLE.bot;else if(i===H.length-1&&t>.75&&!(H.length===1&&t<.25))nm[p.id]=ROLE.top;else sh.push(p)});
+    put(sh,(p,i,k)=>num(ROLE.shelf,i,k));
+    // ro'para (qalinlik — chuqurlik o'qi): orqa yarmida — orqa devor, old yarmida — fasad (chapdan o'ngga)
+    const D=c.filter(p=>tAx(p)===V.da).sort((a,b)=>fr(a,V.ra,V.rs)-fr(b,V.ra,V.rs)),bk=D.filter(p=>fr(p,V.da,V.ds)>=.5),fa=D.filter(p=>fr(p,V.da,V.ds)<.5);
+    put(bk,(p,i,k)=>num(ROLE.back,i,k));put(fa,(p,i,k)=>num(ROLE.front,i,k));
+    for(const p of c){if(!nm[p.id])continue;p.n=(needL?lt[ci]+'. ':'')+nm[p.id];n++}});
+  if(!n)return 0;paint();props();list();changed();
+  say(`Avto-nom: ${n} ta panel nomlandi`+(needL?` · korpus ${lt.join(', ')}`:'')+" · chap/o'ng — joriy ko'rinish bo'yicha");
+  return n}
 /* --- lineyka va yordamchi chiziqlar --- */
 function pickPoint(e){   // lineyka / yordamchi chiziq / 3D kursor: magnit nishoni, bo'lmasa panel yuzasi, bo'lmasa ko'rinish tekisligi
   const h=mag?snapFind(e,null):null;showSnap(h);if(h)return h.T.clone();
@@ -1042,6 +1096,7 @@ const P3CMD=[
   ['obj.copy','Obyekt: Copy (nusxa)','C',()=>copySel()],['obj.rot90','Obyekt: panelni 90° burish (eni ↔ bo\'yi)','Shift+R',()=>{const b=q('#p3bRot');if(b)b.click()}],
   ['obj.mirrorX','Obyekt: Mirror X','Shift+X',()=>mirrorSel(0)],['obj.mirrorY','Obyekt: Mirror Y','Shift+Y',()=>mirrorSel(1)],['obj.mirrorZ','Obyekt: Mirror Z','Shift+Z',()=>mirrorSel(2)],
   ['obj.delete','Obyekt: Delete (o\'chirish)','Delete',()=>selected().forEach(del)],
+  ['obj.autoname','Obyekt: Avto-nom (chap/o\'ng boka, krisha, dno, polka…; korpus A., B.)','Alt+N',()=>autoName()],
   // Panel
   ['panel.new','Panel: yangi panel (kursorga)','N',()=>{if(inited)startPlace()}],['panel.draw','Panel: shaklini chizish','D',()=>q('#p3pnDraw').click()],
   ['panel.fromDraw','Panel: chizmadan panel yasash (extrude)','Shift+N',()=>q('#p3pnFromDraw').click()],['panel.load2d','Panel: Drawing chizmasini yuklash','Shift+D',()=>q('#p3bDraw').click()],
@@ -1216,6 +1271,7 @@ const HTML=`
     <button class="p3di" id="p3oCopy">Copy<span class="kb">C</span></button>
     <button class="p3di" id="p3oMx">Mirror X (nusxa)</button><button class="p3di" id="p3oMy">Mirror Y (nusxa)</button><button class="p3di" id="p3oMz">Mirror Z (nusxa)</button>
     <button class="p3di" id="p3oDel">Delete<span class="kb">Del</span></button>
+    <button class="p3di" id="p3oAuto" title="Ro'para ko'rinishda: chap/o'ng boka, krisha, dno, polka, oraliq boka, orqa devor, fasad; bir nechta korpus — A., B., …">Avto-nom (korpus detallari)</button>
     <div class="p3dsep"></div>
     <button class="p3di" id="p3bGrp" title="Sudralganda barcha panellar birga siljiydi">Korpus rejimi (hammasi birga)</button>
   </div></span>
@@ -1326,7 +1382,7 @@ function initUI(){
   q('#p3mkGc').onclick=()=>{guides=[];drawGuides();markDirty()};
   // Object
   q('#p3oCopy').onclick=copySel;q('#p3oMx').onclick=()=>mirrorSel(0);q('#p3oMy').onclick=()=>mirrorSel(1);q('#p3oMz').onclick=()=>mirrorSel(2);
-  q('#p3oDel').onclick=()=>selected().forEach(del);
+  q('#p3oDel').onclick=()=>selected().forEach(del);q('#p3oAuto').onclick=()=>autoName();
   q('#p3T').onchange=e=>{T=Math.max(1,num(e.target.value)||16);e.target.value=T;markDirty()};
   q('#p3bAllT').onclick=()=>{panels.forEach(p=>{p.t=T;build(p)});paint();props();list();changed()};
   q('#p3bGrp').onclick=()=>{grp=!grp;q('#p3bGrp').classList.toggle('on',grp)};
@@ -1410,6 +1466,6 @@ window.Panel3D={retheme:()=>{if(inited)theme()},hotkeys:{commands:P3CMD.map(({id
   _gz:()=>{updateGizmo();const r=cv.getBoundingClientRect(),c=gz.position,k=gz.scale.x,P=v=>{const s=scrOf(v);return{x:r.left+s.x,y:r.top+s.y}},o={c:P(c)};
     for(let a=0;a<3;a++){const A=new THREE.Vector3();A.setComponent(a,1);o['a'+a]=P(c.clone().addScaledVector(A,90*k));o['v'+a]=gzAx[a].visible;
       const g=gzPl[a];g.updateMatrixWorld(true);o['p'+a]=P(g.getWorldPosition(new THREE.Vector3()));o['pv'+a]=g.visible}return o},
-  _cursor:()=>c3?c3.toArray():null,_pivot:()=>pivot,_act:()=>act?{k:act.k,con:act.con,typed:act.typed,hit:act.hit?act.hit.k:null}:null,_snap:()=>snapHit?{k:snapHit.k,T:snapHit.T.toArray()}:null,
+  _cursor:()=>c3?c3.toArray():null,_autoName:()=>autoName(),_clusters:()=>corpusClusters(panels.filter(p=>!p.hid)).map(c=>c.map(p=>p.id)),_pivot:()=>pivot,_act:()=>act?{k:act.k,con:act.con,typed:act.typed,hit:act.hit?act.hit.k:null}:null,_snap:()=>snapHit?{k:snapHit.k,T:snapHit.T.toArray()}:null,
   _snapM:snapM,_setTool:t=>setTool(t),_view:v=>setView(v),_select:ids=>{msel=ids.slice();sel=ids[ids.length-1];paint();props();list();dirtyR=true}};
 })();

@@ -8,6 +8,8 @@
    ========================================================================== */
 
 // ===== PNG export =====
+// O'lcham yozuvi (render.js dagi fmtNum bilan bir xil): aniqlik — maksimal o'nlik xona, ortiqcha nollar ko'rsatilmaydi
+function pngNum(v, prec){ const p=Math.max(0,Math.min(6,Math.round(+(prec==null?1:prec))||0)); let s=(+v).toFixed(p); if(s.indexOf('.')>=0) s=s.replace(/\.?0+$/,''); return s==='-0'?'0':s; }
 function exportPNG(region=null){
   const crop = region ? normalizePNGRegion(region) : null;
   if(region && !crop){ setHint('PNG: noto‘g‘ri hudud. Qayta belgilang.'); return; }
@@ -179,7 +181,7 @@ function exportPNG(region=null){
         c.font=Tpx.toFixed(1)+'px sans-serif';
         c.textAlign='left'; c.textBaseline='middle';
         c.lineJoin='round'; c.lineCap='round';
-        const label=(d.full?'O ':'~ ')+(d.arcLen).toFixed(d.prec!=null?d.prec:1)+' '+(d.unit||'mm');
+        const label=(d.full?'O ':'~ ')+pngNum(d.arcLen, d.prec)+' '+(d.unit||'mm');
         c.strokeStyle=HALO; c.lineWidth=Math.max(1.5, Tpx*DIM_HALO_RATIO);
         c.strokeText(label, P.x+Tpx*0.5, P.y); c.strokeText(label, P.x+Tpx*0.5, P.y);
         c.fillStyle=INK; c.fillText(label, P.x+Tpx*0.5, P.y);
@@ -210,7 +212,7 @@ function exportPNG(region=null){
         while(wd>Math.PI)   wd-=Math.PI*2;
         const deg=Math.abs(wd*180/Math.PI);
         const midA=a0+diff/2;
-        drawLabel(deg.toFixed(d.prec!=null?d.prec:1)+'°',
+        drawLabel(pngNum(deg, d.prec)+'°',
           C.x+Math.cos(midA)*(rS+Tpx*0.9), C.y+Math.sin(midA)*(rS+Tpx*0.9));
         return;
       }
@@ -250,7 +252,7 @@ function exportPNG(region=null){
       if(d.kind==='h')      value = Math.abs(d.p2.x - d.p1.x);
       else if(d.kind==='v') value = Math.abs(d.p2.y - d.p1.y);
       else                  value = Math.hypot(d.p2.x-d.p1.x, d.p2.y-d.p1.y);
-      const label = value.toFixed(d.prec!=null?d.prec:1) + (d.unit? (' '+d.unit) : '');
+      const label = pngNum(value, d.prec) + (d.unit? (' '+d.unit) : '');
       drawLabel(label, (a.x+b.x)/2, (a.y+b.y)/2, ang);
     });
   }
