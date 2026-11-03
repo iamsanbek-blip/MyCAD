@@ -1,3 +1,31 @@
+# Rugby 1.1.2 — Modeling aniqligi tekshiruvlari — 2026-11-03 (Linux)
+
+**Windows'da sinov o'tkazilmagan, EXE yig'ilmagan** (so'rov bo'yicha: avval web versiya). Quyidagilar Linux konteynerida bajarildi.
+
+- Manba Drive'dagi `Rugby 1.1.2` to'plamidan tiklandi: `rugby-1.1.2.patch` SHA256 `20f5799e…` (SHA256SUMS bilan bir xil),
+  `three.min.js` SHA256 `9274bbce…`. Tiklangan holatda ham `check`, `npm test`, `panel3d`, `panel3d-export` o'tdi.
+- `npm run check`: 53 JavaScript fayli, 0 xato. `npm test`: 18 regressiya fayli + 24 workspace testi, 0 xato.
+- `tests/panel3d.cjs`, `tests/panel3d-export.cjs` o'tdi.
+- Yangi `tests/modeling-precision.cjs` — web build (`scripts/build-web.py`) Chromium 1243 headless'da (WebGL: SwiftShader),
+  haqiqiy sichqoncha/klaviatura hodisalari bilan, 13 tekshiruv o'tdi: uchdan ushlab uchga (350, 200, 0) aynan; Iso X strelkasi + magnit —
+  Y/Z o'zgarmaydi, qirra x = 200; «125 Enter» — +125 aynan va bitta Ctrl+Z; Esc va o'ng tugma bekor qiladi; sudrash davomida X va Shift+Y;
+  XZ tekislik dastasi Y ni saqlaydi; qadam 10 nisbiy; qirra magniti y = 300 aynan; hover belgisi; 3D kursor (Shift+o'ng tugma uchga aynan,
+  Alt+S, Pivot = kursor bilan 90° → (200, 300, −92)); yangi panel burchagi uchga aynan; Front'da Z strelkasi yashirin, chuqurlik o'zgarmaydi.
+  Repo ichidagi Playwright 1.62.1 o'z brauzerini topmasa: `RUGBY_CHROMIUM=/opt/pw-browsers/chromium node tests/modeling-precision.cjs`.
+- Oldin/keyin solishtiruvi (eski 1.1.2 kodiga faqat test yordamchilari qo'shilgan nusxa, aynan shu sichqoncha harakatlari):
+  Iso X strelkasi bilan A uchiga — eski: B.x = −100 (qirralar −250/−100/50, magnit ishlamadi), yangi: B.x = 50 (qirra 200 aynan);
+  qadam 10, magnit o'chiq, B.x = 608 dan — eski: 910 (markaz yaxlitlandi, chet 2 mm siljidi), yangi: 908 (Δ = 300).
+  Front'da uchni uchga sudrash va L-shakl ichki burchagi ikkalasida ham aynan chiqdi.
+- Haqiqiy Electron 31.7.7 oynasida (xvfb, Playwright `_electron`): `modeling-smoke` (shu jumladan «Top + magnit: X/Z yopishdi, Y daraja saqlandi»),
+  `electron-smoke` (ichida `input-region-checks`), `panel-types-smoke`, `stretch-select` — hammasi o'tdi.
+- Skrinshot bilan ko'zdan kechirildi: gizmo (3 strelka, 3 tekislik kvadrati, oq markaz), o'q bo'ylab sudrashda faqat faol o'q va chiziq,
+  magnit belgisi «Uch», pastki qatorda ΔX/ΔY/ΔZ, 3D kursor.
+
+Tekshirilmagan: Windows 10/11 da qo'lda sinov, sensorli ekran/qalam, juda katta sahnada (yuzlab panel) magnit tezligi, Electron ichida
+`modeling-precision` (u web build'da bajarildi; kod bir xil `panel3d.js`).
+
+---
+
 # Rugby 1.1.2 tekshiruvlari — 2026-10-30 (Linux, Electron 31.7.7)
 
 **Windows'da haqiqiy GUI sinovi o'tkazilmagan.** Quyidagilar Linux'da (xvfb) bajarildi.

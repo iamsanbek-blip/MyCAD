@@ -75,3 +75,39 @@ Shkaf turlari: pastki blok 100 mm (`PT_BLOCK_H`), ustida t qalinlikdagi o'rta pa
 - Stretch: panelning hamma nuqtasi belgilansa — butun panel istalgan o'q bo'ylab (qalinlik o'qi ham) ko'chadi.
 - «Butun korpus»: Cho'zish olib tashlandi; umumiy o'lcham (tanlanganlar yoki butun korpus gabariti).
 - Ranglar umumiy mavzudan (`--canvas`, `--panel`, `--text`, `--ui-line`, `--p3fill`); `Panel3D.retheme()`.
+
+
+## 2026-11-03 yangilanish — Modeling aniqligi (magnit, gizmo, 3D kursor)
+
+### Magnit dvigateli (`snapFind`, `geoOf`)
+- Nishon **kursor atrofida** qidiriladi: ekranda `SNAP_PX` = 14 px. Oldin dvigatel sudralayotgan panelning istalgan uchi istalgan nishonga
+  ekranda yaqin kelsa yopishtirardi (kutilmagan «sakrash»), endi faqat kursor ostidagi nishon.
+- Nishonlar panelning haqiqiy geometriyasidan (`prof()` + `Mof()`): profil uchlari ikkala yuzada, qirra o'rtalari va qalinlik qirralari o'rtalari,
+  markazlar (panel va yuzalar), «Qirra» — kursor nuriga eng yaqin qirra nuqtasi. L/U/uchburchak/poly shakllarda bbox burchaklari emas, haqiqiy uchlar.
+- Ustuvorlik jarimasi (px): uch 0, o'rta 2, markaz 3, qirra 6, yordamchi chiziq 7; teng bo'lsa kameraga yaqini.
+- Belgi DOM'da (`#p3snap`): uch — kvadrat, o'rta — uchburchak, markaz — doira, qirra — ×, yordamchi — romb; yonida nomi.
+- 2D (orto) ko'rinishda ko'rish o'qi bo'yicha koordinata o'zgarmaydi (`lockAx`) — qo'yish, Move, Stretch, 3D kursor.
+
+### Ko'chirish (Move) — `xfStart` / `xfUpdate` / `xfEnd`
+- Siljish = sichqoncha (cheklovga proyeksiya) → qadam (**nisbiy**: siljish qadamga karrali; oldin markaz koordinatasi yaxlitlanardi va
+  16 mm panel cheti setkadan chiqib ketardi) → magnit.
+- Tayanch nuqta: panel uchi/o'rtasi/markazi ustidan ushlansa — shu nuqta (`ownSnap`), u nishonga aynan tushadi; aks holda tanlovning
+  nishonga eng yaqin nuqtasi (`snapShift`, cheklov bo'ylab).
+- Cheklov: strelka — o'q, kvadrat — tekislik, oq markaz — ekran tekisligi; Ortho — 8 px dan keyin asosiy o'q. O'q/tekislik cheklovida magnit
+  nishoni o'qqa **proyeksiyalanadi** (oldin boshqa o'qlar 0.5 mm dan ko'p farq qilsa magnit rad etilardi — o'q bo'ylab magnit deyarli ishlamasdi).
+- Sudrash davomida (Blender kabi): X/Y/Z — o'q (qayta bosish — o'chirish), Shift+X/Y/Z — tekislik, raqamlar, `.`/`,`, `-`, Backspace — aniq
+  masofa, Enter — tasdiq, Esc yoki o'ng tugma — bekor (joyiga qaytadi), Probel — magnit. Pastki qatorda ΔX/ΔY/ΔZ, cheklov, magnit turi.
+- Gizmo: o'q, tekislik va markaz dastalari; hover — sariq; ekranda doimiy o'lcham (`scrScale`); ko'rish yo'nalishiga parallel o'q (va unga
+  tik tekislik) yashiriladi; o'q bo'ylab sudrashda shu o'q chizig'i ko'rinadi.
+
+### 3D kursor (Blender kabi)
+- Shift + o'ng tugma: magnit nishoniga, bo'lmasa panel yuzasiga, bo'lmasa ko'rinish tekisligiga qo'yiladi. Make ▸ 3D kursor: X/Y/Z maydonlari.
+- Buyruqlar (Hotkey oynasida almashtiriladi): `cursor.toSel` Alt+C, `cursor.selTo` Alt+S, `cursor.origin` Alt+O, `snap.pivot` P, `snap.edge` Alt+E.
+- Pivot = 3D kursor: aylantirish (bosish va halqa) va Mirror shu nuqta atrofida; aylantirish gizmosi kursorda turadi.
+- Kursor va pivot sahifa fayliga yozilmaydi (hujjat sxemasi o'zgarmagan).
+
+### Boshqalar
+- Yangi panel (N) kursorga chap-past burchagi bilan ilashadi; qadam va magnit shu burchakka.
+- Stretch: ushlangan uch (ko'pi belgilangan bo'lsa ham) kursorga ergashadi va nishonga aynan tushadi; Ortho chegarasi px da.
+- Model qayta yuklansa yoki Undo/Redo bo'lsa faol sudrash to'xtatiladi.
+- Test yordamchilari: `Panel3D._scr`, `_gz`, `_cursor`, `_pivot`, `_act`, `_snap`, `_snapM`, `_setTool`, `_view`, `_select`.

@@ -1,3 +1,16 @@
+# Rugby 1.1.2 — Modeling aniqligi (2026-11-03)
+
+Batafsil: `docs/PANEL3D-1.1.2.md` («2026-11-03» bo'limi). Tekshiruvlar: `docs/TESTING.md`, `tests/modeling-precision.cjs`.
+
+- **Magnit (3ds Max / Blender kabi)**: nishon kursor ostida qidiriladi (14 px); panelning haqiqiy geometriyasi — profil uchlari, qirra o'rtalari (qalinlik qirralari ham), markazlar, yangi «Qirra» (qirradagi eng yaqin nuqta). Ustuvorlik: uch > o'rta > markaz > qirra. Belgi turi bo'yicha shakl va nomi bilan chiqadi.
+- **Tayanch nuqta**: Move asbobida panelni uchidan ushlasangiz — shu uch nishonga aynan tushadi (ushlashdan oldin belgisi ko'rinadi); aks holda tanlovning nishonga eng yaqin nuqtasi.
+- **Gizmo**: X/Y/Z strelkalari, XY/YZ/XZ tekislik kvadratlari, oq markaz (ekran tekisligi); hover sariq; ekranda doimiy o'lcham; ko'rish yo'nalishiga parallel o'q yashiriladi. O'q bo'ylab sudrashda magnit endi ishlaydi (oldin rad etilardi).
+- **Sudrash davomida**: X/Y/Z — o'q, Shift+X/Y/Z — tekislik, raqam — aniq masofa (125 Enter), Esc yoki o'ng tugma — bekor. Qadam siljishga (nisbiy) qo'llanadi.
+- **3D kursor**: Shift + o'ng tugma (magnit nuqtasiga aynan), Make menyusida X/Y/Z, Alt+C kursor → tanlangan, Alt+S tanlangan → kursor, Alt+O kursor → 0, P — Pivot (aylantirish va Mirror kursor atrofida).
+- Yangi panel (N) kursorga chap-past burchagi bilan ilashadi — burchak nishonga aynan tushadi. Stretch: ushlangan uch nishonga aynan tushadi.
+
+---
+
 # Rugby 1.1.2 — yangilanish (2026-10-30)
 
 Batafsil: `docs/PANEL3D-1.1.2.md` (oxirgi bo'lim). Tekshiruvlar: `docs/TESTING.md`.

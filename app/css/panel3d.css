@@ -123,3 +123,14 @@ body.lightTheme #p3wrap .p3seg button.on{color:#fff}
 #p3wrap .p3clwh button{padding:1px 7px}
 #p3wrap .p3flt{color:var(--on);font-size:12px}
 #p3wrap .p3selm{margin-bottom:6px}#p3wrap .p3selm select{flex:1;min-width:0}
+/* Magnit belgisi (3ds Max / Blender kabi): uch — kvadrat, o'rta — uchburchak, markaz — doira, qirra — ×, yordamchi — romb; yonida nomi */
+#p3wrap .p3snap{position:absolute;pointer-events:none;z-index:5;width:0;height:0}
+#p3wrap .p3snap[hidden]{display:none}
+#p3wrap .p3snap i{position:absolute;left:-7px;top:-7px;width:14px;height:14px;box-sizing:border-box;border:2px solid var(--ac2);background:rgba(94,225,255,.16)}
+#p3wrap .p3snap.cen i{border-radius:50%}
+#p3wrap .p3snap.guide i{transform:rotate(45deg)}
+#p3wrap .p3snap.mid i{left:-8px;top:-9px;width:0;height:0;border:none;background:none;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:14px solid var(--ac2)}
+#p3wrap .p3snap.edge i{border:none;background:none}
+#p3wrap .p3snap.edge i::before,#p3wrap .p3snap.edge i::after{content:'';position:absolute;left:6px;top:-1px;width:2px;height:16px;background:var(--ac2);transform:rotate(45deg)}
+#p3wrap .p3snap.edge i::after{transform:rotate(-45deg)}
+#p3wrap .p3snap span{position:absolute;left:11px;top:-24px;white-space:nowrap;font-size:11px;line-height:15px;padding:0 5px;border-radius:4px;background:var(--p);border:1px solid var(--ac2);color:var(--tx)}
