@@ -142,6 +142,7 @@ function upd(){
   const FAR=Math.max(R*30,R+S*4,80000);
   if(cam===ocam){const hh=R*Math.tan(Math.PI/9);cam.left=-hh*asp;cam.right=hh*asp;cam.top=hh;cam.bottom=-hh;cam.near=-FAR;cam.far=FAR;cam.updateProjectionMatrix()}
   else{cam.near=Math.max(.5,R/2000);cam.far=FAR;cam.updateProjectionMatrix()}
+  cam.updateMatrixWorld();   // proyeksiya (magnit, gizmo, kromka) keyingi render kadrini kutmay yangi kameradan hisoblansin
   if(snapMark)snapMark.scale.setScalar(R*.008);dirtyR=true}
 function frame(){
   const b=new THREE.Box3().setFromObject(P);

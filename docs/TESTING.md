@@ -1,3 +1,18 @@
+# Portable EXE — 2026-11-04 (Linux'da yig'ildi, imzosiz)
+
+**Windows'da ishga tushirib sinalmagan.** `Rugby-1.1.2-20261104-Portable-Unsigned.exe`, 65 700 255 bayt,
+SHA256 `3bd2ffd9b1961a684e14243d317fb2f800f8be4e087acee4323ad606f8b0c053`; app.asar SHA256 `db2afe68…a431ce3` (EXE 7z bilan ochildi — bir xil).
+
+- Yig'ish: `electron-builder --win --dir` → `patch-exe.js` (ikona, versiya) → `--win portable --prepackaged` (imzolash o'chiq).
+- EXE ichidan olingan app.asar ustida Electron 31.7.7 (xvfb): `modeling-smoke`, `electron-smoke` (input-region bilan), `panel-types-smoke`,
+  `stretch-select` — hammasi o'tdi. Asardagi `panel3d.js` manba bilan baytma-bayt bir xil.
+- Build oldidan: `check` (54 fayl), `npm test` (18 + 24), `panel3d`, `panel3d-export`, `modeling-precision` (13), `smart-autoname` (14) o'tdi.
+- Topilgan va tuzatilgan: ko'rinish almashganda Modeling kamerasining dunyo matritsasi keyingi render kadrigacha eski qolardi — shu orada
+  hisoblangan proyeksiya (kromka qirrasi, magnit) eski kameradan olinardi. `modeling-smoke` kromka bosqichi shu sababli 5 marta ketma-ket
+  yiqildi (y = −849, 300 ms dan keyin 738). `upd()` endi `cam.updateMatrixWorld()` qiladi; tuzatishdan keyin manba va EXE asar ustida o'tdi.
+
+---
+
 # Smart kiritish va Avto-nom tekshiruvlari — 2026-11-03 (Linux)
 
 **Windows'da sinov o'tkazilmagan, EXE yig'ilmagan.**
