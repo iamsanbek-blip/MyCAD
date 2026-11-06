@@ -7,7 +7,7 @@ into editable spline curves, exactly like 3ds Max' Section shape.
 bl_info = {
     "name": "3ds Max Section",
     "author": "Rugby",
-    "version": (1, 0, 0),
+    "version": (1, 1, 0),
     "blender": (4, 2, 0),
     "location": "3D Viewport > Add > Curve > Section; Object properties; Sidebar > Section",
     "description": "3ds Max style Section shape: live cut outline and Create Shape",
@@ -17,7 +17,7 @@ bl_info = {
 import bpy
 import numpy as np
 from bpy.app.handlers import persistent
-from bpy.props import BoolProperty, EnumProperty, FloatProperty, PointerProperty, StringProperty
+from bpy.props import BoolProperty, EnumProperty, FloatProperty, IntProperty, PointerProperty, StringProperty
 from bpy_extras.object_utils import AddObjectHelper, object_data_add
 from mathutils import Matrix
 
@@ -26,6 +26,7 @@ from . import core
 _MESH_TYPES = {"MESH", "CURVE", "SURFACE", "FONT", "META"}
 _CACHE = {}              # section object session_uid -> {"polys": [...], "batch": None}
 _DRAW_HANDLE = None
+_SELF_EDITS = set()       # session_uids of live shapes we just rebuilt (skip their update)
 _YELLOW = (1.0, 0.9, 0.0, 1.0)
 
 UPDATE_MODES = [
@@ -46,12 +47,23 @@ def _is_section(obj):
     return obj is not None and getattr(obj, "max_section", None) is not None and obj.max_section.is_section
 
 
+def _levels(sp):
+    """Local Z of every cutting plane: 0, spacing, 2*spacing, ..."""
+    return [i * sp.spacing for i in range(sp.copies)]
+
+
 def _build_gizmo(obj):
     sp = obj.max_section
     hw, hl = sp.width / 2.0, sp.length / 2.0
-    for v, co in zip(obj.data.vertices, ((-hw, -hl, 0), (hw, -hl, 0), (hw, hl, 0), (-hw, hl, 0))):
-        v.co = co
-    obj.data.update()
+    verts, edges = [], []
+    for z in _levels(sp):
+        n = len(verts)
+        verts += [(-hw, -hl, z), (hw, -hl, z), (hw, hl, z), (-hw, hl, z)]
+        edges += [(n, n + 1), (n + 1, n + 2), (n + 2, n + 3), (n + 3, n)]
+    me = obj.data
+    me.clear_geometry()
+    me.from_pydata(verts, edges, [])
+    me.update()
 
 
 def compute_section(section, depsgraph):
@@ -88,10 +100,36 @@ def compute_section(section, depsgraph):
             ob.to_mesh_clear()
         m = inv @ np.array(inst.matrix_world, dtype=np.float64)
         local = co.reshape(-1, 3).astype(np.float64) @ m[:3, :3].T + m[:3, 3]
-        for line, closed in core.section_polylines(
-                local, tri.reshape(-1, 3), sp.extents, sp.width / 2.0, sp.length / 2.0):
-            out.append((line @ mw[:3, :3].T + mw[:3, 3], closed))
+        tri = tri.reshape(-1, 3)
+        for z in _levels(sp):
+            shifted = local - (0.0, 0.0, z)
+            for line, closed in core.section_polylines(
+                    shifted, tri, sp.extents, sp.width / 2.0, sp.length / 2.0):
+                line = line + (0.0, 0.0, z)
+                out.append((line @ mw[:3, :3].T + mw[:3, 3], closed))
     return out
+
+
+def _fill_curve(cu, polys):
+    cu.splines.clear()
+    for pts, closed in polys:
+        spline = cu.splines.new("POLY")
+        spline.points.add(len(pts) - 1)
+        co4 = np.hstack([pts, np.ones((len(pts), 1))])
+        spline.points.foreach_set("co", co4.ravel())
+        spline.use_cyclic_u = closed
+
+
+def _live_shapes(section):
+    return [ob for ob in bpy.data.objects
+            if ob.type == "CURVE" and ob.max_section.source == section]
+
+
+def _update_live_shapes(section, polys):
+    for ob in _live_shapes(section):
+        _fill_curve(ob.data, polys)
+        ob.data.update_tag()
+        _SELF_EDITS.add(ob.session_uid)
 
 
 def _tag_redraw():
@@ -104,7 +142,7 @@ def _tag_redraw():
                 area.tag_redraw()
 
 
-def recompute(section, depsgraph=None):
+def recompute(section, depsgraph=None, update_shapes=True):
     section = section.original
     key = section.session_uid
     if section.max_section.extents == "OFF":
@@ -115,6 +153,8 @@ def recompute(section, depsgraph=None):
         except AttributeError:
             return
         _CACHE[key] = {"polys": compute_section(section, depsgraph), "batch": None}
+        if update_shapes:   # never from a draw callback: writing data there is not allowed
+            _update_live_shapes(section, _CACHE[key]["polys"])
     _tag_redraw()
 
 
@@ -143,6 +183,13 @@ class MaxSectionProps(bpy.types.PropertyGroup):
     update_mode: EnumProperty(name="Update", items=UPDATE_MODES, default="MOVE")
     extents: EnumProperty(name="Section Extents", items=EXTENTS, default="BOUNDARY",
                           update=_on_extents)
+    copies: IntProperty(name="Count", description="Number of parallel section planes",
+                        default=1, min=1, soft_max=200, update=_on_size)
+    spacing: FloatProperty(name="Spacing", description="Distance between planes along local Z "
+                           "(negative goes down)", default=0.1, unit="LENGTH", update=_on_size)
+    source: PointerProperty(name="Section", type=bpy.types.Object,
+                            description="Live shape: rebuilt whenever this section updates",
+                            poll=lambda self, ob: _is_section(ob))
 
 
 # --------------------------------------------------------------- operators
@@ -192,6 +239,8 @@ class OBJECT_OT_max_section_create_shape(bpy.types.Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     shape_name: StringProperty(name="Name", default="Section Shape")
+    live: BoolProperty(name="Live (parametric)", default=True,
+                       description="Keep the shape linked: it is rebuilt whenever the section updates")
 
     @classmethod
     def poll(cls, context):
@@ -213,13 +262,10 @@ class OBJECT_OT_max_section_create_shape(bpy.types.Operator):
             return {"CANCELLED"}
         cu = bpy.data.curves.new(self.shape_name, "CURVE")
         cu.dimensions = "3D"
-        for pts, closed in polys:
-            spline = cu.splines.new("POLY")
-            spline.points.add(len(pts) - 1)
-            co4 = np.hstack([pts, np.ones((len(pts), 1))])
-            spline.points.foreach_set("co", co4.ravel())
-            spline.use_cyclic_u = closed
+        _fill_curve(cu, polys)
         obj = bpy.data.objects.new(self.shape_name, cu)
+        if self.live:
+            obj.max_section.source = section.original
         context.collection.objects.link(obj)
         for o in context.selected_objects:
             o.select_set(False)
@@ -228,10 +274,37 @@ class OBJECT_OT_max_section_create_shape(bpy.types.Operator):
         return {"FINISHED"}
 
 
+class OBJECT_OT_max_section_unlink(bpy.types.Operator):
+    bl_idname = "object.max_section_unlink"
+    bl_label = "Bake (unlink from Section)"
+    bl_description = "Stop live updates; the curve stays as it is now"
+    bl_options = {"REGISTER", "UNDO"}
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        return ob is not None and ob.type == "CURVE" and ob.max_section.source is not None
+
+    def execute(self, context):
+        context.object.max_section.source = None
+        return {"FINISHED"}
+
+
 # ---------------------------------------------------------------------- UI
 
+def _draw_live_shape(layout, obj):
+    box = layout.box()
+    box.label(text="Live shape of: " + obj.max_section.source.name, icon="LINKED")
+    box.operator("object.max_section_unlink", icon="UNLINKED")
+
+
 def _draw_params(layout, obj):
+    if not _is_section(obj):
+        _draw_live_shape(layout, obj)
+        return
     sp = obj.max_section
+    if any(m.type == "ARRAY" for m in obj.modifiers):
+        layout.label(text="Array only copies the frame - use Section Copies", icon="ERROR")
     box = layout.box()
     box.label(text="Section Parameters")
     box.operator("object.max_section_create_shape", icon="CURVE_DATA")
@@ -246,6 +319,15 @@ def _draw_params(layout, obj):
     box.label(text="Section Size")
     box.prop(sp, "length")
     box.prop(sp, "width")
+    box = layout.box()
+    box.label(text="Section Copies")
+    box.prop(sp, "copies")
+    row = box.row()
+    row.active = sp.copies > 1
+    row.prop(sp, "spacing")
+    live = _live_shapes(obj.original)
+    if live:
+        layout.label(text="Live shapes: " + ", ".join(o.name for o in live), icon="LINKED")
 
 
 class OBJECT_PT_max_section(bpy.types.Panel):
@@ -256,7 +338,8 @@ class OBJECT_PT_max_section(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return _is_section(context.object)
+        ob = context.object
+        return _is_section(ob) or (ob is not None and ob.max_section.source is not None)
 
     def draw(self, context):
         _draw_params(self.layout, context.object)
@@ -269,8 +352,9 @@ class VIEW3D_PT_max_section(bpy.types.Panel):
     bl_category = "Section"
 
     def draw(self, context):
-        if _is_section(context.object):
-            _draw_params(self.layout, context.object)
+        ob = context.object
+        if _is_section(ob) or (ob is not None and ob.max_section.source is not None):
+            _draw_params(self.layout, ob)
         else:
             self.layout.operator("object.max_section_add", icon="MESH_PLANE")
             self.layout.label(text="Select a section to edit it")
@@ -300,7 +384,7 @@ def _draw_callback():
         seen.add(key)
         entry = _CACHE.get(key)
         if entry is None:       # first display after load/undo
-            recompute(ob, ctx.evaluated_depsgraph_get())
+            recompute(ob, ctx.evaluated_depsgraph_get(), update_shapes=False)
             entry = _CACHE.get(key)
             if entry is None:
                 continue
@@ -332,10 +416,18 @@ def _on_depsgraph(scene, depsgraph):
     sections = [ob for ob in scene.objects if _is_section(ob)]
     if not sections:
         return
-    moved = set()
+    moved, changed = set(), set()
     for upd in depsgraph.updates:
-        if isinstance(upd.id, bpy.types.Object) and upd.is_updated_transform:
-            moved.add(upd.id.original.session_uid)
+        if isinstance(upd.id, bpy.types.Object):
+            uid = upd.id.original.session_uid
+            changed.add(uid)
+            if upd.is_updated_transform:
+                moved.add(uid)
+    if _SELF_EDITS:
+        own = changed <= _SELF_EDITS     # only our rebuilt live shapes changed
+        _SELF_EDITS.clear()
+        if own:
+            return
     for ob in sections:
         mode = ob.max_section.update_mode
         if mode == "MOVE" and ob.session_uid in moved:
@@ -351,6 +443,7 @@ _CLASSES = (
     OBJECT_OT_max_section_add,
     OBJECT_OT_max_section_update,
     OBJECT_OT_max_section_create_shape,
+    OBJECT_OT_max_section_unlink,
     OBJECT_PT_max_section,
     VIEW3D_PT_max_section,
 )

@@ -147,3 +147,11 @@ qadamlarni yozing. Himoya sozlamalarini o'zgartirish qabul mezoni emas.
 Tekshirilmagan: **Blender 4.2** (pip'da faqat bpy 5.x bor; kod 4.2 API'siga moslab
 yozilgan), viewport'dagi sariq chiziq chizilishi (GPU kerak, headless'da yo'q),
 panel/menyu ko'rinishi va Install from Disk. Bularni Blender 4.2 da qo'lda tekshiring.
+
+### 1.1.0 (Section Copies, Live shape) — 2026-11-06
+
+- Foydalanuvchi 1.0.0 ni **Blender 4.2.23 LTS** da ishlatib, viewport'dagi sariq kontur va
+  panel ishlashini skrinshot bilan tasdiqladi.
+- `test_blender.py` (Blender 5.2.3 LTS, headless) yangi holatlar bilan o'tdi: Count/Spacing
+  bo'yicha 3 kesim, Live shape section harakati va Count o'zgarishiga ergashishi, Bake.
+- 1.1.0 ning o'zi hali Blender 4.2 da qo'lda tekshirilmagan.

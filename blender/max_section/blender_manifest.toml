@@ -1,7 +1,7 @@
-schema_version = "1.0.0"
+schema_version = "1.1.0"
 
 id = "max_section"
-version = "1.0.0"
+version = "1.1.0"
 name = "3ds Max Section"
 tagline = "3ds Max style Section shape: live cut outline and Create Shape"
 maintainer = "Rugby <iam.sanbek@gmail.com>"

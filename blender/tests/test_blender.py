@@ -82,6 +82,38 @@ try:
     bpy.context.view_layer.update()
     assert len(polys()) == 1
 
+    # Section Copies: 3 planes 0.5 apart -> z = 0, 0.5, 1.0 (top face) -> 3 loops
+    sec.location = (0, 0, 0)
+    bpy.context.view_layer.update()
+    sp.copies, sp.spacing = 3, 0.5
+    assert len(sec.data.vertices) == 12 and len(sec.data.edges) == 12
+    zs = sorted(round(float(p_[0][0, 2]), 4) for p_ in polys())
+    assert zs == [0.0, 0.5, 1.0], zs
+    sp.copies = 5                                  # z = 1.5, 2.0 miss the cube
+    assert len(polys()) == 3
+
+    # Live (parametric) shape follows the section
+    bpy.context.view_layer.objects.active = sec
+    sec.select_set(True)
+    bpy.ops.object.max_section_create_shape(shape_name="Live", live=True)
+    live = bpy.data.objects["Live"]
+    assert live.max_section.source == sec and len(live.data.splines) == 3
+    sec.location.z = -0.25                         # planes -0.25, 0.25, 0.75 (1.25, 1.75 miss)
+    bpy.context.view_layer.update()
+    bpy.context.view_layer.update()                # our own rebuild must not loop/recompute
+    zl = sorted(round(live.data.splines[i].points[0].co.z, 4) for i in range(len(live.data.splines)))
+    assert zl == [-0.25, 0.25, 0.75], zl
+    sp.copies = 1
+    assert len(live.data.splines) == 1
+    # Baked shape stops following
+    bpy.context.view_layer.objects.active = live
+    assert bpy.ops.object.max_section_unlink() == {"FINISHED"}
+    sp.copies = 3
+    assert len(live.data.splines) == 1
+    bpy.context.view_layer.objects.active = sec
+    sp.copies, sec.location.z = 1, 0
+    bpy.context.view_layer.update()
+
     # Evaluated mesh (Subdivision modifier) is what gets cut: closed sphere -> closed loop
     bpy.ops.mesh.primitive_uv_sphere_add(location=(10, 0, 0))
     bpy.context.object.modifiers.new("s", "SUBSURF")

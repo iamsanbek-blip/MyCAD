@@ -5,7 +5,7 @@ Rugby Electron ilovasidan mustaqil; alohida o'rnatiladi.
 
 ## O'rnatish
 
-**[max_section-1.0.0.zip — yuklab olish](https://github.com/iamsanbek-blip/MyCAD/releases/download/blender-max-section-v1.0.0/max_section-1.0.0.zip)**
+**[max_section-1.1.0.zip — yuklab olish](https://github.com/iamsanbek-blip/MyCAD/releases/download/blender-max-section-v1.1.0/max_section-1.1.0.zip)**
 (GitHub Actions testlardan keyin quradi: `.github/workflows/blender-addon.yml`).
 
 Yoki o'zingiz yig'ing:
@@ -13,11 +13,11 @@ Yoki o'zingiz yig'ing:
 Blender 4.2+ da (extension formati):
 
 ```bash
-cd blender/max_section && zip -r ../max_section-1.0.0.zip . -x "__pycache__/*"
+cd blender/max_section && zip -r ../max_section-1.1.0.zip . -x "__pycache__/*"
 ```
 
 Keyin Blender: **Edit > Preferences > Get Extensions > ⌄ > Install from Disk…** va
-`max_section-1.0.0.zip` ni tanlang. (Yoki `blender --command extension build` shu papkada.)
+`max_section-1.1.0.zip` ni tanlang. (Yoki `blender --command extension build` shu papkada.)
 
 ## Ishlatish
 
@@ -27,6 +27,13 @@ Keyin Blender: **Edit > Preferences > Get Extensions > ⌄ > Install from Disk�
   atrofida **sariq kontur** chiziladi.
 - **Create Shape** — konturdan nom so'rab, tahrirlanadigan *Poly spline* egri chiziq
   (dunyo koordinatalarida) yaratadi. Ochiq mesh'da ochiq, yopiq kesimda yopiq (cyclic).
+- **Section Copies** (Rugby qo'shimchasi, Max'da yo'q): *Count* va *Spacing* — section o'z
+  lokal Z o'qi bo'yicha bir xil masofada N ta parallel kesim beradi (manfiy Spacing pastga).
+  Section'ga Array modifier qo'ymang: u faqat ramkani ko'paytiradi, kesim bermaydi.
+- **Create Shape → Live (parametric)** (standart yoqilgan): yaratilgan egri section'ga bog'lanib
+  qoladi va section yangilanganda (Update rejimiga ko'ra) qayta quriladi. Muzlatish uchun
+  egrini tanlab **Bake (unlink from Section)**. Model o'zgarishini kuzatish uchun section'ni
+  *When Selected* rejimiga qo'ying yoki *Update Section* bosing.
 - Panel: Object properties > *3ds Max Section* va sidebar > *Section*.
 
 | 3ds Max | Add-on |
