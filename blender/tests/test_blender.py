@@ -114,6 +114,56 @@ try:
     sp.copies, sec.location.z = 1, 0
     bpy.context.view_layer.update()
 
+    # Solid: 3 copies -> 3 filled square faces + Solidify; live; never cut by the section
+    sp.copies, sp.spacing = 3, 0.5
+    bpy.context.view_layer.objects.active = sec
+    bpy.ops.object.max_section_create_shape(shape_name="Slab", shape_type="SOLID",
+                                            thickness=0.1, offset=0.0, live=True)
+    slab = bpy.data.objects["Slab"]
+    assert slab.type == "MESH" and len(slab.data.polygons) == 3, len(slab.data.polygons)
+    assert all(abs(f.normal.z - 1) < 1e-6 for f in slab.data.polygons)
+    assert abs(sum(f.area for f in slab.data.polygons) - 12) < 1e-4
+    mod = slab.modifiers["Thickness"]
+    assert mod.type == "SOLIDIFY" and abs(mod.thickness - 0.1) < 1e-6
+    bpy.context.view_layer.update()
+    assert len(polys()) == 3                       # the slab itself is not cut
+    ev = slab.evaluated_get(bpy.context.evaluated_depsgraph_get())
+    zs_ = [ (ev.matrix_world @ v.co).z for v in ev.data.vertices]
+    assert abs(min(zs_) + 0.05) < 1e-5 and abs(max(zs_) - 1.05) < 1e-5, (min(zs_), max(zs_))
+    sp.copies = 2                                  # live solid follows
+    assert len(slab.data.polygons) == 2
+    sp.copies = 1
+    bpy.context.view_layer.update()
+
+    # Hole: a torus cut through its middle gives two loops -> one ring-shaped face area
+    bpy.ops.mesh.primitive_torus_add(location=(30, 0, 0), major_radius=1, minor_radius=0.25,
+                                     major_segments=96, minor_segments=24)
+    sec.location = (30, 0, 0)
+    bpy.context.view_layer.update()
+    assert len(polys()) == 2
+    bpy.context.view_layer.objects.active = sec
+    bpy.ops.object.max_section_create_shape(shape_name="Ring", shape_type="SOLID", live=False)
+    ring = bpy.data.objects["Ring"]
+    area = sum(f.area for f in ring.data.polygons)
+    assert 3.0 < area < 3.1416, area             # pi*(1.25^2-0.75^2) = pi, polygonal a bit less
+    assert ring.max_section.source is None and ring.max_section.is_shape
+
+    # Curve to Solid on an existing (baked) curve shape
+    bpy.context.view_layer.objects.active = sec
+    bpy.ops.object.max_section_create_shape(shape_name="RingCurve", shape_type="CURVE", live=False)
+    rc = bpy.data.objects["RingCurve"]
+    bpy.ops.object.select_all(action="DESELECT")
+    rc.select_set(True); bpy.context.view_layer.objects.active = rc
+    assert bpy.ops.object.max_section_curve_to_solid(thickness=0.05) == {"FINISHED"}
+    rs = bpy.context.object
+    assert rs.name == "RingCurve Solid" and abs(rs.modifiers["Thickness"].thickness - 0.05) < 1e-6
+    assert abs(sum(f.area for f in rs.data.polygons) - area) < 1e-6
+    assert rc.hide_get()
+    bpy.context.view_layer.objects.active = sec
+    sec.select_set(True)
+    sec.location = (0, 0, 0)
+    bpy.context.view_layer.update()
+
     # Evaluated mesh (Subdivision modifier) is what gets cut: closed sphere -> closed loop
     bpy.ops.mesh.primitive_uv_sphere_add(location=(10, 0, 0))
     bpy.context.object.modifiers.new("s", "SUBSURF")

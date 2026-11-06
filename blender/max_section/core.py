@@ -172,3 +172,91 @@ def section_polylines(verts, tris, extents, half_width, half_length):
         else:
             out.append((line, closed))
     return out
+
+
+# ------------------------------------------------------- planar fill helpers
+
+def dedupe_loop(pts, eps=1e-9):
+    """Drop consecutive duplicate points (and a repeated first point) of a closed loop."""
+    pts = np.asarray(pts, dtype=np.float64)
+    if len(pts) == 0:
+        return pts
+    keep = [0]
+    for i in range(1, len(pts)):
+        if np.linalg.norm(pts[i] - pts[keep[-1]]) > eps:
+            keep.append(i)
+    if len(keep) > 1 and np.linalg.norm(pts[keep[-1]] - pts[keep[0]]) <= eps:
+        keep.pop()
+    return pts[keep]
+
+
+def newell_normal(pts):
+    """Robust normal of a (possibly concave) closed polygon; zero vector if degenerate."""
+    p = np.asarray(pts, dtype=np.float64)
+    q = np.roll(p, -1, axis=0)
+    n = np.array([
+        np.sum((p[:, 1] - q[:, 1]) * (p[:, 2] + q[:, 2])),
+        np.sum((p[:, 2] - q[:, 2]) * (p[:, 0] + q[:, 0])),
+        np.sum((p[:, 0] - q[:, 0]) * (p[:, 1] + q[:, 1])),
+    ])
+    ln = np.linalg.norm(n)
+    return n / ln if ln > 0 else n
+
+
+def _canonical(n):
+    """Pick a stable sign for a plane normal: largest component positive."""
+    return n if n[np.argmax(np.abs(n))] >= 0 else -n
+
+
+def plane_basis(n):
+    """Orthonormal u, v with u x v == n."""
+    n = np.asarray(n, dtype=np.float64)
+    a = np.array([1.0, 0.0, 0.0]) if abs(n[0]) < 0.9 else np.array([0.0, 1.0, 0.0])
+    u = np.cross(a, n)
+    u /= np.linalg.norm(u)
+    v = np.cross(n, u)
+    return u, v
+
+
+def group_coplanar(loops, normal=None, rel_tol=1e-4):
+    """Group closed loops that lie in one plane, so inner loops can become holes.
+
+    loops: list of (k, 3) arrays (world space). normal: force this plane normal
+    (e.g. the section's Z) instead of estimating one per loop.
+    Returns (groups, skipped) where groups = [{"n", "origin", "u", "v", "loops"}]
+    and skipped counts loops that were degenerate or not planar.
+    """
+    groups, skipped = [], 0
+    for loop in loops:
+        loop = dedupe_loop(loop)
+        if len(loop) < 3:
+            skipped += 1
+            continue
+        size = float(np.linalg.norm(loop.max(axis=0) - loop.min(axis=0))) or 1.0
+        tol = rel_tol * size
+        n = np.asarray(normal, dtype=np.float64) if normal is not None else newell_normal(loop)
+        ln = np.linalg.norm(n)
+        if ln == 0:
+            skipped += 1
+            continue
+        n = n / ln
+        if normal is None:
+            n = _canonical(n)
+        c = loop.mean(axis=0)
+        if np.max(np.abs((loop - c) @ n)) > tol:
+            skipped += 1                       # not flat: cannot be filled
+            continue
+        d = float(c @ n)
+        for g in groups:
+            if abs(float(g["n"] @ n)) > 1 - 1e-6 and abs(float(g["n"] @ c) - g["d"]) <= max(tol, g["tol"]):
+                g["loops"].append(loop)
+                break
+        else:
+            u, v = plane_basis(n)
+            groups.append({"n": n, "d": d, "origin": c, "u": u, "v": v, "loops": [loop], "tol": tol})
+    return groups, skipped
+
+
+def to_2d(loop, g):
+    rel = np.asarray(loop) - g["origin"]
+    return np.stack([rel @ g["u"], rel @ g["v"]], axis=1)

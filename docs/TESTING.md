@@ -155,3 +155,11 @@ panel/menyu ko'rinishi va Install from Disk. Bularni Blender 4.2 da qo'lda teksh
 - `test_blender.py` (Blender 5.2.3 LTS, headless) yangi holatlar bilan o'tdi: Count/Spacing
   bo'yicha 3 kesim, Live shape section harakati va Count o'zgarishiga ergashishi, Bake.
 - 1.1.0 ning o'zi hali Blender 4.2 da qo'lda tekshirilmagan.
+
+### 1.2.0 (Solid / Curve to Solid) — 2026-11-06
+
+- Foydalanuvchi 1.1.0 ni Blender 4.2.23 da sinadi: Copies bilan parallel kesimlar ishladi (skrinshot).
+- `test_core.py` (planar fill yordamchilari) va `test_blender.py` (Blender 5.2.3 LTS) o'tdi:
+  3 qatlamli Solid (yuza 12, Solidify ±0.05 chegara), live Solid Count'ga ergashishi,
+  solid section tomonidan kesilmasligi, torus kesimi teshikli halqa (yuza ≈ π), Curve to Solid.
+- 1.2.0 Blender 4.2 da hali qo'lda tekshirilmagan.

@@ -7,19 +7,20 @@ into editable spline curves, exactly like 3ds Max' Section shape.
 bl_info = {
     "name": "3ds Max Section",
     "author": "Rugby",
-    "version": (1, 1, 0),
+    "version": (1, 2, 0),
     "blender": (4, 2, 0),
     "location": "3D Viewport > Add > Curve > Section; Object properties; Sidebar > Section",
     "description": "3ds Max style Section shape: live cut outline and Create Shape",
     "category": "Add Curve",
 }
 
+import bmesh
 import bpy
 import numpy as np
 from bpy.app.handlers import persistent
 from bpy.props import BoolProperty, EnumProperty, FloatProperty, IntProperty, PointerProperty, StringProperty
 from bpy_extras.object_utils import AddObjectHelper, object_data_add
-from mathutils import Matrix
+from mathutils import Vector, geometry
 
 from . import core
 
@@ -79,7 +80,8 @@ def compute_section(section, depsgraph):
     out = []
     for inst in depsgraph.object_instances:
         ob = inst.object
-        if ob.type not in _MESH_TYPES or _is_section(ob.original):
+        orig = ob.original
+        if ob.type not in _MESH_TYPES or _is_section(orig) or orig.max_section.is_shape:
             continue
         try:
             me = ob.to_mesh()
@@ -120,15 +122,72 @@ def _fill_curve(cu, polys):
         spline.use_cyclic_u = closed
 
 
+def _fill_solid(me, loops, normal=None):
+    """Fill closed planar loops (world space) with faces; inner loops become holes.
+
+    Faces point along `normal` (or a stable per-plane normal). Returns skipped count.
+    """
+    groups, skipped = core.group_coplanar(loops, normal=normal)
+    verts, faces = [], []
+    for g in groups:
+        flat = [core.to_2d(l, g) for l in g["loops"]]
+        tris = geometry.tessellate_polygon(
+            [[Vector((x, y, 0.0)) for x, y in f] for f in flat])
+        p2 = np.vstack(flat)
+        base = len(verts)
+        verts.extend(np.vstack(g["loops"]).tolist())
+        for a, b, c in tris:
+            ab, ac = p2[b] - p2[a], p2[c] - p2[a]
+            if ab[0] * ac[1] - ab[1] * ac[0] < 0:
+                b, c = c, b
+            faces.append((base + a, base + b, base + c))
+    me.clear_geometry()
+    me.from_pydata(verts, [], faces)
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-9)
+    bmesh.ops.dissolve_limit(bm, angle_limit=0.0175, verts=bm.verts, edges=bm.edges)
+    bm.to_mesh(me)
+    bm.free()
+    me.update()
+    return skipped
+
+
+def _section_normal(section):
+    n = section.matrix_world.to_3x3().col[2].normalized()
+    return (n.x, n.y, n.z)
+
+
+def _closed_loops(polys):
+    return [pts for pts, closed in polys if closed]
+
+
+def _add_solidify(obj, thickness, offset):
+    mod = obj.modifiers.new("Thickness", "SOLIDIFY")
+    mod.thickness = thickness
+    mod.offset = offset
+    mod.use_even_offset = True
+    return mod
+
+
+def _default_thickness(context):
+    """18 mm in scene units, whatever the unit scale is."""
+    scale = context.scene.unit_settings.scale_length or 1.0
+    return 0.018 / scale
+
+
 def _live_shapes(section):
     return [ob for ob in bpy.data.objects
-            if ob.type == "CURVE" and ob.max_section.source == section]
+            if ob.type in {"CURVE", "MESH"} and ob.max_section.source == section]
 
 
 def _update_live_shapes(section, polys):
     for ob in _live_shapes(section):
-        _fill_curve(ob.data, polys)
-        ob.data.update_tag()
+        if ob.type == "CURVE":
+            _fill_curve(ob.data, polys)
+            ob.data.update_tag()
+        else:
+            _fill_solid(ob.data, _closed_loops(polys), _section_normal(section))
         _SELF_EDITS.add(ob.session_uid)
 
 
@@ -183,6 +242,7 @@ class MaxSectionProps(bpy.types.PropertyGroup):
     update_mode: EnumProperty(name="Update", items=UPDATE_MODES, default="MOVE")
     extents: EnumProperty(name="Section Extents", items=EXTENTS, default="BOUNDARY",
                           update=_on_extents)
+    is_shape: BoolProperty(default=False, description="Created by a section; never cut by sections")
     copies: IntProperty(name="Count", description="Number of parallel section planes",
                         default=1, min=1, soft_max=200, update=_on_size)
     spacing: FloatProperty(name="Spacing", description="Distance between planes along local Z "
@@ -241,6 +301,13 @@ class OBJECT_OT_max_section_create_shape(bpy.types.Operator):
     shape_name: StringProperty(name="Name", default="Section Shape")
     live: BoolProperty(name="Live (parametric)", default=True,
                        description="Keep the shape linked: it is rebuilt whenever the section updates")
+    shape_type: EnumProperty(name="Type", default="CURVE", items=[
+        ("CURVE", "Curve", "Editable spline outline (3ds Max Create Shape)"),
+        ("SOLID", "Solid", "Filled faces with thickness (Solidify modifier); inner loops become holes"),
+    ])
+    thickness: FloatProperty(name="Thickness", default=0.018, min=0.0, unit="LENGTH")
+    offset: FloatProperty(name="Offset", default=0.0, min=-1.0, max=1.0,
+                          description="-1 / +1: thickness on one side of the cut, 0: centred")
 
     @classmethod
     def poll(cls, context):
@@ -248,7 +315,17 @@ class OBJECT_OT_max_section_create_shape(bpy.types.Operator):
 
     def invoke(self, context, event):
         self.shape_name = context.object.name + " Shape"
+        self.thickness = _default_thickness(context)
         return context.window_manager.invoke_props_dialog(self)
+
+    def draw(self, context):
+        col = self.layout.column()
+        col.prop(self, "shape_name")
+        col.prop(self, "shape_type", expand=True)
+        if self.shape_type == "SOLID":
+            col.prop(self, "thickness")
+            col.prop(self, "offset", slider=True)
+        col.prop(self, "live")
 
     def execute(self, context):
         section = context.object
@@ -260,10 +337,24 @@ class OBJECT_OT_max_section_create_shape(bpy.types.Operator):
         if not polys:
             self.report({"WARNING"}, "The section does not cut anything")
             return {"CANCELLED"}
-        cu = bpy.data.curves.new(self.shape_name, "CURVE")
-        cu.dimensions = "3D"
-        _fill_curve(cu, polys)
-        obj = bpy.data.objects.new(self.shape_name, cu)
+        if self.shape_type == "SOLID":
+            loops = _closed_loops(polys)
+            if not loops:
+                self.report({"WARNING"}, "No closed outline to fill (open cuts cannot be solid)")
+                return {"CANCELLED"}
+            me = bpy.data.meshes.new(self.shape_name)
+            skipped = _fill_solid(me, loops, _section_normal(section))
+            obj = bpy.data.objects.new(self.shape_name, me)
+            _add_solidify(obj, self.thickness, self.offset)
+            open_n = len(polys) - len(loops) + skipped
+            if open_n:
+                self.report({"WARNING"}, f"{open_n} open or degenerate outline(s) were not filled")
+        else:
+            cu = bpy.data.curves.new(self.shape_name, "CURVE")
+            cu.dimensions = "3D"
+            _fill_curve(cu, polys)
+            obj = bpy.data.objects.new(self.shape_name, cu)
+        obj.max_section.is_shape = True
         if self.live:
             obj.max_section.source = section.original
         context.collection.objects.link(obj)
@@ -283,10 +374,69 @@ class OBJECT_OT_max_section_unlink(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         ob = context.object
-        return ob is not None and ob.type == "CURVE" and ob.max_section.source is not None
+        return ob is not None and ob.type in {"CURVE", "MESH"} and ob.max_section.source is not None
 
     def execute(self, context):
         context.object.max_section.source = None
+        return {"FINISHED"}
+
+
+class OBJECT_OT_max_section_curve_to_solid(bpy.types.Operator):
+    bl_idname = "object.max_section_curve_to_solid"
+    bl_label = "Curve to Solid"
+    bl_description = ("Fill the closed, flat splines of the selected curves and give them thickness "
+                      "(one new mesh per curve, Solidify modifier)")
+    bl_options = {"REGISTER", "UNDO"}
+
+    thickness: FloatProperty(name="Thickness", default=0.018, min=0.0, unit="LENGTH")
+    offset: FloatProperty(name="Offset", default=0.0, min=-1.0, max=1.0, subtype="FACTOR",
+                          description="-1 / +1: thickness on one side of the outline plane, 0: centred")
+    hide_curves: BoolProperty(name="Hide source curves", default=True)
+
+    @classmethod
+    def poll(cls, context):
+        return any(o.type == "CURVE" for o in context.selected_objects)
+
+    def invoke(self, context, event):
+        self.thickness = _default_thickness(context)
+        return context.window_manager.invoke_props_dialog(self)
+
+    def execute(self, context):
+        made, skipped = [], 0
+        for ob in [o for o in context.selected_objects if o.type == "CURVE"]:
+            mw = np.array(ob.matrix_world, dtype=np.float64)
+            loops = []
+            for sp in ob.data.splines:
+                if not sp.use_cyclic_u:
+                    skipped += 1
+                    continue
+                if sp.type == "BEZIER":
+                    pts = np.array([p.co[:] for p in sp.bezier_points], dtype=np.float64)
+                else:
+                    pts = np.array([p.co[:3] for p in sp.points], dtype=np.float64)
+                if len(pts) >= 3:
+                    loops.append(pts @ mw[:3, :3].T + mw[:3, 3])
+            if not loops:
+                continue
+            me = bpy.data.meshes.new(ob.name + " Solid")
+            skipped += _fill_solid(me, loops)
+            new = bpy.data.objects.new(ob.name + " Solid", me)
+            new.max_section.is_shape = True
+            _add_solidify(new, self.thickness, self.offset)
+            context.collection.objects.link(new)
+            made.append(new)
+            if self.hide_curves:
+                ob.hide_set(True)
+        if not made:
+            self.report({"WARNING"}, "No closed flat spline found in the selected curves")
+            return {"CANCELLED"}
+        for o in context.selected_objects:
+            o.select_set(False)
+        for o in made:
+            o.select_set(True)
+        context.view_layer.objects.active = made[0]
+        if skipped:
+            self.report({"WARNING"}, f"{skipped} open or non-flat spline(s) were skipped")
         return {"FINISHED"}
 
 
@@ -296,6 +446,8 @@ def _draw_live_shape(layout, obj):
     box = layout.box()
     box.label(text="Live shape of: " + obj.max_section.source.name, icon="LINKED")
     box.operator("object.max_section_unlink", icon="UNLINKED")
+    if obj.type == "CURVE":
+        layout.operator("object.max_section_curve_to_solid", icon="MOD_SOLIDIFY")
 
 
 def _draw_params(layout, obj):
@@ -358,6 +510,8 @@ class VIEW3D_PT_max_section(bpy.types.Panel):
         else:
             self.layout.operator("object.max_section_add", icon="MESH_PLANE")
             self.layout.label(text="Select a section to edit it")
+        if ob is not None and ob.type == "CURVE" and ob.max_section.source is None:
+            self.layout.operator("object.max_section_curve_to_solid", icon="MOD_SOLIDIFY")
 
 
 def _menu_func(self, context):
@@ -444,6 +598,7 @@ _CLASSES = (
     OBJECT_OT_max_section_update,
     OBJECT_OT_max_section_create_shape,
     OBJECT_OT_max_section_unlink,
+    OBJECT_OT_max_section_curve_to_solid,
     OBJECT_PT_max_section,
     VIEW3D_PT_max_section,
 )

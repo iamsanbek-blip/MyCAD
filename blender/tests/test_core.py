@@ -56,3 +56,20 @@ sheet_v = np.array([[-1,0,-1],[1,0,-1],[1,0,1],[-1,0,1]], float); sheet_t = np.a
 r = core.section_polylines(sheet_v, sheet_t, "INFINITE", 9, 9)
 assert len(r) == 1 and not r[0][1] and abs(length(r[0]) - 2) < 1e-9
 print("core: all ok")
+
+# 8. planar fill helpers
+sq = np.array([[0,0,0],[1,0,0],[1,0,0],[1,1,0],[0,1,0],[0,0,0]], float)
+assert len(core.dedupe_loop(sq)) == 4
+assert np.allclose(core.newell_normal(core.dedupe_loop(sq)), [0, 0, 1])
+assert np.allclose(core.newell_normal(core.dedupe_loop(sq)[::-1]), [0, 0, -1])
+u, v = core.plane_basis(np.array([0, 0, 1.0])); assert np.allclose(np.cross(u, v), [0, 0, 1])
+outer = np.array([[-2,-2,5],[2,-2,5],[2,2,5],[-2,2,5]], float)
+inner = np.array([[-1,-1,5],[-1,1,5],[1,1,5],[1,-1,5]], float)    # opposite winding
+other = outer + (0, 0, 3)
+tilted = np.array([[0,0,0],[1,0,0],[1,1,0.5],[0,1,0]], float)    # not planar
+g, sk = core.group_coplanar([outer, inner, other, tilted])
+assert len(g) == 2 and sk == 1 and sorted(len(x["loops"]) for x in g) == [1, 2]
+g, _ = core.group_coplanar([outer], normal=(0, 0, -1))
+assert np.allclose(g[0]["n"], [0, 0, -1])
+assert np.allclose(core.to_2d(outer, g[0])[:, :].std(axis=0), [2, 2])
+print("planar helpers: ok")
