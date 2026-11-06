@@ -5,6 +5,11 @@ Rugby Electron ilovasidan mustaqil; alohida o'rnatiladi.
 
 ## O'rnatish
 
+**[max_section-1.0.0.zip — yuklab olish](https://github.com/iamsanbek-blip/MyCAD/releases/download/blender-max-section-v1.0.0/max_section-1.0.0.zip)**
+(GitHub Actions testlardan keyin quradi: `.github/workflows/blender-addon.yml`).
+
+Yoki o'zingiz yig'ing:
+
 Blender 4.2+ da (extension formati):
 
 ```bash
