@@ -1,0 +1,67 @@
+name: Blender 3ds Max Section add-on
+
+on:
+  push:
+    branches: [main, 'claude/**']
+    paths:
+      - 'blender/**'
+      - '.github/workflows/blender-addon.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: blender-addon
+  cancel-in-progress: false
+
+jobs:
+  addon:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Read add-on version
+        id: ver
+        run: |
+          v=$(sed -n 's/^version = "\(.*\)"/\1/p' blender/max_section/blender_manifest.toml)
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "tag=blender-max-section-v$v" >> "$GITHUB_OUTPUT"
+
+      # Zip first, so test runs cannot leave __pycache__ inside the package.
+      - name: Build extension zip
+        run: |
+          mkdir -p dist
+          cd blender/max_section
+          zip -r "../../dist/max_section-${{ steps.ver.outputs.version }}.zip" . -x '*__pycache__*'
+          cd ../..
+          unzip -l dist/*.zip
+
+      - name: Geometry tests (numpy)
+        run: |
+          pip install numpy
+          python blender/tests/test_core.py
+
+      - name: Add-on tests in Blender (bpy module, latest LTS on PyPI)
+        run: |
+          pip install bpy
+          python blender/tests/test_blender.py
+
+      - name: Publish prerelease (never overwrites an existing one)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.ver.outputs.tag }}
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; bump version in blender_manifest.toml for a new one."
+            exit 0
+          fi
+          gh release create "$TAG" "dist/max_section-$VERSION.zip" \
+            --target "$GITHUB_SHA" --prerelease \
+            --title "3ds Max Section for Blender $VERSION" \
+            --notes "Blender 4.2+ extension. Install: Edit > Preferences > Get Extensions > Install from Disk, or drag the zip into Blender. Tested automatically on the latest bpy LTS from PyPI; Blender 4.2 and viewport drawing still need a manual check (docs/TESTING.md)."
