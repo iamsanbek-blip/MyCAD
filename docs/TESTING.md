@@ -133,3 +133,17 @@ yangi imzosiz preview.2 faylini qayd etadi.
 
 Natijaga Windows versiyasi, EXE SHA256'i, test sanasi va muvaffaqiyatsiz
 qadamlarni yozing. Himoya sozlamalarini o'zgartirish qabul mezoni emas.
+
+## Blender 3ds Max Section add-on — 2026-11-06
+
+`blender/max_section/` Rugby Electron ilovasidan alohida. Haqiqatda bajarilgan:
+
+- `python3 blender/tests/test_core.py` — o'tdi (kub, tekislikdagi qirra, Boundary kesish,
+  bir nechta halqa, ochiq varaq).
+- `blender/tests/test_blender.py` **Blender 5.2.3 LTS** (pip `bpy` moduli, headless) ichida
+  o'tdi: Add, kesim, harakat/aylantirish bilan yangilanish, Boundary/Infinite/Off,
+  Manual + Update Section, Create Shape (cyclic POLY spline), modifier (Subdivision).
+
+Tekshirilmagan: **Blender 4.2** (pip'da faqat bpy 5.x bor; kod 4.2 API'siga moslab
+yozilgan), viewport'dagi sariq chiziq chizilishi (GPU kerak, headless'da yo'q),
+panel/menyu ko'rinishi va Install from Disk. Bularni Blender 4.2 da qo'lda tekshiring.

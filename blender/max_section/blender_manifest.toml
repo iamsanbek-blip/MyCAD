@@ -1,0 +1,13 @@
+schema_version = "1.0.0"
+
+id = "max_section"
+version = "1.0.0"
+name = "3ds Max Section"
+tagline = "3ds Max style Section shape: live cut outline and Create Shape"
+maintainer = "Rugby <iam.sanbek@gmail.com>"
+type = "add-on"
+
+blender_version_min = "4.2.0"
+
+# Blender add-ons must be GPL-compatible because they link against bpy.
+license = ["SPDX:GPL-3.0-or-later"]
