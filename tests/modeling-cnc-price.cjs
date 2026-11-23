@@ -179,6 +179,16 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     await ev(()=>document.activeElement&&document.activeElement.blur());await page.keyboard.press('Control+z');
     assert.deepEqual(await ev(()=>Panel3D._state().panels.filter(p=>/polka/.test(p.n)).map(p=>p.y).sort((a,b)=>a-b)),[180,330,480]);
     passed.push("Modeling: Ctrl+G guruh (birini bosish — ikkalasi), Ctrl+Shift+G; yuqori Object ▸ Array → polka 2 nusxa (−150 mm), polkaderjatel o'zi 6; Teng taqsimlash Y — dno va krisha orasida 184/360/536; Ctrl+Z");
+    // 8. Stretch (W): tanlangan nuqtalarda X/Y/Z strelkalari; X strelkasini sudrash — faqat X bo'ylab cho'ziladi, sudrashda faol o'q sariq
+    await ev(()=>{Panel3D.load({T:16,uid:10,panels:[{id:1,n:'krisha',w:568,h:500,t:16,o:'flat',x:300,y:712,z:0}]});Panel3D._select([]);Panel3D._view('iso');Panel3D._setTool('stretch');Panel3D._vsel(['1:1','1:2'])});
+    await page.waitForTimeout(150);assert.ok((await ev(()=>Panel3D._vsel())).gz,'strelkalar ko\'rinadi');
+    const G=await ev(()=>Panel3D._gz()),m={x:(G.c.x+G.a0.x)/2,y:(G.c.y+G.a0.y)/2};await page.mouse.move(m.x,m.y);await page.mouse.down();
+    const dir={x:G.a0.x-G.c.x,y:G.a0.y-G.c.y},dl=Math.hypot(dir.x,dir.y);await page.mouse.move(m.x+dir.x/dl*70,m.y+dir.y/dl*70,{steps:8});
+    assert.match(await page.locator('#p3hint').textContent(),/Stretch X o'qi: ΔX [\d.]+  ΔY 0  ΔZ 0 mm/);
+    await page.mouse.up();const SK=await ev(()=>{const k=Panel3D._state().panels[0];return{w:k.w,h:k.h,x:k.x,y:k.y,z:k.z}});
+    assert.ok(SK.w>580,'cho\'zildi: '+SK.w);assert.equal(SK.h,500);assert.equal(SK.y,712);assert.equal(SK.z,0);assert.ok(Math.abs((SK.x-300)-(SK.w-568)/2)<.01,'faqat o\'ng tomon');
+    assert.deepEqual((await ev(()=>Panel3D._vsel())).keys,['1:1','1:2'],'nuqtalar tanlovi qoladi');
+    passed.push(`Stretch (W): nuqtalar ustida X/Y/Z strelka; X strelkasi bilan ${Math.round(SK.w-568)} mm cho'zildi (faqat X, chap tomon joyida), tanlov saqlanadi — keyingi strelka bilan davom`);
     assert.deepEqual(errors,[]);
   }finally{await browser.close();fs.rmSync(tmp,{recursive:true,force:true})}
   console.log(passed.map(s=>'PASS '+s).join('\n'));console.log(`modeling-cnc-price: ${passed.length} checks passed`);

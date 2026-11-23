@@ -1,5 +1,10 @@
 # Rugby 1.1.2 — CNC nesting, panelni Drawing'da tahrirlash, aralash ulagich, narx (2026-11-23)
 
+- **Stretch (W) strelkalari.** Nuqtalar tanlansa ularning markazida X/Y/Z strelkalari, tekislik kvadratlari va oq markaz chiqadi (Move kabi).
+  Strelkani sudrash — faqat o'sha o'q bo'ylab cho'zish, kvadrat — tekislikda, markaz — ekran tekisligida; qadam (Make ▸ Qadam) va magnit
+  ishlaydi, pastda ΔX/ΔY/ΔZ. Cho'zgandan keyin nuqtalar tanlovi qoladi — keyingi o'q bilan davom etish mumkin.
+- **Gizmo ingichka va faol o'q aniq** (Move, Rotate, Scale, Stretch): strelka va halqalar ingichka (ushlash zonasi avvalgidek keng);
+  sichqoncha ostidagi dasta sariq; sudrash paytida ushlangan o'q/tekislik sariq, qolganlari xiralashadi (3ds Max / Blender kabi).
 - **Ship-paz — metallsiz tishli birikma** (furnitura turi: Alt+F ▸ Turi, panel Ulagich yoki J asbobi ▸ «Ship-paz»). Chet paneli (B)
   qirrasida tishlar ulanadigan panel (A) qalinligi bo'ylab chiqadi; A da ularga mos teshik (zazor bilan). Burchak birikmasida (tortma
   qutisi) teshik A chetiga chiqadi — kontur kesigi bo'ladi (box joint); o'rtada (oraliq polka) — A ichida teshib o'tadigan to'rtburchak.

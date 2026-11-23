@@ -31,6 +31,9 @@
 - Qo'shimcha: Ship-paz (metallsiz) — `panel3d-hw` 17 (tortma qutisi: 4 tish + kesiklar, zazor 0.2, 8+4+4 dogbone yoyi DXF'da; o'rta polka:
   4 ichki teshik × 4 dogbone; CNC detali 400 mm; dogbone o'chiq — to'g'ri burchak), `modeling-cnc-price` 12 (J ▸ Ship-paz haqiqiy bosish,
   qaytarish). DXF ezdxf bilan ochildi (0 xato), rasmga chizilib ko'rildi: burchakda tish/kesik, o'rtada teshik — dogbone bilan.
+- Qo'shimcha: Stretch strelkalari — `modeling-cnc-price` 13 (krisha o'ng nuqtalari tanlanib X strelkasi haqiqiy sichqoncha bilan sudraldi:
+  +55 mm, faqat X, chap tomon joyida, ΔY = ΔZ = 0, tanlov qoladi). Ingichka gizmo bilan `modeling-precision` (13), Electron `modeling-smoke`,
+  `stretch-select` va qolgan suite'lar qayta o'tdi; skrinshotda faol X sariq, qolganlari xira.
 - `tests/modeling-cnc-price.cjs` (yangi, web build, Chromium 1243, haqiqiy sichqoncha, 8): xossalarda ulagich tanlash → korpus qayta
   teshiladi; Narx paneli (jami = hisob, narx o'zgarganda yangilanadi, localStorage, detal narxi, smeta CSV); CNC'ga yuborish — 3 sahifa,
   detallar list ichida, teshiklar detal ichida, teksturali burilmagan; detal konturini bosish butun guruhni tanlaydi, Move bilan boshqa

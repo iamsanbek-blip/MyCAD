@@ -642,47 +642,54 @@ const GZ_COL=[0xff5555,0x55dd77,0x5599ff],GZ_HOT=0xffe14d;
 let gzAx=[],gzPl=[],gzHot=null,xfLine=null,c3=null,c3obj=null,pivot='center';
 function buildGizmo(){
   gz=new THREE.Group();const cols=GZ_COL;
-  const inv=()=>new THREE.MeshBasicMaterial({visible:false}),mk=(c,o)=>{const m=new THREE.MeshBasicMaterial({color:c,depthTest:false,transparent:true,opacity:o||1,side:THREE.DoubleSide});m.userData.col=c;return m};
+  const inv=()=>new THREE.MeshBasicMaterial({visible:false}),mk=(c,o)=>{const m=new THREE.MeshBasicMaterial({color:c,depthTest:false,transparent:true,opacity:o||1,side:THREE.DoubleSide});m.userData.col=c;m.userData.op=o||1;return m};   // ingichka dastalar; ushlash zonasi (inv) keng qoladi
   // Ko'chirish: X/Y/Z strelkalari (ax 0..2), tekislik kvadratlari (ax 3..5 = normal o'qi 0..2), oq markaz — ekran tekisligi (ax 6)
   for(let a=0;a<3;a++){const g=new THREE.Group(),mat=mk(cols[a]);
-    const sh=new THREE.Mesh(new THREE.CylinderGeometry(3,3,80,8),mat),co=new THREE.Mesh(new THREE.ConeGeometry(9,28,12),mat),hit=new THREE.Mesh(new THREE.CylinderGeometry(16,16,130,6),inv());
-    sh.position.y=40;co.position.y=94;hit.position.y=65;[sh,co,hit].forEach(m=>{m.renderOrder=998;m.userData.ax=a});g.add(sh,co,hit);
+    const sh=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.1,84,6),mat),co=new THREE.Mesh(new THREE.ConeGeometry(5,20,12),mat),hit=new THREE.Mesh(new THREE.CylinderGeometry(16,16,130,6),inv());
+    sh.position.y=42;co.position.y=94;hit.position.y=65;[sh,co,hit].forEach(m=>{m.renderOrder=998;m.userData.ax=a});g.add(sh,co,hit);
     if(a===0)g.rotation.z=-Math.PI/2;else if(a===2)g.rotation.x=Math.PI/2;gz.add(g);gzAx[a]=g}
-  for(let n=0;n<3;n++){const g=new THREE.Group(),sq=new THREE.Mesh(new THREE.PlaneGeometry(26,26),mk(cols[n],.55)),ht=new THREE.Mesh(new THREE.PlaneGeometry(34,34),inv());
+  for(let n=0;n<3;n++){const g=new THREE.Group(),sq=new THREE.Mesh(new THREE.PlaneGeometry(20,20),mk(cols[n],.4)),ht=new THREE.Mesh(new THREE.PlaneGeometry(34,34),inv());
     [sq,ht].forEach(m=>{m.renderOrder=998;m.userData.ax=3+n});g.add(sq,ht);
     if(n===0){g.rotation.y=Math.PI/2;g.position.set(0,36,36)}else if(n===1){g.rotation.x=-Math.PI/2;g.position.set(36,0,36)}else g.position.set(36,36,0);
     gz.add(g);gzPl[n]=g}
-  {const cm=new THREE.Mesh(new THREE.SphereGeometry(7,14,10),mk(0xf2f5fa,.9)),ch=new THREE.Mesh(new THREE.SphereGeometry(15,8,6),inv());[cm,ch].forEach(m=>{m.renderOrder=999;m.userData.ax=6});gz.add(cm,ch)}
+  {const cm=new THREE.Mesh(new THREE.SphereGeometry(4.5,14,10),mk(0xf2f5fa,.9)),ch=new THREE.Mesh(new THREE.SphereGeometry(15,8,6),inv());[cm,ch].forEach(m=>{m.renderOrder=999;m.userData.ax=6});gz.add(cm,ch)}
   gz.visible=false;scene.add(gz);
   const orient=(g,a)=>{if(a===0)g.rotation.z=-Math.PI/2;else if(a===2)g.rotation.x=Math.PI/2};
   gzR=new THREE.Group();gzS=new THREE.Group();
   for(let a=0;a<3;a++){
-    const g=new THREE.Group(),ring=new THREE.Mesh(new THREE.TorusGeometry(80,2.6,8,56),mk(cols[a])),hit=new THREE.Mesh(new THREE.TorusGeometry(80,11,6,28),inv());   // aylantirish halqalari
+    const g=new THREE.Group(),ring=new THREE.Mesh(new THREE.TorusGeometry(80,1.1,6,72),mk(cols[a])),hit=new THREE.Mesh(new THREE.TorusGeometry(80,11,6,28),inv());   // aylantirish halqalari
     [ring,hit].forEach(m=>{m.renderOrder=998;m.userData.ax=a});g.add(ring,hit);
     if(a===0)g.rotation.y=Math.PI/2;else if(a===1)g.rotation.x=-Math.PI/2;gzR.add(g);
-    const h=new THREE.Group(),sh=new THREE.Mesh(new THREE.CylinderGeometry(3,3,80,8),mk(cols[a])),cu=new THREE.Mesh(new THREE.BoxGeometry(18,18,18),mk(cols[a])),ht=new THREE.Mesh(new THREE.CylinderGeometry(16,16,130,6),inv());   // masshtab: o'q + kub
+    const h=new THREE.Group(),sh=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.1,80,6),mk(cols[a])),cu=new THREE.Mesh(new THREE.BoxGeometry(11,11,11),mk(cols[a])),ht=new THREE.Mesh(new THREE.CylinderGeometry(16,16,130,6),inv());   // masshtab: o'q + kub
     sh.position.y=40;cu.position.y=92;ht.position.y=65;[sh,cu,ht].forEach(m=>{m.renderOrder=998;m.userData.ax=a});h.add(sh,cu,ht);orient(h,a);gzS.add(h)}
-  const cc=new THREE.Mesh(new THREE.BoxGeometry(26,26,26),mk(0xffd24d)),ch=new THREE.Mesh(new THREE.BoxGeometry(40,40,40),inv());[cc,ch].forEach(m=>{m.renderOrder=999;m.userData.ax=3});gzS.add(cc,ch);
+  const cc=new THREE.Mesh(new THREE.BoxGeometry(16,16,16),mk(0xffd24d)),ch=new THREE.Mesh(new THREE.BoxGeometry(40,40,40),inv());[cc,ch].forEach(m=>{m.renderOrder=999;m.userData.ax=3});gzS.add(cc,ch);
   gzR.visible=gzS.visible=false;scene.add(gzR,gzS)}
-const activeGizmo=()=>{const g=tool==='move'?gz:tool==='rotate'?gzR:tool==='scale'?gzS:null;return g&&g.visible?g:null};
+const activeGizmo=()=>{const g=tool==='move'||(tool==='stretch'&&vsel.size)?gz:tool==='rotate'?gzR:tool==='scale'?gzS:null;return g&&g.visible?g:null};
+const vselCen=()=>{const c=stretchCands().filter(x=>vsel.has(x.key));if(!c.length)return null;const v=new THREE.Vector3();c.forEach(x=>v.add(x.w));return v.multiplyScalar(1/c.length)};
 const scrScale=v=>(cam===ocam?R:cam.position.distanceTo(v))*.0016;   // gizmo / 3D kursor ekranda doimiy o'lchamda
 const selCen=ps=>{const[mn,mx]=bboxOf(ps);return new THREE.Vector3((mn[0]+mx[0])/2,(mn[1]+mx[1])/2,(mn[2]+mx[2])/2)};
 function updateGizmo(){
   if(!gz)return;for(const g of[gz,gzR,gzS])g.visible=false;
-  const g=tool==='move'?gz:tool==='rotate'?gzR:tool==='scale'?gzS:null,ps=selected();   // Tanlash asbobida gizmo yo'q (3ds Max kabi)
-  if(!g||!ps.length||dr||pm)return;g.visible=true;
-  g.position.copy(g===gzR&&pivot==='cursor'&&c3?c3:selCen(ps));g.scale.setScalar(scrScale(g.position));
+  const st=tool==='stretch'&&vsel.size&&!dr&&!pm,sc=st?vselCen():null;   // Stretch: tanlangan nuqtalar markazida X/Y/Z strelkalar
+  const g=st&&sc?gz:tool==='move'?gz:tool==='rotate'?gzR:tool==='scale'?gzS:null,ps=selected();   // Tanlash asbobida gizmo yo'q (3ds Max kabi)
+  if(!g||(!sc&&!ps.length)||dr||pm){gzTint();return}g.visible=true;
+  g.position.copy(sc?sc:g===gzR&&pivot==='cursor'&&c3?c3:selCen(ps));g.scale.setScalar(scrScale(g.position));
   if(g===gz){   // ko'rish yo'nalishiga parallel o'q (va unga tik tekislik) yashiriladi — beqaror sudrash bo'lmaydi
     const dir=cam===ocam?cam.getWorldDirection(new THREE.Vector3()):g.position.clone().sub(cam.position).normalize(),x=act&&act.k==='xf'?act.con:null;
     for(let a=0;a<3;a++){gzAx[a].visible=Math.abs(dir.getComponent(a))<.985;gzPl[a].visible=Math.abs(dir.getComponent(a))>.15}
-    if(x){for(let a=0;a<3;a++){if(x.ax>=0)gzAx[a].visible=gzAx[a].visible&&a===x.ax;if(x.ax>=0||x.n>=0)gzPl[a].visible=gzPl[a].visible&&a===x.n}}}}
+    if(x){for(let a=0;a<3;a++){if(x.ax>=0)gzAx[a].visible=gzAx[a].visible&&a===x.ax;if(x.ax>=0||x.n>=0)gzPl[a].visible=gzPl[a].visible&&a===x.n}}}
+  gzTint()}
+/* Faol dasta: sudrash paytida ushlangan o'q/tekislik sariq va to'liq, qolganlari xira (3ds Max / Blender kabi); hover — sariq */
+function gzTint(){
+  const c=act&&act.k==='xf'?act.con:act&&act.k==='stretch'&&act.gcon?act.gcon:null,on=c?(c.ax>=0?c.ax:c.n>=0?3+c.n:6):null;
+  for(const G of[gz,gzR,gzS])if(G)G.traverse(o=>{const m=o.material;if(!m||!m.userData||m.userData.col===undefined)return;
+    const hot=on!==null?o.userData.ax===on:(o.userData.ax===gzHot&&G===activeGizmo());m.color.setHex(hot?GZ_HOT:m.userData.col);m.opacity=on!==null&&!hot?.18:m.userData.op})}
 const gizmoHits=(AG,hs)=>hs.filter(h=>{for(let o=h.object;o&&o!==AG;o=o.parent)if(!o.visible)return false;return true});
 function gizmoHover(e){   // sichqoncha ostidagi gizmo dastasi sariq bo'ladi (3ds Max / Blender kabi)
   const AG=activeGizmo();let ax=null;
   if(AG){AG.updateMatrixWorld(true);ndc(e);const h=gizmoHits(AG,ray.intersectObject(AG,true))[0];if(h)ax=h.object.userData.ax}
   if(ax===gzHot)return;gzHot=ax;
-  for(const G of[gz,gzR,gzS])if(G)G.traverse(o=>{const m=o.material;if(m&&m.userData&&m.userData.col!==undefined)m.color.setHex(o.userData.ax===gzHot&&G===AG?GZ_HOT:m.userData.col)});
-  cv.style.cursor=ax!==null?'pointer':'';dirtyR=true}
+  gzTint();cv.style.cursor=ax!==null?'pointer':'';dirtyR=true}
 function axisT(C0,A){const O=ray.ray.origin,D=ray.ray.direction,w=C0.clone().sub(O),b=A.dot(D),d=A.dot(w),e=D.dot(w),den=1-b*b;return den<1e-6?null:(b*e-d)/den}
 /* ---------------- Ko'chirish (Move) — 3ds Max / Blender aniqligida ----------------
    act.k==='xf': base — boshlang'ich holatlar, P0 — ushlangan nuqta, src — tayanch uch (bo'lmasa tanlovning nishonga eng yaqin nuqtasi),
@@ -932,14 +939,26 @@ function startStretch(e,g){   // g — ushlangan nuqta: u kursorga ergashadi va 
   const ids=[...new Set(sel.map(c=>c.p.id))],first=(g&&vsel.has(g.key)?g:sel[0]).w.clone();
   const pl=new THREE.Plane().setFromNormalAndCoplanarPoint(cam.getWorldDirection(new THREE.Vector3()),first),pt=new THREE.Vector3();ndc(e);ray.ray.intersectPlane(pl,pt);
   act={k:'stretch',bases:ids.map(id=>snapBase(panels.find(a=>a.id===id))),vs:[...vsel],pl,pt,ax:-1,first,x0:e.clientX,y0:e.clientY}}
+function startStretchG(e,ax){   // gizmo bilan: o'q (0..2), tekislik (3..5 — normal), markaz (6 — ekran tekisligi)
+  const sel=stretchCands().filter(c=>vsel.has(c.key));if(!sel.length)return;const ids=[...new Set(sel.map(c=>c.p.id))],P0=gz.position.clone();
+  const gcon=ax<3?{ax,n:-1}:ax<6?{ax:-1,n:ax-3}:{ax:-1,n:-1},n=new THREE.Vector3();if(gcon.n>=0)n.setComponent(gcon.n,1);else cam.getWorldDirection(n);
+  const A=gcon.ax>=0?new THREE.Vector3().setComponent(gcon.ax,1):null;ndc(e);
+  const pl=new THREE.Plane().setFromNormalAndCoplanarPoint(n,P0),pt=new THREE.Vector3();if(!A&&!ray.ray.intersectPlane(pl,pt))pt.copy(P0);
+  act={k:'stretch',bases:ids.map(id=>snapBase(panels.find(a=>a.id===id))),vs:[...vsel],pl,pt,ax:gcon.ax,gcon,A,P0,t0:A?axisT(P0,A)||0:0,first:sel[0].w.clone(),x0:e.clientX,y0:e.clientY};gzTint()}
 function stretchMove(e){
+  if(act.gcon){ndc(e);let d;const st=num(q('#p3step').value),rs=x=>st?Math.round(x/st)*st:x;
+    if(act.A){const t=axisT(act.P0,act.A);if(t==null)return;d=act.A.clone().multiplyScalar(t-act.t0)}else{const v=new THREE.Vector3();if(!ray.ray.intersectPlane(act.pl,v))return;d=v.sub(act.pt)}
+    conApply(d,act.gcon);d.set(rs(d.x),rs(d.y),rs(d.z));
+    let hit=null;if(mag){hit=snapFind(e,new Set(act.bases.map(b=>b.p.id)));if(hit)d.copy(conApply(hit.T.clone().sub(act.first),act.gcon))}
+    showSnap(hit);for(const b of act.bases)applyStretchD(b,act.vs,d);
+    q('#p3hint').textContent=`Stretch ${act.A?'XYZ'[act.gcon.ax]+' o\'qi':act.gcon.n>=0?'tekislik ⊥'+'XYZ'[act.gcon.n]:'ekran'}: ΔX ${f1(d.x)}  ΔY ${f1(d.y)}  ΔZ ${f1(d.z)} mm`;dirtyR=true;return}
   ndc(e);const v=new THREE.Vector3();if(!ray.ray.intersectPlane(act.pl,v))return;const d=v.sub(act.pt),st=num(q('#p3step').value),rs=x=>st?Math.round(x/st)*st:x;
   if(ortho){const a=[d.x,d.y,d.z].map(Math.abs);if(act.ax<0){if(Math.hypot(e.clientX-act.x0,e.clientY-act.y0)<8)return;act.ax=a.indexOf(Math.max(...a))}for(let i=0;i<3;i++)if(i!==act.ax)d.setComponent(i,0)}
   conApply(d,null);d.set(rs(d.x),rs(d.y),rs(d.z));
   let hit=null;if(mag){hit=snapFind(e,new Set(act.bases.map(b=>b.p.id)));if(hit)d.copy(conApply(hit.T.clone().sub(act.first),ortho&&act.ax>=0?{ax:act.ax,n:-1}:null))}
   showSnap(hit);
   for(const b of act.bases)applyStretchD(b,act.vs,d);dirtyR=true}
-function stretchEnd(){hideSnap();vsel.clear();props();list();changed()}
+function stretchEnd(){hideSnap();props();list();changed();gzTint()}   // nuqtalar tanlovi qoladi — keyingi strelka bilan davom etish mumkin (Esc / bo'sh joy — tozalash)
 function stretchNumeric(){
   const d=new THREE.Vector3(num(q('#p3sdx').value),num(q('#p3sdy').value),num(q('#p3sdz').value));
   const sel=stretchCands().filter(c=>vsel.has(c.key));if(!sel.length||(!d.x&&!d.y&&!d.z))return;
@@ -1136,6 +1155,7 @@ function onDown(e){
   if(e.button===0&&tool==='ruler'){rulerClick(e);return}
   if(e.button===0&&tool==='guide'){addGuide(e);return}
   if(tool==='stretch'&&e.button===0){
+    {const AG=activeGizmo();if(AG){AG.updateMatrixWorld(true);ndc(e);const gh=gizmoHits(AG,ray.intersectObject(AG,true))[0];if(gh){startStretchG(e,gh.object.userData.ax);dirtyR=true;return}}}   // strelka / tekislik / markaz
     const c=stretchPick(e);
     if(c){if(e.shiftKey||e.ctrlKey){vsel.has(c.key)?vsel.delete(c.key):vsel.add(c.key);dirtyR=true;return}
       if(!vsel.has(c.key)){vsel.clear();vsel.add(c.key)}
@@ -1168,7 +1188,7 @@ function onMove(e){
   if(tool==='edge'&&!act&&!dr){edgeHover(e);return}
   if(tool==='joint'&&!act&&!dr){jointHover(e);return}
   if(dr&&!act){dr.cur=drawPt(e,dr.p);drawShow();return}
-  if(!act){if(tool==='move'||tool==='rotate'||tool==='scale')gizmoHover(e);
+  if(!act){if(tool==='move'||tool==='rotate'||tool==='scale'||(tool==='stretch'&&vsel.size))gizmoHover(e);
     if(tool==='move'&&mag&&!pm)showSnap(gzHot===null&&selected().length?ownSnap(e,selected()):null);   // ushlash nuqtasi oldindan ko'rinadi
     return}
   if(act.k==='xf'){if(e.buttons&2){xfCancel();return}xfUpdate(e);return}   // chap tugma bosilgan holda o'ng tugma (chord) — bekor
@@ -1894,5 +1914,5 @@ window.Panel3D={retheme:()=>{if(inited)theme()},hotkeys:{commands:P3CMD.map(({id
     for(let a=0;a<3;a++){const A=new THREE.Vector3();A.setComponent(a,1);o['a'+a]=P(c.clone().addScaledVector(A,90*k));o['v'+a]=gzAx[a].visible;
       const g=gzPl[a];g.updateMatrixWorld(true);o['p'+a]=P(g.getWorldPosition(new THREE.Vector3()));o['pv'+a]=g.visible}return o},
   _cursor:()=>c3?c3.toArray():null,_autoName:()=>autoName(),_clusters:()=>corpusClusters(panels.filter(p=>!p.hid)).map(c=>c.map(p=>p.id)),_pivot:()=>pivot,_act:()=>act?{k:act.k,con:act.con,typed:act.typed,hit:act.hit?act.hit.k:null}:null,_snap:()=>snapHit?{k:snapHit.k,T:snapHit.T.toArray()}:null,
-  _cnc:()=>cncSend(),_group:()=>groupSel(),_ungroup:()=>ungroupSel(),_array:(n,d)=>arraySel(n,d),_dist:a=>distSel(a),_joints:()=>HW.jointLines(panels,hwOpts),_jointScr:k=>{const l=HW.jointLines(panels,hwOpts).find(x=>x.key===k);if(!l)return null;const r=cv.getBoundingClientRect(),s=scrOf(new THREE.Vector3((l.p0[0]+l.p1[0])/2,(l.p0[1]+l.p1[1])/2,(l.p0[2]+l.p1[2])/2));return{x:r.left+s.x,y:r.top+s.y}},_price:o=>{if(o){prices=PRC.merge(o);prSave()}return prCalc()},_prOpen:()=>{if(!prOpen)q('#p3prTab').click()},_edit:id=>{const p=panels.find(x=>x.id===id);return p?editInDrawing(p):false},_editApply:()=>editApply(),_editCancel:()=>editCancel(),_editing:()=>p3edit?{...p3edit}:null,_hw:{place:o=>{if(o)hwOpts=HW.merge(HW.DEF,o);return hwPlace()},clear:hwClear,dxf:()=>hwDxfData(),csv:()=>HW.csv(hwTargets()),check:hwCheck,open:hwOpen,opts:()=>hwOpts,ops:id=>{const p=panels.find(x=>x.id===id);return p&&p.ops?JSON.parse(JSON.stringify(p.ops)):[]},showOps:()=>showOps},_snapM:snapM,_setTool:t=>setTool(t),_view:v=>setView(v),_select:ids=>{msel=ids.slice();sel=ids[ids.length-1];paint();props();list();dirtyR=true}};
+  _cnc:()=>cncSend(),_vsel:keys=>{if(keys){vsel=new Set(keys);dirtyR=true}return{keys:[...vsel],gz:!!(gz&&gz.visible)}},_group:()=>groupSel(),_ungroup:()=>ungroupSel(),_array:(n,d)=>arraySel(n,d),_dist:a=>distSel(a),_joints:()=>HW.jointLines(panels,hwOpts),_jointScr:k=>{const l=HW.jointLines(panels,hwOpts).find(x=>x.key===k);if(!l)return null;const r=cv.getBoundingClientRect(),s=scrOf(new THREE.Vector3((l.p0[0]+l.p1[0])/2,(l.p0[1]+l.p1[1])/2,(l.p0[2]+l.p1[2])/2));return{x:r.left+s.x,y:r.top+s.y}},_price:o=>{if(o){prices=PRC.merge(o);prSave()}return prCalc()},_prOpen:()=>{if(!prOpen)q('#p3prTab').click()},_edit:id=>{const p=panels.find(x=>x.id===id);return p?editInDrawing(p):false},_editApply:()=>editApply(),_editCancel:()=>editCancel(),_editing:()=>p3edit?{...p3edit}:null,_hw:{place:o=>{if(o)hwOpts=HW.merge(HW.DEF,o);return hwPlace()},clear:hwClear,dxf:()=>hwDxfData(),csv:()=>HW.csv(hwTargets()),check:hwCheck,open:hwOpen,opts:()=>hwOpts,ops:id=>{const p=panels.find(x=>x.id===id);return p&&p.ops?JSON.parse(JSON.stringify(p.ops)):[]},showOps:()=>showOps},_snapM:snapM,_setTool:t=>setTool(t),_view:v=>setView(v),_select:ids=>{msel=ids.slice();sel=ids[ids.length-1];paint();props();list();dirtyR=true}};
 })();
