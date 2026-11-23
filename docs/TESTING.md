@@ -18,6 +18,9 @@
   40 talik varaq + 3 bo'sh katak, chop etish xostida 5 birka, HTML fayl). Birka HTML'i Chromium'da PDF qilindi: 1 sahifa, A4 (594.96×841.92 pt),
   kataklar 70×37 mm. Haqiqiy printerda va stiker varaqda o'lcham moslashi tekshirilmagan. `npm test` dagi `t24_guard` va workspace testlari
   DOM o'rinbosarida `document.head` yo'qligi sababli yiqildi — uslub qo'shish shunga himoyalandi, qayta o'tdi.
+- Qo'shimcha (izoh bo'yicha): Furnitura oynasi ixcham — ulanish bo'limida faqat tanlangan turning maydonlari, qolgan bo'limlar yig'ilgan;
+  J asbobi tugmalari bitta qatorda (qisqa nomlar, chap yuqorida). `panel3d-hw-ui` (8), `modeling-cnc-price` (11), `npm test` qayta o'tdi;
+  1366×768 skrinshotda tekshirildi.
 - `tests/modeling-cnc-price.cjs` (yangi, web build, Chromium 1243, haqiqiy sichqoncha, 8): xossalarda ulagich tanlash → korpus qayta
   teshiladi; Narx paneli (jami = hisob, narx o'zgarganda yangilanadi, localStorage, detal narxi, smeta CSV); CNC'ga yuborish — 3 sahifa,
   detallar list ichida, teshiklar detal ichida, teksturali burilmagan; detal konturini bosish butun guruhni tanlaydi, Move bilan boshqa

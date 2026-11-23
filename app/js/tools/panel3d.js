@@ -1043,8 +1043,8 @@ function edgeToggle(h){
   build(p);edgeClear();props();list();changed()}
 /* --- Furnitura asbobi (J) — Kromka kabi: ulanish chiziqlari ko'rinadi (rang — turi), chiziqni bosish — joriy tur shu ulanishga
    (yana bosilsa — umumiyga qaytadi), Shift + bosish — tanlash, keyin tur tugmasi — tanlanganlarning hammasiga. Korpus o'zi teshiladi. --- */
-const JT={konf:['Yevrovint',0xffb454],ekss:['Ekssentrik',0x4ade80],shkant:['Shkant',0x5ee1ff],'konf+shkant':['Yevrovint + shkant',0xff7a1a],'ekss+shkant':['Ekssentrik + shkant',0x16a34a],
-  polka:['Polkaderjatel',0xc084fc],none:["Yo'q",0x9aa4b2],'':['Umumiy',0xffffff]};
+const JT={konf:['Yevrovint',0xffb454,'Yevro'],ekss:['Ekssentrik',0x4ade80,'Ekss'],shkant:['Shkant',0x5ee1ff,'Shkant'],'konf+shkant':['Yevrovint + shkant',0xff7a1a,'Yevro+sh'],'ekss+shkant':['Ekssentrik + shkant',0x16a34a,'Ekss+sh'],
+  polka:['Polkaderjatel',0xc084fc,'Polka'],none:["Yo'q",0x9aa4b2,"Yo'q"],'':['Umumiy',0xffffff,'Umumiy']};
 let jType='konf',jSel=new Set(),jGrp=null,jHov=null,jLines=[];
 function jointClear(){for(const o of[jGrp,jHov])if(o){scene.remove(o);o.traverse(x=>x.geometry&&x.geometry.dispose())}jGrp=jHov=null;dirtyR=true}
 function jointShow(){
@@ -1075,7 +1075,7 @@ function jointClick(l,shift){
 function jointBar(){let b=q('#p3jb');if(tool!=='joint'){if(b)b.hidden=true;return}
   if(!b){q('.p3view').insertAdjacentHTML('beforeend','<div class="p3jb" id="p3jb"></div>');b=q('#p3jb');
     b.addEventListener('click',e=>{const t=e.target.closest('[data-jt]');if(!t)return;jType=t.dataset.jt;if(jSel.size){const k=[...jSel];jSel.clear();jointSet(k,jType)}else jointBar()})}
-  b.hidden=false;b.innerHTML=`<b>Furnitura</b>${Object.entries(JT).map(([k,[n,c]])=>`<button data-jt="${k}" class="${k===jType?'on':''}" title="${k?'Bosilgan ulanishga: '+esc(n):'Ulanish tanlovini olib tashlash — panel/umumiy tur'}"><i style="background:#${c.toString(16).padStart(6,'0')}"></i>${esc(n)}</button>`).join('')}<span class="p3mu">Chiziqni bosing — tur beriladi (yana — umumiy) · Shift — tanlash${jSel.size?` (${jSel.size})`:''}, keyin tur</span>`}
+  b.hidden=false;b.innerHTML=`${Object.entries(JT).map(([k,[n,c,sh]])=>`<button data-jt="${k}" class="${k===jType?'on':''}" title="${k?esc(n)+' — chiziqni bosing (yana — umumiy); Shift bilan tanlanganlarga — shu tugma':'Ulanish tanlovini olib tashlash — panel/umumiy tur'}"><i style="background:#${c.toString(16).padStart(6,'0')}"></i>${esc(sh)}</button>`).join('')}${jSel.size?`<span class="p3jn" title="Shift bilan tanlangan ulanishlar — tur tugmasini bosing">${jSel.size} ✓</span>`:''}`}
 function toggleMag(){mag=!mag;const b=q('#p3bMag');if(b)b.classList.toggle('on',mag);if(!mag)hideSnap();
   q('#p3hint').textContent=mag?"Magnit yoqildi: panel burchak/o'rta nuqtalarga yopishadi (Probel — o'chirish)":"Magnit o'chirildi (Probel — yoqish)"}
 function startPlace(){if(dr)endDraw();cancelPlace();if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();pm={o:viewOri(),p:null};q('#p3hint').textContent="Panel kursorda (chap-past burchagi bilan): joyiga bosib qo'ying — burchak magnit nishoniga aynan tushadi · Probel — magnit · Esc — bekor";}
@@ -1250,7 +1250,7 @@ const HW_STORE='rugby.hw.v1';
 let hwOpts=(()=>{try{return HW?HW.merge(HW.DEF,JSON.parse(localStorage.getItem(HW_STORE)||'null')):null}catch(e){return HW?HW.merge(HW.DEF,null):null}})();
 const HWF=[
   ['h','Ulanish (boka, krisha, dno, oraliq boka)'],
-  ['con','Turi (umumiy; panelda alohida tanlansa — o\'shanisi)','sel',HW?HW.CONS:{}],
+  ['con','Turi','sel',HW?HW.CONS:{}],
   ['auto',"Model o'zgarsa teshiklar avtomatik yangilansin (cho'zish, o'lcham, ko'chirish)",'chk'],
   ['dowel',"Yoniga shkant qo'shish (+32 mm)",'chk'],['e','Uchidan masofa'],['step','Eng katta qadam'],
   ['konf.fd','Yevrovint: yuza Ø (teshib o\'tadi)'],['konf.ed','Yevrovint: chet Ø'],['konf.ez','Yevrovint: chet chuqurligi'],
@@ -1302,11 +1302,19 @@ function hwExportDxf(){
     `<p class="p3mu">Chet (gorizontal) teshiklar HDRILL qatlamida: 3 o'qli router ularni teshiy olmaydi — присадка yoki qo'lda; ro'yxati «Teshiklar CSV» da.</p>`+(w.length?'<b>Ogohlantirish:</b>'+hwList(w):''));
   say(`DXF: ${d.panels} panel, ${d.drills+d.edges} teshik, ${d.grooves} paz`)}
 function hwExportCsv(){const ps=hwTargets();try{downloadFile(HW.csv(ps),'rugby-teshiklar.csv','text/csv')}catch(e){}hwSay(`rugby-teshiklar.csv: ${ps.reduce((a,p)=>a+(p.ops||[]).length,0)} qator.`)}
-function hwForm(){
-  return HWF.map(([k,l,t,o])=>{if(k==='h')return `<div class="p3hwh">${esc(l)}</div>`;const v=hwGet(k),id='p3hw_'+k.replace('.','_');
-    if(t==='chk')return `<label class="p3hwc"><input type="checkbox" id="${id}" data-k="${k}"${v?' checked':''}> ${esc(l)}</label>`;
-    if(t==='sel')return `<div class="p3hwr"><label for="${id}">${esc(l)}</label><select id="${id}" data-k="${k}">${Object.entries(o).map(([a,b])=>`<option value="${a}"${a===v?' selected':''}>${esc(b)}</option>`).join('')}</select></div>`;
-    return `<div class="p3hwr"><label for="${id}">${esc(l)}</label><input id="${id}" data-k="${k}" type="text"${t==='txt'?'':' inputmode="decimal"'} value="${esc(v)}"></div>`}).join('')}
+/* Ixcham forma: ulanish bo'limida faqat tanlangan turga tegishli maydonlar (yevrovint → yevrovint o'lchamlari, ekssentrik → ekssentrik …);
+   qolgan bo'limlar (polka, fasad, orqa devor, DXF) yig'ilgan — sarlavhasi bosilsa ochiladi. */
+let hwSecOpen=new Set();
+function hwVis(k){const c=hwOpts.con||'konf',sh=c==='shkant'||c.endsWith('+shkant');
+  if(/^konf\./.test(k))return c.startsWith('konf');if(/^ekss\./.test(k))return c.startsWith('ekss');
+  if(/^shkant\./.test(k))return sh||(hwOpts.dowel&&c!=='none');if(k==='dowel')return c==='konf'||c==='ekss';if(k==='e'||k==='step')return c!=='none';return true}
+function hwField([k,l,t,o]){const v=hwGet(k),id='p3hw_'+k.replace('.','_');
+  if(t==='chk')return `<label class="p3hwc"><input type="checkbox" id="${id}" data-k="${k}"${v?' checked':''}> ${esc(l)}</label>`;
+  if(t==='sel')return `<div class="p3hwr"><label for="${id}">${esc(l)}</label><select id="${id}" data-k="${k}">${Object.entries(o).map(([a,b])=>`<option value="${a}"${a===v?' selected':''}>${esc(b)}</option>`).join('')}</select></div>`;
+  return `<div class="p3hwr"><label for="${id}">${esc(l)}</label><input id="${id}" data-k="${k}" type="text"${t==='txt'?'':' inputmode="decimal"'} value="${esc(v)}"></div>`}
+function hwForm(){const sec=[];for(const f of HWF){if(f[0]==='h')sec.push({t:f[1],f:[]});else sec[sec.length-1].f.push(f)}
+  return sec.map((g,i)=>{const body=g.f.filter(f=>hwVis(f[0])).map(hwField).join('');
+    return i===0?`<div class="p3hwh">${esc(g.t)}</div>${body}`:`<details class="p3hwd" data-s="${i}"${hwSecOpen.has(i)?' open':''}><summary>${esc(g.t)}</summary>${body}</details>`}).join('')}
 function hwOpen(){if(!wrap||!HW)return;const d=q('#p3hw');q('#p3hwF').innerHTML=hwForm();d.hidden=false;
   const s=selected().length;q('#p3hwScope').textContent=s?`Tanlangan ${s} ta panel`:`Hamma ko'rinadigan panel (${panels.filter(p=>!p.hid).length})`}
 function hwWire(){
@@ -1321,7 +1329,9 @@ function hwWire(){
   const d=q('#p3hw');
   d.addEventListener('change',e=>{const t=e.target,k=t.dataset.k;if(!k)return;
     if(t.type==='checkbox')hwSet(k,t.checked);else if(t.tagName==='SELECT'||/^dxf\.(drills|cut|drill|thru|groove|edge|dec)$/.test(k))hwSet(k,t.value);
-    else{const v=num(t.value);if(Number.isFinite(v)&&v>=0)hwSet(k,v);t.value=hwGet(k)}hwSave()});
+    else{const v=num(t.value);if(Number.isFinite(v)&&v>=0)hwSet(k,v);t.value=hwGet(k)}hwSave();
+    if(k==='con'||k==='dowel'){const f=q('#p3hwF'),y=f.scrollTop;f.innerHTML=hwForm();f.scrollTop=y}});   // faqat shu turga tegishli maydonlar
+  d.addEventListener('toggle',e=>{const x=e.target;if(x.classList&&x.classList.contains('p3hwd')){const i=+x.dataset.s;x.open?hwSecOpen.add(i):hwSecOpen.delete(i)}},true);
   d.addEventListener('keydown',e=>{if(e.key==='Escape'){d.hidden=true;e.stopPropagation()}});
   q('#p3hwX').onclick=()=>{d.hidden=true};q('#p3hwGo').onclick=hwPlace;q('#p3hwClr').onclick=hwClear;q('#p3hwChk').onclick=hwCheck;q('#p3hwDxf').onclick=hwExportDxf;q('#p3hwCsv').onclick=hwExportCsv;q('#p3hwNest').onclick=()=>{d.hidden=true;cncSend()}}
 /* --- CNC'ga yuborish: har material + qalinlik uchun yangi Drawing sahifasi («CNC · MDF 16 mm»). Har detal — bitta GURUH
