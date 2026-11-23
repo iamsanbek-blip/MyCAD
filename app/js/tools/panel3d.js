@@ -119,7 +119,14 @@ function ebInfo(p){   // raspil/eksport uchun: Uz1/Uz2/En1/En2 (mm), qirra uzunl
   if(n===4&&!p.pts&&(p.shape===undefined||p.shape==='rect')&&!p.c){const e=p.eb,f=v=>v>0?+(+v).toFixed(2):'-';txt=(p.w>=p.h?[e[0],e[2],e[1],e[3]]:[e[1],e[3],e[0],e[2]]).map(f).join('/')}   // uzunlik tomon: katta o'lcham bo'ylab
   else txt=p.eb.filter(v=>v>0).length+' qirra: '+[...new Set(p.eb.filter(v=>v>0))].join('/')+' mm';
   return{txt,len:len/1000,byT}}
-function paint(){kzSync();if(!inited)return;for(const p of panels){if(!p.g)continue;const s=msel.includes(p.id);p.g.children[0].material=s?selMat:fillMat;p.g.children[1].material=s?selLine:lineMat}dirtyR=true}
+/* Panel rangi: panelning o'zi (p.col) → material rangi (matCol, loyihada saqlanadi) → material nomidan avtomatik neytral ton.
+   Materialsiz — och kulrang-ko'k. Hammasi to'q va och fonda ham ko'rinadigan neytral tonlar. */
+const NEUTRAL=['#d8d0bf','#c8ad86','#b5bec9','#cfc4b0','#a8977f','#c2cbbb','#dccbb4','#9ea9b6','#e3ddd2','#b9a48a'],NOMAT='#bfc8d4';
+let matCol={},colMats=new Map();
+function autoCol(m){if(!m)return NOMAT;let h=0;for(const c of m)h=(h*31+c.charCodeAt(0))>>>0;return NEUTRAL[h%NEUTRAL.length]}
+const panelCol=p=>p.col||matCol[matN(p)]||autoCol(matN(p));
+function colMat(hex){let m=colMats.get(hex);if(!m){m=fillMat.clone();m.color.set(hex);m.opacity=fillMat.opacity;m.transparent=fillMat.transparent;m.depthWrite=fillMat.depthWrite;colMats.set(hex,m)}return m}
+function paint(){kzSync();if(!inited)return;for(const p of panels){if(!p.g)continue;const s=msel.includes(p.id);p.g.children[0].material=s?selMat:colMat(panelCol(p));p.g.children[1].material=s?selLine:lineMat}dirtyR=true}
 function add(o){
   const p=Object.assign({id:uid++,x:0,y:0,z:0,t:T},o);
   if(o.x===undefined){p.x=(panels.length%5)*60-120;p.y=ext(p)[1]/2;p.z=0}
@@ -149,7 +156,7 @@ function theme(){
   lineMat.color.set(cssv('--line')||'#c9372f');selLine.color.set(cssv('--ac2')||'#2f7de1');dxfMat.color.set(cssv('--ac2')||'#2f7de1');if(snapMark)snapMark.material.color.set(cssv('--ac2')||'#5ee1ff');
   if(grid)scene.remove(grid);grid=new THREE.GridHelper(6000,60,cssv('--g1')||'#b9bfcc',cssv('--g2')||'#d5d9e1');scene.add(grid);
   modeMat();iconsDraw();dirtyR=true}
-function modeMat(){for(const m of[fillMat,selMat]){m.opacity=wire?.07:1;m.depthWrite=!wire;m.transparent=wire;m.needsUpdate=true}dirtyR=true}
+function modeMat(){for(const m of[fillMat,selMat,...colMats.values()]){m.opacity=wire?.07:1;m.depthWrite=!wire;m.transparent=wire;m.needsUpdate=true}dirtyR=true}
 function upd(){
   cam.position.set(tg.x+R*Math.cos(el)*Math.sin(az),tg.y+R*Math.sin(el),tg.z+R*Math.cos(el)*Math.cos(az));
   // Top/Bottom: kamera aynan tik (qiya emas) — yon qirralar qo'shaloq chiziq bo'lib ko'rinmaydi
@@ -198,6 +205,7 @@ function multiProps(ps){
    <div class="p3r"><label>Qalinlik (mm)</label><input id="p3m_ebT" type="text" inputmode="decimal" value="${esc(q('#p3ebT')?q('#p3ebT').value:'0.4')}"></div>
    <div class="p3row"><button id="p3m_ebAll">Hamma qirra</button><button id="p3m_ebLong">Uzun tomonlar</button><button id="p3m_ebShort">Qisqa tomonlar</button><button id="p3m_ebClr">Tozalash</button></div>
    <p class="p3mu">Jami kromka: ${kr.toFixed(2)} m</p>
+   ${colRow((()=>{const v=ps.map(panelCol);return v.every(x=>x===v[0])?v[0]:'#888888'})(),ps.some(x=>x.col))}
    ${conSel((()=>{const v=ps.map(x=>x.con||'');return v.every(x=>x===v[0])?v[0]:null})())}
    <div class="p3row"><button id="p3m_copy">Nusxa</button><button id="p3m_del">O'chirish</button></div></div>`;
   const apply=fn=>{ps.forEach(fn);ps.forEach(build);paint();list();changed();props()};
@@ -207,7 +215,7 @@ function multiProps(ps){
   q('#p3m_mat').onchange=e=>{const v=e.target.value.trim();apply(x=>{if(v)x.mat=v;else delete x.mat})};
   const ebT=()=>{const v=Math.max(.1,num(q('#p3m_ebT').value)||.4);if(q('#p3ebT'))q('#p3ebT').value=v;return v};
   [['All','all'],['Long','long'],['Short','short'],['Clr','clear']].forEach(([i,m])=>q('#p3m_eb'+i).onclick=()=>{ebApplyTo(ps,m,ebT());paint();list();changed();props()});
-  conWire(ps);
+  conWire(ps);colWire(ps);
   q('#p3m_copy').onclick=()=>copySel();
   q('#p3m_del').onclick=()=>ps.forEach(del);
 }
@@ -222,6 +230,7 @@ function props(){
     :`<input id="p3f_${k}" type="text" inputmode="decimal" value="${+(k==='q'?(p.q||1):p[k]).toFixed(2)}">`;
   const row=k=>`<div class="p3r" data-k="${k}"><span class="p3h" title="Sudrab joyini almashtiring">⠿</span><label>${PROPL[k]}</label>${field(k)}<span class="p3ar"><button class="p3u" title="Yuqoriga">↑</button><button class="p3d" title="Pastga">↓</button></span></div>`;
   b.innerHTML=propOrder.filter(k=>k!=='c'||hasC(p)).map(row).join('')+`
+  ${colRow(panelCol(p),!!p.col)}
   <p class="p3mu">X, Y, Z — panel markazi (mm). Eni/bo'yi o'zgarsa qalinlik o'zgarmaydi. Qatorlarni ⠿ dan sudrab yoki ↑↓ bilan tartiblang. Panelga 2 marta bosing — Drawing'da shaklini tahrirlash (Alt + 2 marta — 3D da tez chizish).</p>
   <div class="p3row"><button id="p3bRot">↻ 90°</button><button id="p3bDup">Nusxa</button><button id="p3bDel">O'chirish</button></div>`+opsProps(p)+prLine(p);
   q('#p3f_n').onchange=e=>{p.n=e.target.value;list();changed()};
@@ -247,7 +256,7 @@ function props(){
     [p.w,p.h]=[p.h,p.w];build(p);props();list();changed()};
   q('#p3bDup').onclick=()=>{const c=Object.assign({},p,{g:null,id:uid++,x:p.x+40});if(p.pts)c.pts=p.pts.map(a=>a.slice());if(p.ops)c.ops=JSON.parse(JSON.stringify(p.ops));panels.push(c);build(c);select(c.id);changed()};
   q('#p3bDel').onclick=()=>del(p);
-  opsWire(p);
+  colWire([p]);opsWire(p);
 }
 function syncPos(p){for(const k of['x','y','z']){const i=q('#p3f_'+k);if(i)i.value=+p[k].toFixed(2)}}
 function list(){
@@ -1595,6 +1604,11 @@ function prCsv(){const r=prCalc(),m=v=>Math.round(v),rows=[['Detal','Soni','Mate
   try{downloadFile(rows.map(a=>a.join(';')).join('\r\n'),'rugby-smeta.csv','text/csv')}catch(e){}}
 function prLine(p){if(!PRC)return'';const r=prLast||prCalc(),x=r&&r.perPanel.find(o=>o.id===p.id);if(!x)return'';
   return `<p class="p3mu p3prLine" title="Material ${esc(prM(x.mat))} · kromka ${esc(prM(x.edge))} · ishlar ${esc(prM(x.work))} · furnitura ${esc(prM(x.hw))}">Narx: <b>${esc(prM(x.total))}</b> ${esc(r.cur)}${x.q>1?` × ${x.q} = ${esc(prM(x.sum))}`:''}</p>`}
+function colRow(hex,own){return `<div class="p3con p3colr" title="Panel rangi (faqat ko'rinish). Avto — material bo'yicha neytral ton"><label>Rang</label><span><input type="color" id="p3fCol" value="${hex}"><button id="p3fColA"${own?'':' class="on"'} title="Material bo'yicha avtomatik rang">Avto</button><button id="p3fColM" title="Shu rangni panel materialidagi hamma panellarga">Materialga</button></span></div>`}
+function colWire(ps){const c=q('#p3fCol');if(!c)return;
+  c.oninput=()=>{for(const p of ps)p.col=c.value;paint()};c.onchange=()=>{for(const p of ps)p.col=c.value;paint();changed()};
+  q('#p3fColA').onclick=()=>{ps.forEach(p=>delete p.col);paint();props();changed()};
+  q('#p3fColM').onclick=()=>{const ms=new Set(ps.map(matN));for(const m of ms)matCol[m]=c.value;for(const p of panels)if(ms.has(matN(p)))delete p.col;paint();props();changed();say(`Rang materialga: ${[...ms].map(matLbl).join(', ')}`)}}
 /* panel ulagichi: shu panel QIRRASI boshqa panel yuzasiga tegadigan ulanishlarda ustun (keyin — yuzasi tegadigan panelniki, keyin umumiy).
    Masalan bokada: krisha — ekssentrik, dno — yevrovint → bitta bokada ikkala tur. */
 function conSel(v){if(!HW)return'';const c=v===null?'*':(v||'');
@@ -1625,11 +1639,11 @@ function opsWire(p){
 /* ---------------- saqlash (loyiha fayli bilan) ---------------- */
 function snapshot(){
   const big=lines.reduce((s,l)=>s+l.p.length,0)>60000;
-  return{v:1,T,uid,guides,pl:planeMode,dp:q&&wrap&&q('#p3dxD')?q('#p3dxD').value:'500',panels:panels.map(({g,...r})=>JSON.parse(JSON.stringify(r))),lines:big?[]:lines}}
+  return{v:1,T,uid,guides,pl:planeMode,mc:Object.keys(matCol).length?{...matCol}:undefined,dp:q&&wrap&&q('#p3dxD')?q('#p3dxD').value:'500',panels:panels.map(({g,...r})=>JSON.parse(JSON.stringify(r))),lines:big?[]:lines}}
 function load(d){
   if(act&&act.k==='xf')xfStop();act=null;   // faol sudrash eski panellarga bog'lanib qolmasin
   if(inited){for(const p of panels)if(p.g)P.remove(p.g)}
-  panels=[];sel=null;msel=[];lines=[];guides=[];dr=null;
+  panels=[];sel=null;msel=[];lines=[];guides=[];dr=null;matCol={};if(d&&d.mc&&typeof d.mc==='object')for(const k in d.mc)if(/^#[0-9a-f]{6}$/i.test(d.mc[k]))matCol[k]=d.mc[k];
   if(d&&Array.isArray(d.panels)){T=d.T>0?d.T:16;uid=d.uid||1;
     panels=d.panels.filter(p=>p&&p.o&&p.w>0&&p.h>0&&p.t>0).map(p=>{const c=Object.assign({},p);if(HW){const o=HW.sanitize(p.ops);if(o)c.ops=o;else delete c.ops}return c});
     uid=Math.max(uid,...panels.map(p=>p.id+1),1);
@@ -1933,5 +1947,5 @@ window.Panel3D={retheme:()=>{if(inited)theme()},hotkeys:{commands:P3CMD.map(({id
     for(let a=0;a<3;a++){const A=new THREE.Vector3();A.setComponent(a,1);o['a'+a]=P(c.clone().addScaledVector(A,90*k));o['v'+a]=gzAx[a].visible;
       const g=gzPl[a];g.updateMatrixWorld(true);o['p'+a]=P(g.getWorldPosition(new THREE.Vector3()));o['pv'+a]=g.visible}return o},
   _cursor:()=>c3?c3.toArray():null,_autoName:()=>autoName(),_clusters:()=>corpusClusters(panels.filter(p=>!p.hid)).map(c=>c.map(p=>p.id)),_pivot:()=>pivot,_act:()=>act?{k:act.k,con:act.con,typed:act.typed,hit:act.hit?act.hit.k:null}:null,_snap:()=>snapHit?{k:snapHit.k,T:snapHit.T.toArray()}:null,
-  _cnc:()=>cncSend(),_vsel:keys=>{if(keys){vsel=new Set(keys);dirtyR=true}return{keys:[...vsel],gz:!!(gz&&gz.visible)}},_group:()=>groupSel(),_ungroup:()=>ungroupSel(),_array:(n,d)=>arraySel(n,d),_dist:a=>distSel(a),_joints:()=>HW.jointLines(panels,hwOpts),_jointScr:k=>{const l=HW.jointLines(panels,hwOpts).find(x=>x.key===k);if(!l)return null;const r=cv.getBoundingClientRect(),s=scrOf(new THREE.Vector3((l.p0[0]+l.p1[0])/2,(l.p0[1]+l.p1[1])/2,(l.p0[2]+l.p1[2])/2));return{x:r.left+s.x,y:r.top+s.y}},_price:o=>{if(o){prices=PRC.merge(o);prSave()}return prCalc()},_prOpen:()=>{if(!prOpen)q('#p3prTab').click()},_guides:()=>drawnLines.filter(l=>l.p3g).map(l=>({k:l.kind,pts:l.points.map(o=>[+o.x.toFixed(2),+o.y.toFixed(2)])})),_edit:id=>{const p=panels.find(x=>x.id===id);return p?editInDrawing(p):false},_editApply:()=>editApply(),_editCancel:()=>editCancel(),_editing:()=>p3edit?{...p3edit}:null,_hw:{place:o=>{if(o)hwOpts=HW.merge(HW.DEF,o);return hwPlace()},clear:hwClear,dxf:()=>hwDxfData(),csv:()=>HW.csv(hwTargets()),check:hwCheck,open:hwOpen,opts:()=>hwOpts,ops:id=>{const p=panels.find(x=>x.id===id);return p&&p.ops?JSON.parse(JSON.stringify(p.ops)):[]},showOps:()=>showOps},_snapM:snapM,_setTool:t=>setTool(t),_view:v=>setView(v),_select:ids=>{msel=ids.slice();sel=ids[ids.length-1];paint();props();list();dirtyR=true}};
+  _cnc:()=>cncSend(),_col:id=>{const p=panels.find(x=>x.id===id);return p?panelCol(p):null},_vsel:keys=>{if(keys){vsel=new Set(keys);dirtyR=true}return{keys:[...vsel],gz:!!(gz&&gz.visible)}},_group:()=>groupSel(),_ungroup:()=>ungroupSel(),_array:(n,d)=>arraySel(n,d),_dist:a=>distSel(a),_joints:()=>HW.jointLines(panels,hwOpts),_jointScr:k=>{const l=HW.jointLines(panels,hwOpts).find(x=>x.key===k);if(!l)return null;const r=cv.getBoundingClientRect(),s=scrOf(new THREE.Vector3((l.p0[0]+l.p1[0])/2,(l.p0[1]+l.p1[1])/2,(l.p0[2]+l.p1[2])/2));return{x:r.left+s.x,y:r.top+s.y}},_price:o=>{if(o){prices=PRC.merge(o);prSave()}return prCalc()},_prOpen:()=>{if(!prOpen)q('#p3prTab').click()},_guides:()=>drawnLines.filter(l=>l.p3g).map(l=>({k:l.kind,pts:l.points.map(o=>[+o.x.toFixed(2),+o.y.toFixed(2)])})),_edit:id=>{const p=panels.find(x=>x.id===id);return p?editInDrawing(p):false},_editApply:()=>editApply(),_editCancel:()=>editCancel(),_editing:()=>p3edit?{...p3edit}:null,_hw:{place:o=>{if(o)hwOpts=HW.merge(HW.DEF,o);return hwPlace()},clear:hwClear,dxf:()=>hwDxfData(),csv:()=>HW.csv(hwTargets()),check:hwCheck,open:hwOpen,opts:()=>hwOpts,ops:id=>{const p=panels.find(x=>x.id===id);return p&&p.ops?JSON.parse(JSON.stringify(p.ops)):[]},showOps:()=>showOps},_snapM:snapM,_setTool:t=>setTool(t),_view:v=>setView(v),_select:ids=>{msel=ids.slice();sel=ids[ids.length-1];paint();props();list();dirtyR=true}};
 })();

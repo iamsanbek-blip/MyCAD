@@ -193,6 +193,17 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     assert.ok(SK.w>580,'cho\'zildi: '+SK.w);assert.equal(SK.h,500);assert.equal(SK.y,712);assert.equal(SK.z,0);assert.ok(Math.abs((SK.x-300)-(SK.w-568)/2)<.01,'faqat o\'ng tomon');
     assert.deepEqual((await ev(()=>Panel3D._vsel())).keys,['1:1','1:2'],'nuqtalar tanlovi qoladi');
     passed.push(`Stretch (W): nuqtalar ustida X/Y/Z strelka; X strelkasi bilan ${Math.round(SK.w-568)} mm cho'zildi (faqat X, chap tomon joyida), tanlov saqlanadi — keyingi strelka bilan davom`);
+    // 9. Panel rangi: avtomatik neytral (material bo'yicha), qo'lda tanlash, «Avto», «Materialga» — loyihada saqlanadi
+    await ev(()=>{Panel3D._setTool('select');Panel3D.load({T:16,uid:10,panels:[{id:1,n:'a',w:500,h:720,t:16,o:'side',x:8,y:360,z:0,mat:'LDSP oq'},{id:2,n:'b',w:500,h:720,t:16,o:'side',x:592,y:360,z:0,mat:'LDSP oq'},{id:3,n:'c',w:568,h:500,t:16,o:'flat',x:300,y:8,z:0}]});Panel3D._select([])});
+    const c0=await ev(()=>[1,2,3].map(i=>Panel3D._col(i)));assert.equal(c0[0],c0[1]);assert.equal(c0[2],'#bfc8d4');assert.notEqual(c0[0],c0[2]);
+    await page.locator('#p3pl .p3it').nth(0).click();await page.waitForSelector('#p3fCol');
+    await page.locator('#p3fCol').evaluate(e=>{e.value='#336699';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}))});
+    assert.deepEqual(await ev(()=>[Panel3D._col(1),Panel3D._col(2)]),['#336699',c0[1]]);
+    await page.locator('#p3fColA').click();assert.equal(await ev(()=>Panel3D._col(1)),c0[0]);
+    await page.locator('#p3fCol').evaluate(e=>{e.value='#aa7744';e.dispatchEvent(new Event('change',{bubbles:true}))});await page.locator('#p3fColM').click();
+    assert.deepEqual(await ev(()=>[1,2,3].map(i=>Panel3D._col(i))),['#aa7744','#aa7744','#bfc8d4']);
+    const snap=await ev(()=>Panel3D.snapshot());assert.deepEqual(snap.mc,{'LDSP oq':'#aa7744'});await ev(s=>Panel3D.load(s),snap);assert.equal(await ev(()=>Panel3D._col(2)),'#aa7744');
+    passed.push("Panel rangi: material bo'yicha avtomatik neytral (bir materialda bir xil, materialsiz — #bfc8d4), qo'lda tanlash, Avto, Materialga — loyihada saqlanadi");
     assert.deepEqual(errors,[]);
   }finally{await browser.close();fs.rmSync(tmp,{recursive:true,force:true})}
   console.log(passed.map(s=>'PASS '+s).join('\n'));console.log(`modeling-cnc-price: ${passed.length} checks passed`);

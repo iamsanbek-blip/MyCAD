@@ -1,5 +1,8 @@
 # Rugby 1.1.2 — CNC nesting, panelni Drawing'da tahrirlash, aralash ulagich, narx (2026-11-23)
 
+- **Panel rangi.** Panellar endi material bo'yicha avtomatik neytral tonda (bir materialdagi panellar bir xil; materialsiz — och
+  kulrang-ko'k) — to'q va och fonda ko'rinadi. Panel xossalari ▸ **Rang**: o'zingiz tanlash (bir nechta panel tanlansa — hammasiga),
+  **Avto** — qaytarish, **Materialga** — shu rang materialdagi hamma panelga (loyihada `mc` sifatida saqlanadi). Rang faqat ko'rinish uchun.
 - **Drawing'da tahrirlashda yordamchi chiziqlar.** Panel 2 marta bosilganda vaqtinchalik sahifada `YORDAMCHI` qatlamida (kulrang):
   shu panelga tegib turgan yoki kesib o'tgan qo'shni panellarning izi (to'rtburchak + nomi — krisha, polka, orqa devor, fasad …), iz
   qirralaridan butun panel bo'ylab davom etuvchi chiziqlar va panel o'rta chiziqlari. Magnit (uch, kesishish) ularga yopishadi — o'yiq,
