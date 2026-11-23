@@ -1320,12 +1320,12 @@ function hwOpen(){if(!wrap||!HW)return;const d=q('#p3hw');q('#p3hwF').innerHTML=
 function hwWire(){
   if(!HW||q('#p3hw'))return;
   q('.p3view').insertAdjacentHTML('beforeend',`<div class="p3hw" id="p3hw" hidden role="dialog" aria-label="Furnitura va teshiklar">
-   <div class="p3hwt"><b>Furnitura va teshiklar</b><span class="p3mu" id="p3hwScope"></span><span style="flex:1"></span><button id="p3hwX" title="Yopish (Esc)">✕</button></div>
+   <div class="p3hwt"><b>Furnitura va teshiklar</b><span class="p3hwQ" tabindex="0" title="Bokaning yuzasiga boshqa panel qirrasi tegib turgan joylar ulanish hisoblanadi. «Furnituralash» — avtomatik teshiklar qayta qo'yiladi (qo'lda qo'yilganlar saqlanadi). DXF: har panel o'z koordinatasida, A tomoni; B tomonida teshik bo'lsa — ag'darilgan B chizmasi ham. Qatlam nomi teshik Ø va chuqurligini bildiradi — CAM dasturida qatlamni sverloga bog'lang.">?</span><span class="p3mu" id="p3hwScope"></span><span style="flex:1"></span><button id="p3hwX" title="Yopish (Esc)">✕</button></div>
    <div class="p3hwb"><div class="p3hwf" id="p3hwF"></div>
-    <div class="p3hws"><div class="p3row" style="margin-top:0"><button id="p3hwGo" class="on">Furnituralash</button><button id="p3hwClr">Avto teshiklarni o'chirish</button><button id="p3hwChk">Tekshirish</button></div>
+    <div class="p3hws"><div class="p3row" style="margin-top:0"><button id="p3hwGo" class="on">Furnituralash</button><button id="p3hwClr" title="Avtomatik qo'yilgan teshik va pazlarni o'chirish (qo'lda qo'yilganlar qoladi)">Tozalash</button><button id="p3hwChk">Tekshirish</button></div>
      <div class="p3row"><button id="p3hwDxf">DXF eksport (CNC)</button><button id="p3hwCsv">Teshiklar CSV</button></div>
      <div class="p3row"><button id="p3hwNest" title="Har material/qalinlik — alohida Drawing sahifasi; detallar teshiklari bilan guruh bo'lib listga joylanadi (Cnc ▸ Joylash bilan qayta joylash mumkin)">CNC'ga yuborish — listga joylash</button></div>
-     <div id="p3hwOut" class="p3hwo"><p class="p3mu">Bokaning yuzasiga boshqa panel qirrasi tegib turgan joylar ulanish hisoblanadi. «Furnituralash» — avtomatik teshiklar qayta qo'yiladi (qo'lda qo'yilganlar saqlanadi). Panel o'lchami yoki joyi o'zgarsa qayta bosing.</p><p class="p3mu">DXF: har panel o'z koordinatasida, A tomoni; B tomonida teshik bo'lsa — ag'darilgan (ko'zgu) B chizmasi ham. Qatlam nomi teshik Ø va chuqurligini bildiradi — CAM dasturida qatlamni sverloga bog'lang.</p></div></div></div></div>`);
+     <div id="p3hwOut" class="p3hwo"></div></div></div></div></div>`);
   const d=q('#p3hw');
   d.addEventListener('change',e=>{const t=e.target,k=t.dataset.k;if(!k)return;
     if(t.type==='checkbox')hwSet(k,t.checked);else if(t.tagName==='SELECT'||/^dxf\.(drills|cut|drill|thru|groove|edge|dec)$/.test(k))hwSet(k,t.value);

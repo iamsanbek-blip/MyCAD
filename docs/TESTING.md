@@ -21,6 +21,8 @@
 - Qo'shimcha (izoh bo'yicha): Furnitura oynasi ixcham — ulanish bo'limida faqat tanlangan turning maydonlari, qolgan bo'limlar yig'ilgan;
   J asbobi tugmalari bitta qatorda (qisqa nomlar, chap yuqorida). `panel3d-hw-ui` (8), `modeling-cnc-price` (11), `npm test` qayta o'tdi;
   1366×768 skrinshotda tekshirildi.
+- Qo'shimcha (izoh bo'yicha): Furnitura oynasi o'ng chetda tor ustun (330 px): tugmalar tepada, sozlamalar ostida, natija faqat
+  bo'lsa ko'rinadi, izoh «?» da. `panel3d-hw-ui` (8), `modeling-cnc-price` (11), `npm test` o'tdi; 1366×768 skrinshotda tekshirildi.
 - `tests/modeling-cnc-price.cjs` (yangi, web build, Chromium 1243, haqiqiy sichqoncha, 8): xossalarda ulagich tanlash → korpus qayta
   teshiladi; Narx paneli (jami = hisob, narx o'zgarganda yangilanadi, localStorage, detal narxi, smeta CSV); CNC'ga yuborish — 3 sahifa,
   detallar list ichida, teshiklar detal ichida, teksturali burilmagan; detal konturini bosish butun guruhni tanlaydi, Move bilan boshqa

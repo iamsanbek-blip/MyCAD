@@ -172,3 +172,11 @@ body.lightTheme #p3wrap .p3seg button.on{color:#fff}
 #p3wrap .p3jb button i{width:8px;height:8px;border-radius:2px;display:inline-block;border:1px solid rgba(0,0,0,.35)}#p3wrap .p3jb .p3jn{font-size:11px;color:var(--on);padding:0 4px}
 #p3wrap .p3hwd{border-top:1px solid var(--bd);padding:4px 0}#p3wrap .p3hwd summary{cursor:pointer;font-weight:600;color:var(--on);padding:3px 0}#p3wrap .p3hwd[open] summary{margin-bottom:4px}
 #p3wrap .p3hw{bottom:auto;max-height:calc(100% - 20px)}#p3wrap .p3hwb{overflow:auto}
+/* Furnitura oynasi — o'ng chetda tor ustun: tugmalar tepada, sozlamalar ostida (3D ko'rinish chap tomoni bo'sh) */
+#p3wrap .p3hw{width:min(330px,calc(100% - 20px))}
+#p3wrap .p3hwb{display:flex;flex-direction:column;gap:6px;overflow:auto}#p3wrap .p3hws{order:-1;overflow:visible}#p3wrap .p3hwf{overflow:visible}
+#p3wrap .p3hws .p3row{margin-top:4px;gap:4px}#p3wrap .p3hws .p3row button{flex:1;padding:4px 6px;font-size:12px}
+#p3wrap .p3hwo:empty{display:none}#p3wrap .p3hwo{margin-top:4px;padding:6px 8px;border:1px solid var(--bd);border-radius:6px}
+#p3wrap .p3hwr{grid-template-columns:1fr 70px}#p3wrap .p3hwr:has(select),#p3wrap .p3hwr:has(input:not([inputmode])){grid-template-columns:auto 1fr}
+#p3wrap .p3hwQ{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;border:1px solid var(--bd);color:var(--mu);font-size:11px;cursor:help}
+#p3wrap .p3hwf>.p3hwh:first-child{margin-top:6px}
