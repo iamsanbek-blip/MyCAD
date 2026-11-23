@@ -1,3 +1,26 @@
+# Furnitura, teshik va CNC DXF — 2026-11-23 (Linux)
+
+**Windows'da va haqiqiy CNC dastgohda sinalmagan. EXE yig'ilmagan.**
+
+- `npm run check` (55 JS fayli, 0 xato); `npm test` (18 regressiya + 24 workspace + yangi `tests/panel3d-hw.cjs`) — 0 yiqilgan.
+- `tests/panel3d-hw.cjs` (Node, 11): 7 detalli korpusda tur bo'yicha sonlar; yevrovint yuza va chet teshigi bir dunyo nuqtasida, chet teshigi
+  panel ichiga; polkaderjatel, paz (4.5×8), petlya (21.5, 102/618) va planka (37, ±16), ruchka; ekssentrik; qayta joylash; 90° burish (4 marta —
+  aynan) va Mirror; DXF R12 (qatlam jadvali, B tomoni ko'zgu koordinatasi, Ø5.2→Ø5, Ø12 sverlosiz, shablon); CSV; tekshiruv xabarlari;
+  `document-codec` encode/decode orqali teshiklar saqlanishi.
+- `tests/panel3d-hw-ui.cjs` (web build, Chromium 1243, 8): Alt+F va menyu; «Furnituralash» hisoboti va 3D halqalar; View ▸ yashirish;
+  xossalarda qo'lda Ø5.2 teshik va o'chirish; Ctrl+Z; DXF va CSV fayl (web'da claude.ai downloads o'rnini bosuvchi bilan ushlandi —
+  nom `rugby-cnc.dxf.txt`); sozlama eslab qolinishi va tanlov bo'yicha; snapshot/load.
+- Brauzerda yaratilgan DXF **ezdxf 1.4.5** bilan ochildi: AC1009, 0 xato; CIRCLE 29, POLYLINE 14, TEXT 10, LINE 8; rasmga chizib ko'rildi.
+- Qayta o'tdi: `panel3d`, `panel3d-export`, `modeling-precision` (13), `smart-autoname` (14); Electron 31.7.7 (xvfb): `modeling-smoke`,
+  `electron-smoke`, `panel-types-smoke`, `stretch-select`.
+- Topilgan va tuzatilgan: fasad bokani to'liq yopmasa (2 mm zazor) petlya ulanishi topilmasdi; uzun nomli DXF yozuvlari qo'shni chizmaga
+  chiqardi (endi ikki qator); `t27_dxf` `tests/fixtures` dagi hamma DXF'ni o'qiydi — test u yerga fayl yozmaydi.
+
+Tekshirilmagan: Electron'da DXF saqlash oynasi (CSV/OBJ eksporti bilan bir xil yo'l), CAM dasturida qatlamlarni sverloga bog'lash, haqiqiy
+dastgohda teshik joyi, Windows.
+
+---
+
 # Portable EXE — 2026-11-04 (Linux'da yig'ildi, imzosiz)
 
 **Windows'da ishga tushirib sinalmagan.** `Rugby-1.1.2-20261104-Portable-Unsigned.exe`, 65 700 255 bayt,

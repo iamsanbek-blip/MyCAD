@@ -1,3 +1,29 @@
+# Rugby 1.1.2 — Furnitura, teshik va CNC DXF (2026-11-23)
+
+- **Object ▸ Furnitura va teshiklar (CNC DXF)…** — Modeling, **Alt+F**. Tanlov bo'lsa tanlangan panellar, aks holda hamma ko'rinadigan panellar.
+  «Furnituralash» korpus ulanishlarini (panel qirrasi boshqa panel yuzasiga tegadi, oraliq ≤ 3 mm) topib teshik qo'yadi:
+  - **Yevrovint** (standart): yuzada Ø7 teshib o'tadi, qirrada Ø5×50; uchlaridan 50 mm, uzun ulanishda qadam ≤ 500. Yoki **ekssentrik**
+    (Ø15×13 qirradan 34 mm, chetida Ø8×34, bokada shtok Ø5×11), **shkant** (Ø8: yuza 12, chet 25); «Yoniga shkant» — +32 mm.
+  - **Polka** (nomi «polka…») — qotirilmaydi: bokada polkaderjatel Ø5×10, polka ostidan 8 mm, oldi/orqadan 37 mm (± qo'shimcha qator 32 mm).
+  - **Fasad** (nomi «fasad…», bo'yi enidan katta — eshik): petlya chashkasi Ø35×13 ichki yuzada, chetdan K=4 (markaz 21.5), tepadan/pastdan 100,
+    soni bo'yiga qarab 2–5; bokada planka teshiklari oldidan 37, ±16. Petlya fasad markaziga yaqin bokaga (teng bo'lsa — chap). Ruchka 128 mm,
+    qarama-qarshi chetdan 40 (tortma fasadi — gorizontal, markazda); 0 — ruchkasiz.
+  - **Orqa devor** (qalinligi ≤ 10): boka/krisha/dno'da paz — eni panel + 0.5, chuqurligi panel kirgan masofa (kirmasa 8 va ogohlantirish).
+  - Fasad/polka/orqa devor nomdan aniqlanadi — avval **Avto-nom (Alt+N)**. Hamma o'lchamlar oynada o'zgartiriladi va eslab qolinadi.
+  - Qayta bosilsa avtomatik teshiklar almashadi, qo'lda qo'yilganlar qoladi. Panel o'lchami/joyi o'zgarsa qayta bosing.
+- **Tekshiruv**: panel tashqarisida, chetga juda yaqin, teshilib ketadi, ustma-ust, chet teshigi qalinlikka sig'maydi.
+- **Panel xossalari ▸ Teshiklar**: ro'yxat (tur, yuza A/B/chet, U, V, Ø, chuqurlik), ✕ — o'chirish, qo'lda yuza teshigi qo'shish.
+  U, V — panel burchagidan (profil koordinatasi). Teshiklar panel bilan ko'chadi, buriladi (90°, eni↔bo'yi) va Mirror'da aks etadi; loyihada saqlanadi.
+- **View ▸ Teshik va pazlarni ko'rsatish**: yuza teshigi — to'q sariq halqa, chet teshigi — pushti halqa va chuqurlik chizig'i, paz — to'rtburchak.
+- **DXF eksport (CNC)** — `rugby-cnc.dxf`, AutoCAD R12, mm. Har panel o'z koordinatasida (A tomoni); B tomonida ko'r teshik/paz bo'lsa —
+  ag'darilgan B chizmasi ham. Qatlamlar (shablon sozlanadi): `CUT_Z16` kontur, `DRILL_D5_Z10` teshik, `DRILL_D7_THRU` teshib o'tadi,
+  `GROOVE_W4_5_Z8` paz, `HDRILL_D5_Z50` chet teshigi (3 o'qli router teshiy olmaydi — присадка/qo'lda), `LABEL` yozuv.
+  Kasr qatlam nomida `_` (R12 nomida nuqta bo'lmaydi). **Sverloga yaxlitlash**: ro'yxatdagi sverloga ± chegarada (standart 5,7,8,15,35; ±0.3) —
+  Ø5.2 → Ø5; mos sverlo bo'lmasa «frezalash kerak» deb hisobotda. **Teshiklar CSV** — hamma teshik va paz ro'yxati.
+- Hali yo'q: G-code, tortma yo'naltiruvchisi, Drawing'dagi aylanalarni teshikka aylantirish, Nanxing formati. Haqiqiy CNC'da sinalmagan.
+
+---
+
 # Rugby 1.1.2 — Smart kiritish va Avto-nom (2026-11-03)
 
 - **Smart kiritish** (`app/js/ui/smart-input.js`, hamma maydonlarga o'zi ulanadi): oxirgi qiymatlar taklif qilinadi — «ch» → «chap boka», «3» → «3040».
@@ -117,6 +143,7 @@ hotkeylar va CorelDRAW/Excel kabi bitta faylda ko'p sahifa.
 Renderer 45 ta oddiy scriptdan iborat. `app/index.html` dagi tartib muhim;
 ular umumiy global scope'da ishlaydi. Yangi `core/` modullarida sof format va
 hotkey qoidalari, `model/pages.js` da eski state bilan adapter bor.
+`tools/panel3d-hw.js` — furnitura/teshik/DXF sof mantig'i (DOM'siz, Node'da test qilinadi), `panel3d.js` dan oldin yuklanadi.
 `docs/ARCHITECTURE.md` da har qism va kengaytirish tartibi tushuntirilgan.
 
 ## Ishga tushirish va tekshirish

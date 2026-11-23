@@ -134,3 +134,19 @@ body.lightTheme #p3wrap .p3seg button.on{color:#fff}
 #p3wrap .p3snap.edge i::before,#p3wrap .p3snap.edge i::after{content:'';position:absolute;left:6px;top:-1px;width:2px;height:16px;background:var(--ac2);transform:rotate(45deg)}
 #p3wrap .p3snap.edge i::after{transform:rotate(-45deg)}
 #p3wrap .p3snap span{position:absolute;left:11px;top:-24px;white-space:nowrap;font-size:11px;line-height:15px;padding:0 5px;border-radius:4px;background:var(--p);border:1px solid var(--ac2);color:var(--tx)}
+/* Furnitura va teshiklar oynasi (Object ▸ Furnitura, Alt+F) */
+#p3wrap .p3hw{position:absolute;top:10px;right:10px;bottom:10px;width:min(560px,calc(100% - 20px));display:flex;flex-direction:column;background:var(--p);border:1px solid var(--bd);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.35);z-index:30}
+#p3wrap .p3hw[hidden]{display:none}
+#p3wrap .p3hwt{display:flex;gap:10px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--bd)}
+#p3wrap .p3hwb{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:8px 10px;overflow:hidden}
+#p3wrap .p3hwf,#p3wrap .p3hws{overflow:auto;min-height:0}
+#p3wrap .p3hwh{font-weight:600;margin:10px 0 4px;color:var(--on)}#p3wrap .p3hwh:first-child{margin-top:0}
+#p3wrap .p3hwr{display:grid;grid-template-columns:1fr 84px;gap:6px;align-items:center;margin:3px 0}
+#p3wrap .p3hwr label{color:var(--mu);font-size:12px;margin:0}
+#p3wrap .p3hwr select,#p3wrap .p3hwr input{min-width:0}
+#p3wrap .p3hwr:has(select),#p3wrap .p3hwr:has(input:not([inputmode])){grid-template-columns:90px 1fr}
+#p3wrap .p3hwc{display:flex;gap:6px;align-items:center;margin:4px 0;color:var(--tx);font-size:12px}#p3wrap .p3hwc input{width:auto}
+#p3wrap .p3hwo{margin-top:10px;font-size:12px;overflow-wrap:anywhere}#p3wrap .p3hwo ul{margin:4px 0;padding-left:18px}
+#p3wrap .p3opw{overflow-x:auto;max-width:100%}#p3wrap .p3ops table{font-size:11px;margin-top:4px}#p3wrap .p3ops table td,#p3wrap .p3ops table th{padding:2px 3px;white-space:nowrap}#p3wrap .p3ops .p3opX{padding:0 5px}
+#p3wrap .p3opadd{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;align-items:center}#p3wrap .p3opadd input,#p3wrap .p3opadd select{min-width:0}
+@media (max-width:900px){#p3wrap .p3hwb{grid-template-columns:1fr;overflow:auto}#p3wrap .p3hwf,#p3wrap .p3hws{overflow:visible}}
