@@ -1338,7 +1338,10 @@ function cncSend(){
   if(!HW||typeof addPage!=='function'||typeof runNesting!=='function'){say("CNC sahifasi faqat to'liq dasturda");return null}
   const ps=hwTargets();if(!ps.length){hwSay("Panel yo'q.");return null}
   const G=new Map();
-  for(const p of ps){const t=+p.t.toFixed(2),k=matN(p)+'|'+t;if(!G.has(k))G.set(k,{m:matN(p),t,parts:[]});const f=HW.flat(p,hwOpts);for(let i=0;i<(p.q||1);i++)G.get(k).parts.push(f)}
+  for(const p of ps){const t=+p.t.toFixed(2),k=matN(p)+'|'+t;if(!G.has(k))G.set(k,{m:matN(p),t,parts:[]});const f=HW.flat(p,hwOpts);
+    f.info={w:+p.w.toFixed(2),h:+p.h.toFixed(2),L:+LW(p)[0].toFixed(2),W:+LW(p)[1].toFixed(2),t,mat:matN(p),eb:ebInfo(p).txt,ebs:p.eb&&p.eb.length===4&&!p.pts&&(!p.shape||p.shape==='rect')&&!p.c?p.eb.slice():null,holes:(p.ops||[]).filter(o=>o.k!=='g').length,q:p.q||1};
+    for(let i=0;i<(p.q||1);i++)G.get(k).parts.push(f)}
+  for(const g of G.values())g.parts.sort((a,b)=>String(a.name).localeCompare(String(b.name),undefined,{numeric:true}));   // birka raqami — nom tartibida
   const SW=num(q('#p3shL').value)||2800,SH=num(q('#p3shW').value)||2070,MAR=Math.max(0,num(q('#p3shT').value)),srcPage=typeof activePageId!=='undefined'?activePageId:null;
   const out=[];let other=0,edge=0,mapped=0,none=0;
   if(isOpen)close();
@@ -1348,10 +1351,10 @@ function cncSend(){
     const set=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v};set('nestSheetW',SW);set('nestSheetH',SH);set('nestMargin',MAR);
     const want=[];for(const f of g.parts){for(const n of[f.cut,...f.circles.map(c=>c.layer),...f.rects.map(r=>r.layer)])if(!want.includes(n))want.push(n)}
     want.forEach((n,k)=>{if(layers.some(l=>l.id===n))return;const pal=COLOR_PALETTE[(/^CUT/.test(n)?1:/^GROOVE/.test(n)?6:2+k)%COLOR_PALETTE.length];layers.push({id:n,name:n,color:pal.hex,aci:pal.aci,visible:true,locked:false})});
-    let x=0;
+    let x=0,no=0;
     for(const f of g.parts){const gid=newGroupId(),P=(a,b)=>({x:a+x,y:b});
       const pts=f.contour.map(c=>P(c[0],c[1]));
-      drawnLines.push(Object.assign({kind:'line',closed:true,selected:false,layer:f.cut,points:pts,grips:pts.map(o=>({x:o.x,y:o.y})),group:gid,p3:{n:f.name,id:f.id,side:f.side}},f.noRot?{nr:1}:{}));
+      drawnLines.push(Object.assign({kind:'line',closed:true,selected:false,layer:f.cut,points:pts,grips:pts.map(o=>({x:o.x,y:o.y})),group:gid,p3:Object.assign({no:++no,n:f.name,id:f.id,side:f.side},f.info)},f.noRot?{nr:1}:{}));
       for(const c of f.circles){const ce=P(c.x,c.y),r=c.r;drawnLines.push({kind:'circle',center:ce,radius:r,closed:true,selected:false,layer:c.layer,points:genCirclePts(ce,r),
         grips:[{x:ce.x+r,y:ce.y},{x:ce.x-r,y:ce.y},{x:ce.x,y:ce.y+r},{x:ce.x,y:ce.y-r}],group:gid,p3op:1});if(c.none)none++}
       for(const r of f.rects){const rp=genRectPts(P(r.x0,r.y0),P(r.x1,r.y1));drawnLines.push({kind:'rect',closed:true,selected:false,layer:r.layer,points:rp,grips:rp.map(o=>({x:o.x,y:o.y})),group:gid,p3op:1})}

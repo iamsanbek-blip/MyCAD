@@ -204,6 +204,7 @@
       <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-dim);" title="Sig'masa detalni 90° burib ko'radi"><input type="checkbox" id="nestRotate" checked style="width:auto;">90° burish</label>
       <button class="dtBtn" id="nestRunBtn" title="Tanlangan (yoki barcha) detallarni listga joylaydi">⊞ <span data-i18n="nestPlace">Joylash</span></button>
       <button class="dtBtn" id="nestClearBtn" title="List chizig'ini olib tashlash">✕ <span data-i18n="nestClear">List</span></button>
+      <button class="dtBtn" id="nestLabelsBtn" title="Detal birkalari — A4 stiker varaqqa chop etish (raqam, nom, o'lcham, kromka, list)">🏷 Birkalar</button>
       <span id="nestReport" style="font-size:11px;color:var(--cyan);"></span>
     </div>
     <div class="dtGroup" id="dimensionGroup">
@@ -557,6 +558,7 @@
   <!-- TOOLS — draw, edit, transform, cnc -->
   <script src="js/tools/nest-raster.js"></script>
   <script src="js/tools/cnc.js"></script>
+  <script src="js/tools/part-labels.js"></script>
   <script src="js/tools/panel-types.js"></script>
 
   <!-- Panel 3D (1.1.2): three.js lokal, offline ishlaydi -->

@@ -94,6 +94,23 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     assert.ok(L.layers.includes('CUT_Z16')&&L.layers.includes('DRILL_D5_Z10'));
     passed.push(`CNC'ga yuborish: 3 sahifa (LDSP, MDF, XDF), 5 detal ${st.sheets.length} listda, teshiklar detal ichida, teksturali chap boka 720×500 va burilmagan`);
 
+    // 3b. Detal raqami/nomi: xaritada, DXF LABEL qatlamida; «🏷 Birkalar» — A4 stiker varaq, faqat tanlanganlar, HTML fayl, chop etish
+    const lb=await ev(()=>{const t=buildDXF();return{layer:t.includes('0\nLAYER\n2\nLABEL\n'),texts:[...t.matchAll(/\nTEXT\n8\nLABEL\n[\s\S]*?\n1\n([^\n]+)\n/g)].map(m=>m[1]),list:partList().map(p=>[p.no,p.n,p.sheet])}});
+    assert.ok(lb.layer);assert.equal(lb.texts.length,10);assert.deepEqual(lb.list.map(x=>x[0]),[1,2,3,4,5]);assert.ok(lb.list.every(x=>x[2]===1));
+    assert.ok(lb.texts.includes('#1 A. chap boka'));
+    await page.locator('#nestLabelsBtn').click();await page.waitForSelector('#plDlg');
+    assert.equal(await page.locator('#plPrev .plCell .plNo').count(),5);assert.match(await page.locator('#plInfo').textContent(),/5 ta birka · 1 varaq A4 \(70×37 mm\)/);
+    assert.match(await page.locator('#plPrev .plCell').first().textContent(),/#1\s*A\. chap boka\s*720 × 500 × 16 LDSP oq\s*Kromka: 1 mm — 1 tomon · teshik \d+/);
+    await page.selectOption('#plLay','40');await page.fill('#plOrder','Oshxona-12');await page.fill('#plSkip','3');
+    assert.match(await page.locator('#plInfo').textContent(),/5 ta birka · 1 varaq A4 \(52\.5×29\.7 mm\)/);assert.equal(await page.locator('#plPrev .plCell.empty').count(),3);
+    await ev(()=>{window.__printed=null;window.print=()=>{window.__printed=document.getElementById('plPrintHost').querySelectorAll('.plCell .plNo').length}});
+    await page.locator('#plPrint').click();assert.equal(await ev(()=>window.__printed),5);
+    const nSaved=await ev(()=>window.__saved.length);await page.locator('#plSave').click();await page.waitForFunction(n=>window.__saved.length>n,nSaved);
+    const hf=await ev(()=>window.__saved[window.__saved.length-1]);assert.equal(hf.filename,'birkalar-Oshxona-12.html');assert.match(hf.text,/@page\{size:A4;margin:0\}/);assert.match(hf.text,/Oshxona-12 · List 1\/1/);
+    await page.keyboard.press('Escape');assert.equal(await page.locator('#plDlg').count(),0);
+    assert.equal(await ev(()=>JSON.parse(localStorage.getItem('rugby.labels.v1')).lay),'40');
+    passed.push("Detal birkasi: xaritada «#1 A. chap boka / 720×500 · L1», DXF LABEL qatlamida 10 ta yozuv; 🏷 Birkalar — 5 ta (70×37), 40 talik varaq + 3 katak o'tkazib, chop etishga 5 ta, HTML fayl «Oshxona-12 · List 1/1»");
+
     // 4. Haqiqiy sichqoncha: detal konturini bosish — butun guruh tanlanadi; Move (M) bilan boshqa joyga — teshiklar birga ko'chadi
     const scr=(x,y)=>ev(([x,y])=>{const s=toScreen({x,y}),r=canvas.getBoundingClientRect();return{x:r.left+s.x,y:r.top+s.y}},[x,y]);
     const midL=await scr(L.b[0]+(L.b[2]-L.b[0])/2,L.b[1]);await page.mouse.click(midL.x,midL.y);

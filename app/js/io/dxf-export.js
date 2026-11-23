@@ -138,8 +138,11 @@ function buildDXF(){
   // ---- TABLES: write every layer we use ----
   const dxfLayerName = ly => (ly.name||ly.id).replace(/[^A-Za-z0-9_]/g,'_').slice(0,31) || ly.id;
   s += '0\nSECTION\n2\nTABLES\n';
-  s += '0\nTABLE\n2\nLAYER\n70\n'+(layers.length+1)+'\n';
+  const partLbl = (typeof partLabelsDXF==='function') ? partLabelsDXF() : '';   // CNC detallari: LABEL qatlami (kesilmaydi)
+  const needLbl = partLbl && !layers.some(ly=>dxfLayerName(ly)==='LABEL');
+  s += '0\nTABLE\n2\nLAYER\n70\n'+(layers.length+1+(needLbl?1:0))+'\n';
   s += '0\nLAYER\n2\n0\n70\n0\n62\n7\n6\nCONTINUOUS\n'; // layer 0 always present
+  if(needLbl) s += '0\nLAYER\n2\nLABEL\n70\n0\n62\n8\n6\nCONTINUOUS\n';
   layers.forEach(ly=>{
     s += '0\nLAYER\n2\n'+dxfLayerName(ly)+'\n70\n0\n62\n'+(ly.aci||7)+'\n6\nCONTINUOUS\n';
   });
@@ -198,6 +201,7 @@ function buildDXF(){
       });
     });
   }
+  s += partLbl;
   s += '0\nENDSEC\n0\nEOF\n';
   return s;
 }

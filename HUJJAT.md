@@ -1,5 +1,11 @@
 # Rugby 1.1.2 — CNC nesting, panelni Drawing'da tahrirlash, aralash ulagich, narx (2026-11-23)
 
+- **Detal raqami va birka.** «CNC'ga yuborish» har detalga raqam beradi (sahifada nom tartibida, #1, #2 …). Nesting xaritasida har detal
+  o'rtasida «#3 A. krisha / 568×500 · L1» (L — list raqami) — detal bilan birga ko'chadi; Drawing DXF eksportida `LABEL` qatlamida
+  TEXT (kesilmaydi). Cnc ▸ **🏷 Birkalar** — A4 stiker varaq: 24 ta (70×37), 21 ta (70×42.3), 14 ta (105×42.3), 40 ta (52.5×29.7).
+  Birkada: raqam, nom, L × W × qalinlik (Cutlist kabi: L — tekstura bo'ylab yoki uzun tomon), material, kromka sxemasi va «1 mm — 2 tomon»,
+  teshiklar soni (B tomondan ishlansa — «B tomon tepada»), buyurtma nomi, «List 2/3». «O'tkazib yuborish» — avval ishlatilgan varaqning
+  bo'sh kataklaridan boshlash; «Faqat tanlanganlar». **Chop etish** (printerda A4, masshtab 100%, chetlarsiz) yoki **HTML fayl**.
 - **Furnitura asbobi (J yoki Object ▸ Furnitura (ulanish)) — Kromka kabi.** Ulanish chiziqlari va o'rtasidagi nuqta rangli ko'rinadi:
   to'q sariq — yevrovint, yashil — ekssentrik, moviy — shkant, binafsha — polkaderjatel, oq — umumiy, kulrang — fasad (petlya) / orqa devor
   (paz) / yupqa panel (o'zgarmaydi). Yuqoridagi paneldan turni tanlab chiziqni (yoki nuqtani) bosing — shu ulanishga beriladi va korpus

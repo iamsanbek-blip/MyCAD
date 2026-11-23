@@ -716,6 +716,7 @@ function drawInner(){
   // ---- dimensions (measurement annotations) ----
   drawDimensions();
   if(typeof drawTexts==='function') drawTexts();   // matn annotatsiyalari
+  if(typeof drawPartLabels==='function') drawPartLabels();   // CNC detallari: raqam va nom (Modeling'dan)
   if(typeof drawPastePreview==='function') drawPastePreview();   // joylashtirish ko'rinishi
   drawOffsetPreview();
   drawStretchOverlay();
