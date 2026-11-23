@@ -1,3 +1,15 @@
+# Reliz oldi tekshiruvi 1.1.2-preview.2 — 2026-11-23 (Linux)
+
+- Ko'rib chiqishda topilgan va tuzatilgan: nusxa (C), Mirror va massivda ulanish tanlovi (`jc`, `jf`) asl sheriklarga bog'liq qolardi —
+  endi nusxa sheriklariga o'tadi; nusxalar asl guruhga qo'shilib qolardi — endi yangi guruh; yakka «Nusxa» guruhsiz; loyiha ochilganda
+  Stretch nuqta tanlovi tozalanadi; raqamli Stretch ham tanlovni saqlaydi (gizmo bilan bir xil).
+- O'tdi: `npm run check` (57), `npm test` (18 + 24 + panel3d-hw 17), `panel3d`, `panel3d-export`, `panel3d-hw-ui` (8),
+  `modeling-cnc-price` (16), `modeling-precision` (13), `smart-autoname` (14); Electron 31.7.7 (xvfb): `modeling-smoke`, `electron-smoke`,
+  `panel-types-smoke`, `stretch-select`.
+- EXE: GitHub Actions (Windows Server 2022) da yig'iladi va tekshiriladi — natijasi pastdagi yozuvda.
+
+---
+
 # CNC nesting, Drawing'da tahrirlash, aralash ulagich, narx — 2026-11-23 (Linux)
 
 **Windows'da va haqiqiy CNC dastgohda sinalmagan. EXE yig'ilmagan.**

@@ -209,6 +209,16 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
       return{y:b.max.y-b.min.y,z:b.max.z-b.min.z,head:d.head,row:d.rows[0],eb:Panel3D._ebInfo(p)}});
     assert.ok(kb.y<=720.6&&kb.z<=500.6,JSON.stringify(kb));assert.ok(kb.head.includes('L1')&&kb.row.includes('2'));assert.ok(Math.abs(kb.eb.len-2.44)<1e-6);
     passed.push(`Kromka: viewportda qalinliksiz tasma (2 mm kromkali boka ${kb.y.toFixed(1)}×${kb.z.toFixed(1)} — o'lcham o'zgarmadi), Cutlist'da 2 mm va 2.44 m`);
+    // 11. Nusxa (C) / massiv: ulanish tanlovi nusxa sheriklariga o'tadi, guruh — yangi guruh
+    const cp=await ev(()=>{Panel3D.load({T:16,uid:10,panels:[{id:1,n:'boka',w:500,h:720,t:16,o:'side',x:8,y:360,z:0,grp:'gA'},{id:2,n:'boka2',w:500,h:720,t:16,o:'side',x:592,y:360,z:0,grp:'gA'},{id:4,n:'krisha',w:568,h:500,t:16,o:'flat',x:300,y:712,z:0,jc:{1:'ekss'},jf:{1:1},grp:'gA'}]});
+      return null});
+    await page.locator('#p3wrap .p3view canvas').first().click({position:{x:5,y:5}});await ev(()=>Panel3D._select([1,2,4]));await page.keyboard.press('c');await page.keyboard.press('Escape');
+    const cps=await ev(()=>Panel3D._state().panels.map(p=>({id:p.id,grp:p.grp,jc:p.jc||null,jf:p.jf||null})));
+    const orig=cps.filter(p=>p.id<=4),cop=cps.filter(p=>p.id>4);assert.equal(cop.length,3);
+    assert.ok(cop.every(c=>c.grp&&c.grp!=='gA')&&new Set(cop.map(c=>c.grp)).size===1,'nusxa — o\'z guruhi');
+    const kc=cop.find(c=>c.jc);assert.deepEqual(Object.keys(kc.jc).map(Number),[cop.find(c=>!c.jc&&c.id!==kc.id&&c.id===Math.min(...cop.map(x=>x.id))).id]);assert.deepEqual(Object.keys(kc.jf).map(Number),Object.keys(kc.jc).map(Number));
+    assert.deepEqual(orig.find(o=>o.id===4).jc,{1:'ekss'});
+    passed.push("Nusxa (C): krishaning ulanish tanlovi (ekss, ⇅) nusxa bokasiga bog'landi, nusxalar alohida yangi guruhda");
     assert.deepEqual(errors,[]);
   }finally{await browser.close();fs.rmSync(tmp,{recursive:true,force:true})}
   console.log(passed.map(s=>'PASS '+s).join('\n'));console.log(`modeling-cnc-price: ${passed.length} checks passed`);

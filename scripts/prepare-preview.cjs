@@ -31,11 +31,11 @@ fs.writeFileSync('dist/BUILD-REPORT.json', JSON.stringify({
 }, null, 2) + '\n');
 fs.writeFileSync('dist/RELEASE-NOTES.md', `Windows x64 uchun Rugby ${pkg.version}.\n\n` +
   '**Rugby-Portable.exe** faylini yuklab oling va ikki marta bosing. O‘rnatish, ZIP yoki CMD kerak emas.\n\n' +
-  '- Bir .dbe faylida bir nechta sahifa; Ctrl+PageUp / Ctrl+PageDown.\n' +
-  '- F10 orqali hotkeylarni almashtirish; Ctrl+S bilan barcha sahifalarni saqlash.\n' +
-  '- Raqamli kataklarda kechiktirilgan fokus qaytarish va panel ustidagi fon hisoblari tuzatildi.\n' +
-  '- PNG — hududni belgilash: to‘rtburchak torting; faqat shu joy drawing-region.png ga eksport qilinadi. Esc — bekor.\n' +
-  '- Oddiy PNG butun chizmani eksport qiladi.\n\n' +
+  '- Modeling: furnitura va teshiklar (Alt+F) — yevrovint, ekssentrik, shkant, polkaderjatel, petlya, ruchka, orqa devor pazi; ship-paz (metallsiz, dogbone).\n' +
+  '- Furnitura asbobi (J): ulanish chizig\'ini bosib tur berish; ekssentrik o\'yig\'ini ikkinchi yuzaga o\'tkazish; panel o\'zgarsa teshiklar avtomatik moslashadi.\n' +
+  '- Teshikli DXF (R12, qatlam nomida Ø va chuqurlik), teshiklar CSV; CNC\'ga yuborish — nesting sahifasi, detal teshiklari bilan guruh.\n' +
+  '- Detal raqami va A4 stiker birkalar (Cnc ▸ Birkalar); narx (smeta) paneli; guruh, massiv, teng taqsimlash.\n' +
+  '- Panelni 2 marta bosib Drawing\'da tahrirlash (qo\'shni panellar izi bilan); Stretch strelkalari; panel ranglari; kromka qalinliksiz ko\'rinish.\n\n' +
   '**Imzosiz sinov versiyasi:** SmartScreen tugma ko‘rsatsa, More info → Run anyway. ' +
   'Smart App Control uni bloklashi mumkin; kod imzolash hali hal qilinmagan.\n\n' +
   'Windows Server 2022 muhitida kod testlari, manba va paketlangan dastur GUI sinovi, ' +

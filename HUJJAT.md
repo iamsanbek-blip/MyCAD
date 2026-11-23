@@ -217,6 +217,7 @@ ular umumiy global scope'da ishlaydi. Yangi `core/` modullarida sof format va
 hotkey qoidalari, `model/pages.js` da eski state bilan adapter bor.
 `tools/panel3d-hw.js` — furnitura/teshik/DXF/CNC detali sof mantig'i, `tools/panel3d-price.js` — narx hisobi (ikkalasi DOM'siz,
 Node'da test qilinadi), `panel3d.js` dan oldin yuklanadi.
+`tools/part-labels.js` — CNC sahifasidagi detal raqami/nomi va A4 birkalar. Davom ettirish uchun to'plam: `docs/DAVOM-ETTIRISH.md`.
 `docs/ARCHITECTURE.md` da har qism va kengaytirish tartibi tushuntirilgan.
 
 ## Ishga tushirish va tekshirish
