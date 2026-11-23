@@ -48,6 +48,22 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     assert.deepEqual([...new Set((await ev(()=>Panel3D._hw.ops(4))).filter(o=>o.k==='e').map(o=>o.u))].sort((a,b)=>a-b),[0,568]);assert.deepEqual(await types(2),['ekss','konf','paz','polka','shkant']);
     passed.push("Avtomatik moslash: boka surilsa ulanish teshiklari yo'qoladi, krisha kengaytirilsa chet teshigi 668 ga ko'chadi va bokada qaytadi; Ctrl+Z bitta qadam; qaytarilganda avvalgi holat");
 
+    // 1c. Furnitura asbobi (J) — Kromka kabi: ulanish chizig'ini bosish; yana bosish — umumiy; Shift bilan bir nechtasi + tur tugmasi
+    await ev(()=>Panel3D._view('iso'));await page.locator('#p3wrap .p3view canvas').first().click({position:{x:8,y:8}});await page.keyboard.press('j');
+    await page.waitForSelector('#p3jb:not([hidden])');const jc=k=>ev(k=>Panel3D._joints().find(l=>l.key===k),k);
+    assert.equal((await jc('3>1')).cur,'konf');await page.locator('#p3jb [data-jt="shkant"]').click();
+    let sp=await ev(()=>Panel3D._jointScr('3>1'));await page.mouse.move(sp.x,sp.y);await page.mouse.click(sp.x,sp.y);
+    assert.deepEqual([(await jc('3>1')).cur,(await jc('3>1')).own],['shkant',true]);assert.ok((await ev(()=>Panel3D._hw.ops(3))).filter(o=>o.k==='e'&&o.u===0).every(o=>o.t==='shkant'));
+    assert.ok((await ev(()=>Panel3D._hw.ops(3))).some(o=>o.k==='e'&&o.u===568&&o.t==='konf'),'dno o\'ng tomoni o\'zgarmadi');
+    await page.mouse.click(sp.x,sp.y);assert.deepEqual([(await jc('3>1')).cur,(await jc('3>1')).own],['konf',false]);
+    for(const k of['5>1','5>2']){sp=await ev(k=>Panel3D._jointScr(k),k);await page.mouse.move(sp.x,sp.y);await page.keyboard.down('Shift');await page.mouse.click(sp.x,sp.y);await page.keyboard.up('Shift')}
+    assert.equal((await jc('5>1')).cur,'polka');await page.locator('#p3jb [data-jt="konf"]').click();
+    assert.deepEqual([(await jc('5>1')).cur,(await jc('5>2')).cur],['konf','konf']);assert.ok(!(await ev(()=>Panel3D._hw.ops(1))).some(o=>o.t==='polka'));
+    assert.equal((await ev(()=>Panel3D._hw.ops(5))).filter(o=>o.k==='e'&&o.t==='konf').length,4);
+    await ev(()=>document.activeElement&&document.activeElement.blur());await page.keyboard.press('Control+z');assert.equal((await jc('5>1')).cur,'polka');
+    await page.keyboard.press('Escape');await page.keyboard.press('v');assert.ok(await page.locator('#p3jb').isHidden());
+    passed.push("Furnitura asbobi (J): dno–chap boka ulanishiga shkant (o'ng tomoni yevrovint qoldi), yana bosish — umumiy; Shift bilan 2 polka ulanishi → yevrovint (polkaderjatel o'rniga), Ctrl+Z");
+
     // 2. Narx paneli: 3D oyna chetidagi tugma, jami = hisob; narx o'zgarsa jami yangilanadi; detal narxi xossalarda; CSV
     await ev(P=>Panel3D._price(P),PRICES);
     await page.locator('#p3prTab').click();await page.waitForSelector('#p3pr:not([hidden])');

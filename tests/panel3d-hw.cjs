@@ -145,4 +145,14 @@ const ops=(p,t)=>(p.ops||[]).filter(o=>!t||o.t===t);
   assert.deepEqual(PR.compute(ps,{},H).missing.slice(0,2),['mat:LDSP|16','mat:XDF|4']);assert.deepEqual(PR.merge({mat:{a:-5,b:'x'},extra:[{n:'q',v:-1}]}).extra,[{n:'q',v:0}]);
   ok("Narx: list soni × narx (m² + chiqit rejimi ham), kromka metri, furnitura (yevrovint 8, polkaderjatel 4 — bokadagi teshiklardan, polka soni 2 bo'lsa ham), ishlar; detallar yig'indisi = jami, ustama 10%")}
 
+// 14. Ulanish chizig'iga tur (Furnitura asbobi): B panelda jc[A.id] — panel va umumiydan ustun; polka → yevrovint; o'chirish
+{const ps=corpus();HW.setJoint(byId(ps,3),1,'ekss');HW.setJoint(byId(ps,5),2,'konf');HW.place(ps,ps,{});
+  const L=HW.jointLines(ps,{}),g=k=>L.find(l=>l.key===k);
+  assert.deepEqual([g('3>1').cur,g('3>1').own,g('3>2').cur,g('5>1').cur,g('5>2').cur,g('1>8').kind,g('7>1').kind],['ekss',true,'konf','polka','konf','door','groove']);
+  assert.ok(ops(byId(ps,3)).filter(o=>o.k==='e'&&o.u===0).every(o=>o.t==='ekss')&&ops(byId(ps,3)).filter(o=>o.k==='e'&&o.u===568).every(o=>o.t==='konf'));
+  assert.equal(ops(byId(ps,2),'polka').length,0);assert.equal(ops(byId(ps,1),'polka').length,2);assert.equal(ops(byId(ps,5)).filter(o=>o.k==='e').length,2);
+  byId(ps,3).con='shkant';HW.place(ps,ps,{});assert.ok(ops(byId(ps,3)).filter(o=>o.k==='e'&&o.u===0).every(o=>o.t==='ekss'),'ulanish tanlovi panelnikidan ustun');
+  HW.setJoint(byId(ps,3),1,'');HW.setJoint(byId(ps,5),2,'');assert.equal(byId(ps,3).jc,undefined);assert.equal(byId(ps,5).jc,undefined);
+  ok("Ulanish chizig'iga tur: dno chap tomoni ekssentrik, o'ng tomoni yevrovint; polkaning bir tomoni qotiriladi, ikkinchisi polkaderjatel; panel tanlovidan ustun; o'chirish")}
+
 console.log(passed.map(s=>'PASS '+s).join('\n'));console.log(`panel3d-hw: ${passed.length} checks passed`);

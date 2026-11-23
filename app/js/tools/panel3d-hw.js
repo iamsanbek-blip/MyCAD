@@ -78,6 +78,18 @@ function create(G){
       let J=x&&y?(Math.abs(x.gap)<=Math.abs(y.gap)?x:y):x||y;
       if(J&&J.c1-J.c0>=o.minL)out.push(J)}
     return out}
+  const jcOf=j=>{const m=j.B.jc;return m&&typeof m==='object'&&typeof m[j.A.id]==='string'?m[j.A.id]:''};
+  /* Ulanish chiziqlari (Furnitura asbobi uchun): A yuzasida, B qalinligi o'rtasida, c0..c1; tur — joriy hisob bo'yicha */
+  function jointLines(ps,opts){const o=merge(DEF,opts),thin=p=>p.t<=o.groove.maxT;
+    return joints(ps.filter(p=>!p.hid),o).map(j=>{const{A,B}=j,jo=jcOf(j);
+      let kind='con',cur;
+      if(role(A)==='door'||role(B)==='door'){kind='door';cur='petlya'}
+      else if(thin(B)){kind='groove';cur='paz'}
+      else if(thin(A)){kind='none';cur='none'}
+      else if(j.tb===1&&(jo==='polka'||(!jo&&role(B)==='shelf'&&o.pin.on)))cur='polka';
+      else cur=CONS[jo]?jo:CONS[B.con]?B.con:CONS[A.con]?A.con:o.con;
+      return{a:A.id,b:B.id,key:B.id+'>'+A.id,kind,cur,own:!!jo,p0:pt(j,j.face,j.mid,j.c0),p1:pt(j,j.face,j.mid,j.c1),len:j.c1-j.c0,shelfOk:j.tb===1}})}
+  function setJoint(B,aId,v){if(v){B.jc=Object.assign({},B.jc||{},{[aId]:v})}else if(B.jc){const m=Object.assign({},B.jc);delete m[aId];if(Object.keys(m).length)B.jc=m;else delete B.jc}}
   function spots(lo,hi,e,step){const L=hi-lo;if(L<=2*e+1)return[(lo+hi)/2];
     const n=Math.max(2,Math.ceil((L-2*e)/step)+1),r=[];for(let i=0;i<n;i++)r.push(lo+e+(L-2*e)*i/(n-1));return r}
   const pt=(J,vTa,vTb,vC)=>{const P=[0,0,0];P[J.ta]=vTa;P[J.tb]=vTb;P[J.c]=vC;return P};
@@ -100,11 +112,13 @@ function create(G){
         if(j.gap>=-.5)warn.push(`${A.n} ↔ ${B.n}: ${B.n} pazga kirmaydi — har tomondan ${f2(z)} mm kattalashtiring`);
         continue}
       if(thin(A))continue;   // yupqa panel yuzasiga qalin panel qirrasi (mix) — teshik qo'yilmaydi
-      if(role(B)==='shelf'&&o.pin.on&&j.tb===1){const P=o.pin,y0=j.b[1][0]-P.drop;
+      // ulanish chizig'iga qo'yilgan tur (Furnitura asbobi, J): B panelda jc[A.id] — eng ustun
+      const jo=jcOf(j),pinOk=j.tb===1&&(jo==='polka'||(!jo&&role(B)==='shelf'&&o.pin.on));
+      if(pinOk){const P=o.pin,y0=j.b[1][0]-P.drop;
         for(const cp of[j.c0+P.e,j.c1-P.e])for(let k=-P.row;k<=P.row;k++)add(A,faceOp(A,pt(j,j.face,y0+32*k,cp),Object.assign({d:P.d,z:P.z,t:'polka'},k===0?{m:1}:{})));   // m — polkaderjatel turadigan teshik (narx hisobi)
         continue}
       // ulagich turi: B (qirrasi tegadigan) panelniki → A panelniki → umumiy. Shunda bitta detalda turli ulagich bo'ladi
-      const own=CONS[j.B.con]?j.B.con:CONS[j.A.con]?j.A.con:'',cs=own||o.con,con=cs.replace('+shkant',''),dowel=cs.endsWith('+shkant')||(!own&&o.dowel);
+      const own=CONS[jo]?jo:CONS[j.B.con]?j.B.con:CONS[j.A.con]?j.A.con:'',cs=own||o.con,con=cs.replace('+shkant',''),dowel=cs.endsWith('+shkant')||(!own&&o.dowel);
       if(con==='none'||!CONS[cs])continue;
       const S=spots(j.c0,j.c1,o.e,o.step),bLen=j.b[j.ta][1]-j.b[j.ta][0];
       const side=Math.sign(A[['x','y','z'][j.tb]]-B[['x','y','z'][j.tb]])||-1,bFace=side>0?j.b[j.tb][1]:j.b[j.tb][0];
@@ -246,7 +260,7 @@ function create(G){
       else rows.push([c(p.n||'Panel'),T_NAME[o.t]||o.t||'',o.k==='e'?'Chet':o.f,f2(o.u),f2(o.v),f2(o.d),f2(o.k==='d'&&o.th?p.t:o.z),o.th?1:'',o.k==='e'?`${o.n[0]},${o.n[1]}`:''])}
     return rows.map(r=>r.join(';')).join('\r\n')}
 
-  return{DEF,CONS,merge,layerNames,flat,place,check,joints,rot90,mirror,sanitize,dxf,csv,drillMap,tAx,toLocal,T_NAME}}
+  return{DEF,CONS,merge,jointLines,setJoint,layerNames,flat,place,check,joints,rot90,mirror,sanitize,dxf,csv,drillMap,tAx,toLocal,T_NAME}}
 const api={create,DEF};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.RugbyHW=api;

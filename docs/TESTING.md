@@ -10,6 +10,10 @@
   krisha 668 ga kengaytiriladi (chet teshigi u = 668, bokada qaytadi), Ctrl+Z / Ctrl+Y bitta qadam; CNC sahifasida Modeling va Cutlist
   bosilganda «Sahifa 1» ochiladi (7 panel); CNC sahifasining Drawing DXF'ida DRILL_D5_Z10 / DRILL_D7_THRU / DRILL_D15_Z13 qatlamlari.
   Barcha suite va Electron sinovlari qayta o'tdi.
+- Qo'shimcha: Furnitura asbobi (J) — `panel3d-hw` 15 (ulanishga tur: dno chap — ekssentrik, o'ng — yevrovint; polkaning bir tomoni
+  qotirilgan, ikkinchisi polkaderjatel; panel tanlovidan ustun; o'chirish), `modeling-cnc-price` 10 (haqiqiy sichqoncha: J, «Shkant»,
+  chiziqni bosish, yana bosish — umumiy, Shift bilan 2 polka ulanishi → «Yevrovint», Ctrl+Z, V — asbob paneli yopiladi). Barcha suite va
+  Electron sinovlari qayta o'tdi.
 - `tests/modeling-cnc-price.cjs` (yangi, web build, Chromium 1243, haqiqiy sichqoncha, 8): xossalarda ulagich tanlash → korpus qayta
   teshiladi; Narx paneli (jami = hisob, narx o'zgarganda yangilanadi, localStorage, detal narxi, smeta CSV); CNC'ga yuborish — 3 sahifa,
   detallar list ichida, teshiklar detal ichida, teksturali burilmagan; detal konturini bosish butun guruhni tanlaydi, Move bilan boshqa
