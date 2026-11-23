@@ -155,4 +155,11 @@ const ops=(p,t)=>(p.ops||[]).filter(o=>!t||o.t===t);
   HW.setJoint(byId(ps,3),1,'');HW.setJoint(byId(ps,5),2,'');assert.equal(byId(ps,3).jc,undefined);assert.equal(byId(ps,5).jc,undefined);
   ok("Ulanish chizig'iga tur: dno chap tomoni ekssentrik, o'ng tomoni yevrovint; polkaning bir tomoni qotiriladi, ikkinchisi polkaderjatel; panel tanlovidan ustun; o'chirish")}
 
+// 15. Ekssentrik o'yig'i ikkinchi yuzaga (jf): krisha ichki (pastki) yuzasi → ustki yuza, bitta ulanish uchun
+{const ps=corpus();HW.place(ps,ps,{con:'ekss',pin:{on:false}});const K=byId(ps,4),cy=()=>ops(K,'ekss').filter(o=>o.k==='d').map(o=>[+o.u.toFixed(0),+faceW(K,o)[1].toFixed(2)]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
+  assert.ok(cy().every(c=>c[1]===704));HW.setFlip(K,1,true);HW.place(ps,ps,{con:'ekss',pin:{on:false}});
+  const c=cy();assert.deepEqual(c.map(x=>x[1]).sort(),[704,704,720,720]);assert.ok(c.filter(x=>x[1]===720).every(x=>x[0]===34),'faqat chap boka tomonidagi ikkitasi');
+  assert.equal(HW.jointLines(ps,{con:'ekss'}).find(l=>l.key==='4>1').flip,true);HW.setFlip(K,1,false);assert.equal(K.jf,undefined);
+  ok("Ekssentrik o'yig'ini ikkinchi yuzaga o'tkazish: krisha–chap boka ulanishida Ø15 ustki yuzada (y=720), o'ng boka tomonida ichkarida qoldi; qaytarish")}
+
 console.log(passed.map(s=>'PASS '+s).join('\n'));console.log(`panel3d-hw: ${passed.length} checks passed`);

@@ -1,5 +1,8 @@
 # Rugby 1.1.2 — CNC nesting, panelni Drawing'da tahrirlash, aralash ulagich, narx (2026-11-23)
 
+- **Ekssentrik o'yig'ini ikkinchi yuzaga o'tkazish.** Furnitura asbobi (J) ▸ **⇅ Ekss. tomoni** → ekssentrikli ulanish chizig'ini bosing:
+  Ø15 o'yiq (va ishlov tomoni) panelning ikkinchi yuzasiga o'tadi, yana bosilsa qaytadi; Shift bilan bir nechtasi. Belgisi sariq.
+  Standart — korpus ichiga qaragan yuza. Saqlanadi (`jf` — chet panelida, sherik id bo'yicha).
 - **Modeling: guruh, massiv, teng taqsimlash** (Modeling ▸ Object va yuqori Object menyusi — Modeling ochiq bo'lsa panellarga ishlaydi).
   **Group** (Ctrl+G) — tanlangan panellar guruh: birini bosish (yoki ramka) butun guruhni tanlaydi; ro'yxatda ⛓. **Ungroup** (Ctrl+Shift+G).
   **Massiv…** — tanlangan panel(lar)ni N marta qadam X/Y/Z bilan nusxalash (standart qadam — tanlov eni bo'yicha, korpuslar qatori);

@@ -61,8 +61,12 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     assert.deepEqual([(await jc('5>1')).cur,(await jc('5>2')).cur],['konf','konf']);assert.ok(!(await ev(()=>Panel3D._hw.ops(1))).some(o=>o.t==='polka'));
     assert.equal((await ev(()=>Panel3D._hw.ops(5))).filter(o=>o.k==='e'&&o.t==='konf').length,4);
     await ev(()=>document.activeElement&&document.activeElement.blur());await page.keyboard.press('Control+z');assert.equal((await jc('5>1')).cur,'polka');
+    // ekssentrik o'yig'ini ikkinchi yuzaga: krisha–chap boka (umumiy tur «ekss+shkant» krishada) → ⇅
+    const camY=()=>ev(()=>Panel3D._hw.ops(4).filter(o=>o.t==='ekss'&&o.d===15&&o.u<100).map(o=>o.f));assert.deepEqual([...new Set(await camY())],['B']);
+    await page.locator('#p3jb [data-jt="flip"]').click();sp=await ev(()=>Panel3D._jointScr('4>1'));await page.mouse.move(sp.x,sp.y);await page.mouse.click(sp.x,sp.y);
+    assert.deepEqual([...new Set(await camY())],['A']);assert.equal((await jc('4>1')).flip,true);await page.mouse.click(sp.x,sp.y);assert.deepEqual([...new Set(await camY())],['B']);
     await page.keyboard.press('Escape');await page.keyboard.press('v');assert.ok(await page.locator('#p3jb').isHidden());
-    passed.push("Furnitura asbobi (J): dno–chap boka ulanishiga shkant (o'ng tomoni yevrovint qoldi), yana bosish — umumiy; Shift bilan 2 polka ulanishi → yevrovint (polkaderjatel o'rniga), Ctrl+Z");
+    passed.push("Furnitura asbobi (J): dno–chap boka ulanishiga shkant (o'ng tomoni yevrovint qoldi), yana bosish — umumiy; Shift bilan 2 polka ulanishi → yevrovint (polkaderjatel o'rniga), Ctrl+Z; ⇅ — ekssentrik o'yig'i krishaning ikkinchi yuzasiga va qaytadi");
 
     // 2. Narx paneli: 3D oyna chetidagi tugma, jami = hisob; narx o'zgarsa jami yangilanadi; detal narxi xossalarda; CSV
     await ev(P=>Panel3D._price(P),PRICES);

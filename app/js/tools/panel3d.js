@@ -1045,7 +1045,8 @@ function edgeToggle(h){
 /* --- Furnitura asbobi (J) — Kromka kabi: ulanish chiziqlari ko'rinadi (rang — turi), chiziqni bosish — joriy tur shu ulanishga
    (yana bosilsa — umumiyga qaytadi), Shift + bosish — tanlash, keyin tur tugmasi — tanlanganlarning hammasiga. Korpus o'zi teshiladi. --- */
 const JT={konf:['Yevrovint',0xffb454,'Yevro'],ekss:['Ekssentrik',0x4ade80,'Ekss'],shkant:['Shkant',0x5ee1ff,'Shkant'],'konf+shkant':['Yevrovint + shkant',0xff7a1a,'Yevro+sh'],'ekss+shkant':['Ekssentrik + shkant',0x16a34a,'Ekss+sh'],
-  polka:['Polkaderjatel',0xc084fc,'Polka'],none:["Yo'q",0x9aa4b2,"Yo'q"],'':['Umumiy',0xffffff,'Umumiy']};
+  polka:['Polkaderjatel',0xc084fc,'Polka'],none:["Yo'q",0x9aa4b2,"Yo'q"],'':['Umumiy',0xffffff,'Umumiy'],
+  flip:["Ekssentrik o'yig'ini panelning ikkinchi yuzasiga o'tkazish (yana bosilsa — qaytadi)",0xfacc15,'⇅ Ekss. tomoni']};
 let jType='konf',jSel=new Set(),jGrp=null,jHov=null,jLines=[];
 function jointClear(){for(const o of[jGrp,jHov])if(o){scene.remove(o);o.traverse(x=>x.geometry&&x.geometry.dispose())}jGrp=jHov=null;dirtyR=true}
 function jointShow(){
@@ -1053,7 +1054,7 @@ function jointShow(){
   for(const l of jLines){const col=l.kind==='con'?(JT[l.cur]||JT.konf)[1]:0x707a88,sel=jSel.has(l.key),g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...l.p0),new THREE.Vector3(...l.p1)]);
     const ln=new THREE.Line(g,new THREE.LineBasicMaterial({color:sel?0xffffff:col,depthTest:false,transparent:l.kind!=='con',opacity:l.kind==='con'?1:.6}));ln.renderOrder=996;jGrp.add(ln);
     {const m=new THREE.Mesh(new THREE.SphereGeometry(1,10,8),new THREE.MeshBasicMaterial({color:sel?0xffffff:col,depthTest:false,transparent:l.kind!=='con',opacity:l.kind==='con'?1:.6}));   // o'rtasida nuqta — ro'para ko'rinishda chiziq nuqtaga aylanganda ham ko'rinadi
-      m.position.set((l.p0[0]+l.p1[0])/2,(l.p0[1]+l.p1[1])/2,(l.p0[2]+l.p1[2])/2);m.userData.k=l.own||sel?6:3.5;m.scale.setScalar(scrScale(m.position)*m.userData.k);m.renderOrder=996;jGrp.add(m)}}
+      m.position.set((l.p0[0]+l.p1[0])/2,(l.p0[1]+l.p1[1])/2,(l.p0[2]+l.p1[2])/2);m.userData.k=l.own||sel||l.flip?6:3.5;if(l.flip)m.material.color.setHex(0xfacc15);m.scale.setScalar(scrScale(m.position)*m.userData.k);m.renderOrder=996;jGrp.add(m)}}
   scene.add(jGrp);jointBar();dirtyR=true}
 function jointPick(e){const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;let best=null;
   for(const l of jLines){const A=scrOf(new THREE.Vector3(...l.p0)),B=scrOf(new THREE.Vector3(...l.p1));if(!A.ok&&!B.ok)continue;
@@ -1070,12 +1071,19 @@ function jointSet(keys,v){   // keys: ['B>A'], v: tur yoki '' (umumiy)
     const B=panels.find(p=>p.id===l.b);if(!B)continue;HW.setJoint(B,l.a,v);ids.add(l.a);ids.add(l.b);n++}
   if(n){const tg=corpusClusters(panels.filter(p=>!p.hid)).filter(c=>c.some(p=>ids.has(p.id))).flat();HW.place(panels,tg,hwOpts);hwSigv=hwSig();tg.forEach(build);paint();props();changed()}
   jointShow();say(n?`${n} ta ulanish: ${JT[v][0]}`+(skip?` · ${skip} tasi o'zgarmaydi (fasad/paz/yupqa${v==='polka'?' yoki polka emas':''})`:''):skip?"Bu ulanish o'zgarmaydi: fasad (petlya), orqa devor (paz) yoki yupqa panel":'Ulanish yo\'q');return n}
+function jointFlip(keys){   // ekssentrik o'yig'i (Ø15) — panelning ikkinchi yuzasiga / qaytadi
+  const ls=jLines.length?jLines:HW.jointLines(panels,hwOpts),ids=new Set();let n=0,skip=0;
+  for(const k of keys){const l=ls.find(x=>x.key===k);if(!l)continue;if(l.kind!=='con'||!/^ekss/.test(l.cur)){skip++;continue}
+    const B=panels.find(p=>p.id===l.b);if(!B)continue;HW.setFlip(B,l.a,!l.flip);ids.add(l.a);ids.add(l.b);n++}
+  if(n){const tg=corpusClusters(panels.filter(p=>!p.hid)).filter(c=>c.some(p=>ids.has(p.id))).flat();HW.place(panels,tg,hwOpts);hwSigv=hwSig();tg.forEach(build);paint();props();changed()}
+  jointShow();say(n?`Ekssentrik o'yig'i ikkinchi yuzaga o'tkazildi/qaytarildi: ${n} ta ulanish`+(skip?` · ${skip} tasi ekssentrik emas`:''):"Bu ulanish ekssentrik emas — avval «Ekss» turini bering");return n}
 function jointClick(l,shift){
   if(shift){jSel.has(l.key)?jSel.delete(l.key):jSel.add(l.key);jointShow();say(`Tanlangan ulanish: ${jSel.size} · tur tugmasini bosing`);return}
+  if(jType==='flip'){jointFlip([l.key]);return}
   const v=l.own&&l.cur===jType?'':jType;jointSet([l.key],v)}
 function jointBar(){let b=q('#p3jb');if(tool!=='joint'){if(b)b.hidden=true;return}
   if(!b){q('.p3view').insertAdjacentHTML('beforeend','<div class="p3jb" id="p3jb"></div>');b=q('#p3jb');
-    b.addEventListener('click',e=>{const t=e.target.closest('[data-jt]');if(!t)return;jType=t.dataset.jt;if(jSel.size){const k=[...jSel];jSel.clear();jointSet(k,jType)}else jointBar()})}
+    b.addEventListener('click',e=>{const t=e.target.closest('[data-jt]');if(!t)return;jType=t.dataset.jt;if(jSel.size){const k=[...jSel];jSel.clear();jType==='flip'?jointFlip(k):jointSet(k,jType)}else jointBar()})}
   b.hidden=false;b.innerHTML=`${Object.entries(JT).map(([k,[n,c,sh]])=>`<button data-jt="${k}" class="${k===jType?'on':''}" title="${k?esc(n)+' — chiziqni bosing (yana — umumiy); Shift bilan tanlanganlarga — shu tugma':'Ulanish tanlovini olib tashlash — panel/umumiy tur'}"><i style="background:#${c.toString(16).padStart(6,'0')}"></i>${esc(sh)}</button>`).join('')}${jSel.size?`<span class="p3jn" title="Shift bilan tanlangan ulanishlar — tur tugmasini bosing">${jSel.size} ✓</span>`:''}`}
 /* ---------------- Guruh, massiv, teng taqsimlash (Modeling) ----------------
    Guruh (Ctrl+G): tanlangan panellar bitta guruh — birini bosish butun guruhni tanlaydi (ko'chirish, nusxa, massiv birga).
@@ -1309,7 +1317,7 @@ const hwList=a=>a.length?'<ul>'+a.slice(0,40).map(m=>'<li>'+esc(m)+'</li>').join
    panel tegsa — o'sha korpus(lar) qayta teshiladi (tarixga yozilishidan oldin, shuning uchun Ctrl+Z bitta qadam). Qo'lda qo'yilgan
    teshiklar saqlanadi. Furnitura oynasida o'chirib qo'yish mumkin. */
 let hwSigv='';
-const hwGeo=p=>[p.id,p.x,p.y,p.z,p.w,p.h,p.t,p.o,p.m?p.m.join(''):'',p.ry||0,p.shape||'',p.c||0,p.pts?p.pts.length+':'+p.pts.flat().join(','):'',p.con||'',p.jc?JSON.stringify(p.jc):'',p.n||'',p.hs||'',p.hid?1:0].join('|');
+const hwGeo=p=>[p.id,p.x,p.y,p.z,p.w,p.h,p.t,p.o,p.m?p.m.join(''):'',p.ry||0,p.shape||'',p.c||0,p.pts?p.pts.length+':'+p.pts.flat().join(','):'',p.con||'',p.jc?JSON.stringify(p.jc):'',p.jf?JSON.stringify(p.jf):'',p.n||'',p.hs||'',p.hid?1:0].join('|');
 const hwSig=()=>panels.map(hwGeo).join(';');
 function hwAuto(){
   if(!HW||!hwOpts||!hwOpts.auto)return 0;const sig=hwSig();if(sig===hwSigv)return 0;hwSigv=sig;

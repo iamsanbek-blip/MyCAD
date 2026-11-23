@@ -26,6 +26,8 @@
 - Qo'shimcha (izoh bo'yicha): Modeling guruh/massiv/teng taqsimlash — `modeling-cnc-price` 12 (Ctrl+G, guruh a'zosini bosish — ikkalasi,
   Ctrl+Shift+G; yuqori Object ▸ Array → polka 2 nusxa −150 mm, polkaderjatel 6; Teng taqsimlash Y → 184/360/536; Ctrl+Z). Modeling'da
   Ctrl bilan bog'langan o'z buyruqlari endi ishlaydi (avval faqat Alt/F). Barcha suite va Electron sinovlari qayta o'tdi.
+- Qo'shimcha (izoh bo'yicha): ekssentrik o'yig'ini ikkinchi yuzaga — `panel3d-hw` 16 (krisha–chap boka: Ø15 y=704 → 720, o'ng tomoni
+  joyida, qaytarish), `modeling-cnc-price` 12 (J ▸ ⇅, haqiqiy bosish: B → A yuza, yana bosish — B).
 - `tests/modeling-cnc-price.cjs` (yangi, web build, Chromium 1243, haqiqiy sichqoncha, 8): xossalarda ulagich tanlash → korpus qayta
   teshiladi; Narx paneli (jami = hisob, narx o'zgarganda yangilanadi, localStorage, detal narxi, smeta CSV); CNC'ga yuborish — 3 sahifa,
   detallar list ichida, teshiklar detal ichida, teksturali burilmagan; detal konturini bosish butun guruhni tanlaydi, Move bilan boshqa
