@@ -104,9 +104,9 @@ const ops=(p,t)=>(p.ops||[]).filter(o=>!t||o.t===t);
 {const p={id:1,n:'Test',w:300,h:200,t:16,o:'front',x:0,y:0,z:0,ops:[{k:'d',f:'A',u:-5,v:10,d:5,z:10},{k:'d',f:'A',u:2,v:100,d:8,z:10},{k:'d',f:'A',u:100,v:100,d:8,z:16},{k:'d',f:'A',u:104,v:100,d:5,z:10},{k:'e',u:150,v:0,c:0,n:[0,1],d:15,z:30}]};
   const w=HW.check(p);for(const s of['panel tashqarisida','chetga juda yaqin','teshilib ketadi','ustma-ust','sig\'maydi'])assert.ok(w.some(m=>m.includes(s)),s);
   assert.equal(HW.sanitize([{k:'d',u:1,v:2,d:5,z:3,f:'A'},{k:'x'},null,{k:'d',u:'a'}]).length,1);assert.equal(HW.sanitize([{k:'q'}]),undefined);
-  const ps=corpus();HW.place(ps,ps,{});const model={v:1,T:16,uid:9,panels:ps};
+  const ps=corpus();HW.place(ps,ps,{});const model={v:1,T:16,uid:9,panels:ps,mc:{'LDSP oq':'#aa7744'}};   // mc — material rangi (Modeling ko'rinishi)
   const doc=Doc.decode(JSON.stringify({format:'dogbone-editor-project',version:2,units:'mm',pages:[{id:'p1',name:'S',panel3d:model}],activePageId:'p1'}));
-  const back=(doc.pages||doc.document.pages)[0].panel3d;assert.deepEqual(back.panels.map(p=>p.ops||[]),ps.map(p=>p.ops||[]));
+  const back=(doc.pages||doc.document.pages)[0].panel3d;assert.deepEqual(back.panels.map(p=>p.ops||[]),ps.map(p=>p.ops||[]));assert.deepEqual(back.mc,{'LDSP oq':'#aa7744'});
   const e0=Doc.encode(doc.pages||doc.document.pages,'p1'),enc=JSON.parse(typeof e0==='string'?e0:JSON.stringify(e0));assert.deepEqual(enc.pages[0].panel3d.panels[0].ops,ps[0].ops);
   const re=Doc.decode(JSON.stringify(enc));assert.deepEqual((re.pages||re.document.pages)[0].panel3d.panels.map(p=>p.ops||[]),ps.map(p=>p.ops||[]));
   ok("Tekshiruv: tashqarida, chetga yaqin, teshilib ketadi, ustma-ust, chetga sig'maydi; loyiha faylida (encode/decode) teshiklar saqlanadi")}
