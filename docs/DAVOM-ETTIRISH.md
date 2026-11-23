@@ -80,5 +80,6 @@ Brauzer testlari uchun: `RUGBY_CHROMIUM=/opt/pw-browsers/chromium` (bulutli muhi
 ## Rezerv
 
 - Kod: GitHub `iamsanbek-blip/MyCAD`, branch `claude/vigilant-goodall-nvrvty` (har o'zgarish commit + push qilingan).
-- EXE: GitHub Releases `v1.1.2-preview.2` (va oldingi `v1.1.2-preview.1`).
+- EXE: GitHub Releases `v1.1.2-preview.2` — https://github.com/iamsanbek-blip/MyCAD/releases/tag/v1.1.2-preview.2
+  (SHA256 `f59ff22c…5250e1`; oldingi `v1.1.2-preview.1`).
 - Web: claude.ai artifact (shaxsiy) — `scripts/build-web.py` bilan istalgan payt qayta yig'iladi.

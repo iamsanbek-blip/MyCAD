@@ -6,7 +6,10 @@
 - O'tdi: `npm run check` (57), `npm test` (18 + 24 + panel3d-hw 17), `panel3d`, `panel3d-export`, `panel3d-hw-ui` (8),
   `modeling-cnc-price` (16), `modeling-precision` (13), `smart-autoname` (14); Electron 31.7.7 (xvfb): `modeling-smoke`, `electron-smoke`,
   `panel-types-smoke`, `stretch-select`.
-- EXE: GitHub Actions (Windows Server 2022) da yig'iladi va tekshiriladi — natijasi pastdagi yozuvda.
+- EXE: GitHub Actions «Windows portable preview» run 45251499111 (Windows Server 2022, commit 3f2595a) — **muvaffaqiyatli**: `npm run check`,
+  `npm test`, manba va paketlangan dastur GUI sinovi (`test:electron`), portable launcher ochilishi. Reliz `v1.1.2-preview.2`:
+  `Rugby-Portable.exe` 65 823 708 bayt, SHA256 `f59ff22c120ffc4bba9ef030b23f9265c1a8b2e4ffabb2e79fc451826c5250e1`.
+  Windows 10/11 da qo'lda sinov, SmartScreen va haqiqiy fayl dialoglari hali tekshirilmagan.
 
 ---
 
