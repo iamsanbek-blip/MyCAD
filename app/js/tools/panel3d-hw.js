@@ -18,6 +18,7 @@
 (function(root){
 'use strict';
 const DEF={
+  auto:true,           // panel cho'zilsa/ko'chsa — furnituralangan korpus avtomatik qayta teshiladi
   con:'konf',          // konf | ekss | shkant | none | konf+shkant | ekss+shkant (panelda p.con — ustun)
   dowel:false,         // ulagich yonida qo'shimcha shkant (+32 mm o'rtaga qarab)
   e:50, step:500, minL:40, tol:3,

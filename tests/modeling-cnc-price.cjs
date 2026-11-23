@@ -35,6 +35,19 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     await page.locator('#p3pl .p3it').nth(3).click();assert.equal(await page.locator('#p3opCon').inputValue(),'ekss+shkant');
     passed.push("Ulagich panelda: krisha — ekssentrik + shkant, dno — yevrovint; korpus o'zi qayta teshiladi (chap bokada konf, ekss, shkant)");
 
+    // 1b. Avtomatik moslash: o'ng boka 100 mm o'ngga, krisha 100 mm kengaytirildi (xossalar maydonlari) — teshiklar o'zi qayta qo'yiladi
+    const setF=async(i,k,v)=>{await page.locator('#p3pl .p3it').nth(i).click();await page.waitForSelector('#p3f_'+k);await page.fill('#p3f_'+k,String(v));await page.press('#p3f_'+k,'Enter')};
+    await setF(1,'x',692);assert.equal((await ev(()=>Panel3D._hw.ops(2))).filter(o=>o.t==='konf'||o.t==='ekss'||o.t==='shkant').length,0,'boka ajraldi — ulanish teshiklari yo\'q');
+    await setF(3,'w',668);await setF(3,'x',350);
+    const K=await ev(()=>Panel3D._hw.ops(4)),R=await ev(()=>Panel3D._hw.ops(2));
+    assert.deepEqual([...new Set(K.filter(o=>o.k==='e').map(o=>o.u))].sort((a,b)=>a-b),[0,668]);assert.ok(R.some(o=>o.t==='ekss'&&o.k==='d'&&o.v===712),'o\'ng bokada krisha shtoki qaytdi');
+    assert.ok(!R.some(o=>o.t==='konf'),'dno o\'ng bokaga tegmaydi');
+    await ev(()=>document.activeElement.blur());await page.keyboard.press('Control+z');assert.equal(await ev(()=>Panel3D._state().panels.find(p=>p.id===4).x),300);
+    assert.ok((await ev(()=>Panel3D._hw.ops(4))).every(o=>o.k!=='e'||o.u===0||o.u===668));
+    await ev(()=>document.activeElement.blur());await page.keyboard.press('Control+y');assert.equal(await ev(()=>Panel3D._state().panels.find(p=>p.id===4).x),350);await setF(1,'x',592);await setF(3,'w',568);await setF(3,'x',300);
+    assert.deepEqual([...new Set((await ev(()=>Panel3D._hw.ops(4))).filter(o=>o.k==='e').map(o=>o.u))].sort((a,b)=>a-b),[0,568]);assert.deepEqual(await types(2),['ekss','konf','paz','polka','shkant']);
+    passed.push("Avtomatik moslash: boka surilsa ulanish teshiklari yo'qoladi, krisha kengaytirilsa chet teshigi 668 ga ko'chadi va bokada qaytadi; Ctrl+Z bitta qadam; qaytarilganda avvalgi holat");
+
     // 2. Narx paneli: 3D oyna chetidagi tugma, jami = hisob; narx o'zgarsa jami yangilanadi; detal narxi xossalarda; CSV
     await ev(P=>Panel3D._price(P),PRICES);
     await page.locator('#p3prTab').click();await page.waitForSelector('#p3pr:not([hidden])');
@@ -79,10 +92,14 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     const re=await ev(()=>[...new Set(drawnLines.map(l=>l.group))].every(g=>{const sh=drawnLines.filter(l=>l.group===g),c=shapeBBox(sh.find(l=>l.p3));return sh.filter(l=>l.p3op).every(l=>{const b=shapeBBox(l);return b.x0>=c.x0-.01&&b.x1<=c.x1+.01&&b.y0>=c.y0-.01&&b.y1<=c.y1+.01})}));
     assert.ok(re);passed.push("Cnc ▸ Joylash qayta bosilganda ham teshiklar o'z detali ichida");
 
-    // 5. Model o'z sahifasida: 1-sahifa → Modeling'da 7 panel
-    await page.locator('.pageTab').first().click();await page.locator('#mbModel').click();await page.waitForFunction(()=>Panel3D.isOpen());
-    assert.equal(await ev(()=>Panel3D._state().panels.length),7);
-    passed.push("Model o'z sahifasida qoladi: Sahifa 1 → Modeling — 7 panel");
+    // 5. CNC sahifasida turib Modeling bosilsa — model sahifasi (Sahifa 1) o'zi ochiladi, 7 panel; CNC DXF qatlamlari
+    const dx=await ev(()=>{const t=buildDXF();return[...new Set([...t.matchAll(/\n0\nCIRCLE\n8\n([^\n]+)\n/g)].map(m=>m[1]))].sort()});
+    assert.ok(dx.includes('DRILL_D5_Z10')&&dx.includes('DRILL_D7_THRU')&&dx.includes('DRILL_D15_Z13'),'Drawing DXF: '+dx.join(','));
+    await page.locator('#mbModel').click();await page.waitForFunction(()=>Panel3D.isOpen());
+    assert.equal(await ev(()=>activePage().name),'Sahifa 1');assert.equal(await ev(()=>Panel3D._state().panels.length),7);
+    await page.locator('#mbCnc').click();await page.locator('.pageTab').nth(2).click();assert.equal(await ev(()=>activePage().name),'CNC · MDF 16 mm');await page.locator('#mbCut').click();await page.waitForFunction(()=>Panel3D.isOpen());assert.equal(await ev(()=>activePage().name),'Sahifa 1');
+    await page.locator('#mbModel').click();await page.waitForFunction(()=>Panel3D.isOpen());
+    passed.push("CNC sahifasida Modeling/Cutlist bosilsa model sahifasi (Sahifa 1) o'zi ochiladi — 7 panel; CNC sahifasi DXF'ida teshik qatlamlari (DRILL_D5_Z10, DRILL_D7_THRU, DRILL_D15_Z13)");
 
     // 6. Fasadni 2 marta bosish → Drawing'da vaqtinchalik sahifa; kontur va teshik o'zgartirib «Modeling'ga qaytarish»
     await ev(()=>{Panel3D._view('front');Panel3D._select([])});await page.waitForTimeout(150);

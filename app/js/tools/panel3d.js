@@ -135,9 +135,9 @@ function histGo(d){
   if(act&&act.k==='xf')xfStop();
   if(dr)endDraw();if(pm){pm=null;q('#p3hint').textContent=HINT}
   for(const p of panels)if(p.g){P.remove(p.g);p.g.traverse(o=>o.geometry&&o.geometry.dispose())}
-  panels=JSON.parse(hist[hi]);panels.forEach(build);msel=msel.filter(i=>panels.some(p=>p.id===i));sel=msel.length?msel[msel.length-1]:null;
+  panels=JSON.parse(hist[hi]);hwSigv=HW?hwSig():'';panels.forEach(build);msel=msel.filter(i=>panels.some(p=>p.id===i));sel=msel.length?msel[msel.length-1]:null;
   paint();props();list();markDirty();if(mode==='cut')clRender();kzSync();histBtns()}
-function changed(){histPush();pmFill();markDirty();if(mode==='cut')clRender();kzSync();prRefresh()}
+function changed(){hwAuto();histPush();pmFill();markDirty();if(mode==='cut')clRender();kzSync();prRefresh()}
 
 /* ---------------- sahna, kamera ---------------- */
 function lum(c){const m=/#?([0-9a-f]{6})/i.exec(c);if(!m)return 0;const n=parseInt(m[1],16);return (((n>>16)&255)*.299+((n>>8)&255)*.587+(n&255)*.114)/255}
@@ -406,6 +406,7 @@ function clWire(){
   q('#p3clSheetB').onclick=clSheet;
   ['#p3clTf','#p3clMf'].forEach(id=>q(id).addEventListener('change',()=>{if(q('#p3clSheetOut').innerHTML)clSheet()}))}
 function openCut(){
+  modelHome();
   if(!wrap)initUI();
   if(isOpen&&mode==='model'){if(dr)endDraw();cancelPlace()}
   mode='cut';wrap.classList.add('cut');isOpen=true;document.body.classList.add('p3On');wrap.style.display='flex';place3d();
@@ -1213,6 +1214,7 @@ let hwOpts=(()=>{try{return HW?HW.merge(HW.DEF,JSON.parse(localStorage.getItem(H
 const HWF=[
   ['h','Ulanish (boka, krisha, dno, oraliq boka)'],
   ['con','Turi (umumiy; panelda alohida tanlansa — o\'shanisi)','sel',HW?HW.CONS:{}],
+  ['auto',"Model o'zgarsa teshiklar avtomatik yangilansin (cho'zish, o'lcham, ko'chirish)",'chk'],
   ['dowel',"Yoniga shkant qo'shish (+32 mm)",'chk'],['e','Uchidan masofa'],['step','Eng katta qadam'],
   ['konf.fd','Yevrovint: yuza Ø (teshib o\'tadi)'],['konf.ed','Yevrovint: chet Ø'],['konf.ez','Yevrovint: chet chuqurligi'],
   ['ekss.d','Ekssentrik Ø'],['ekss.z','Ekssentrik chuqurligi'],['ekss.b','Ekssentrik: chetdan markazigacha'],['ekss.ed','Ekssentrik: chet Ø'],['ekss.ez','Ekssentrik: chet chuqurligi'],['ekss.bd','Shtok Ø'],['ekss.bz','Shtok chuqurligi'],
@@ -1230,9 +1232,22 @@ function hwSave(){try{localStorage.setItem(HW_STORE,JSON.stringify(hwOpts))}catc
 const hwTargets=()=>{const s=selected().filter(p=>!p.hid);return s.length?s:panels.filter(p=>!p.hid)};
 function hwSay(html){if(wrap&&q('#p3hwOut'))q('#p3hwOut').innerHTML=html}
 const hwList=a=>a.length?'<ul>'+a.slice(0,40).map(m=>'<li>'+esc(m)+'</li>').join('')+(a.length>40?`<li>… yana ${a.length-40} ta</li>`:'')+'</ul>':'';
+/* Avtomatik moslash: furnituralangan korpusda panel cho'zilsa, kattalashsa, ko'chsa, burilsa, nomi/ulagichi o'zgarsa yoki unga yangi
+   panel tegsa — o'sha korpus(lar) qayta teshiladi (tarixga yozilishidan oldin, shuning uchun Ctrl+Z bitta qadam). Qo'lda qo'yilgan
+   teshiklar saqlanadi. Furnitura oynasida o'chirib qo'yish mumkin. */
+let hwSigv='';
+const hwGeo=p=>[p.id,p.x,p.y,p.z,p.w,p.h,p.t,p.o,p.m?p.m.join(''):'',p.ry||0,p.shape||'',p.c||0,p.pts?p.pts.length+':'+p.pts.flat().join(','):'',p.con||'',p.n||'',p.hs||'',p.hid?1:0].join('|');
+const hwSig=()=>panels.map(hwGeo).join(';');
+function hwAuto(){
+  if(!HW||!hwOpts||!hwOpts.auto)return 0;const sig=hwSig();if(sig===hwSigv)return 0;hwSigv=sig;
+  const vis=panels.filter(p=>!p.hid);if(!vis.some(p=>p.ops&&p.ops.some(o=>o.a)))return 0;
+  const tg=corpusClusters(vis).filter(c=>c.some(p=>p.ops&&p.ops.some(o=>o.a))).flat();
+  const before=JSON.stringify(tg.map(p=>p.ops||[]));HW.place(panels,tg,hwOpts);
+  if(JSON.stringify(tg.map(p=>p.ops||[]))===before)return 0;
+  tg.forEach(build);paint();say('Furnitura modelga moslab qayta qo\'yildi ('+tg.length+' panel)');return tg.length}
 function hwPlace(){
   if(!HW)return null;const ps=hwTargets();if(!ps.length){hwSay("Panel yo'q.");return null}
-  const r=HW.place(panels,ps,hwOpts);panels.forEach(build);paint();props();changed();
+  const r=HW.place(panels,ps,hwOpts);hwSigv=hwSig();panels.forEach(build);paint();props();changed();
   const named=ps.some(p=>/fasad|polka|orqa devor/i.test(p.n||''));
   const c=Object.entries(r.cnt).map(([k,n])=>`${HW.T_NAME[k]||k}: ${n}`).join(' · ')||"teshik qo'yilmadi";
   hwSay(`<b>${r.joints} ta ulanish, ${r.panels} ta panelga teshik</b><br>${esc(c)}${named?'':"<p class=\"p3mu\">Fasad, polka va orqa devor nomidan aniqlanadi — avval Avto-nom (Alt+N) qiling.</p>"}${r.warn.length?'<p><b>Ogohlantirish:</b></p>'+hwList(r.warn):'<p class="p3mu">Tekshiruv: xato topilmadi.</p>'}`);
@@ -1313,7 +1328,7 @@ function cncSend(){
   const m=document.getElementById('mbCnc');if(m&&!m.classList.contains('active'))m.click();
   const msg=out.map(r=>`${r.name}: ${r.parts} detal → ${r.ok?r.sheets+' list':'joylanmadi'}`).join(' · ')+
     (other?` · ikkinchi tomonda ${other} ta teshik/paz (ag'darib ishlanadi — DXF/CSV da)`:'')+(edge?` · ${edge} ta chet teshigi (присадка)`:'')+(mapped?` · ${mapped} ta Ø sverloga yaxlitlandi`:'')+(none?` · ${none} ta teshikka mos sverlo yo'q`:'');
-  try{setHint(msg+'. Model «'+(documentPages.find(x=>x.id===srcPage)||{}).name+'» sahifasida.')}catch(e){}
+  try{setHint(msg+'. 3D model «'+(documentPages.find(x=>x.id===srcPage)||{}).name+'» sahifasida qoldi — Modeling bosilsa o\'sha sahifa ochiladi.')}catch(e){}
   if(typeof markProjectDirty==='function')markProjectDirty();
   return{pages:out,other,edge,mapped,none,msg}}
 /* --- Panelni Drawing'da tahrirlash (2 marta bosish): vaqtinchalik sahifa «✎ <nom>» — kontur (CUT), A tomondagi va teshib o'tadigan
@@ -1485,7 +1500,7 @@ function load(d){
     lines=Array.isArray(d.lines)?d.lines:[];planeMode=d.pl||'front';guides=Array.isArray(d.guides)?d.guides:[]}
   else{T=16;uid=1}
   if(wrap){q('#p3T').value=T;q('#p3dxP').value=planeMode;if(d&&d.dp)q('#p3dxD').value=d.dp;sync()}
-  histReset()}
+  hwSigv=HW?hwSig():'';histReset()}
 function sync(){
   if(inited){panels.forEach(build);drawLines();drawGuides();if(isOpen)frame()}
   if(wrap){props();list();kzSync();prRefresh();if(mode==='cut')clRender();
@@ -1728,7 +1743,15 @@ function ensure(){
   (function loop(){if(dirtyR&&isOpen&&mode==='model'){updateGizmo();stretchHandles();c3Sync();if(snapHit)showSnap(snapHit);if(ruler)rulerLabel();navDraw();renderer.render(scene,cam);dirtyR=false}requestAnimationFrame(loop)})();
 }
 function place3d(){const m=document.getElementById('menuBar');wrap.style.top=(m?Math.ceil(m.getBoundingClientRect().bottom):0)+'px'}
+/* CNC sahifasi («CNC · …») yoki vaqtinchalik «✎ …» sahifada Modeling/Cutlist ochilsa — model shu sahifada yo'q: modelli sahifaga
+   (avvalgi eng yaqin, bo'lmasa keyingi) o'tiladi. Model hech qachon CNC sahifasiga ko'chirilmaydi — bitta nusxa. */
+function modelHome(){
+  try{if(typeof documentPages==='undefined'||panels.length||p3edit)return false;const cur=activePage();if(!cur||!/^(CNC · |✎ )/.test(cur.name))return false;
+    const i=documentPages.indexOf(cur),has=x=>x!==cur&&x.panel3d&&Array.isArray(x.panel3d.panels)&&x.panel3d.panels.length;
+    const home=documentPages.slice(0,i).reverse().find(has)||documentPages.slice(i+1).find(has);if(!home)return false;
+    switchPage(home.id);say(`Model «${home.name}» sahifasida — o'sha sahifa ochildi (CNC sahifasi: «${cur.name}»)`);return true}catch(e){return false}}
 function open(){
+  modelHome();
   if(!wrap)initUI();
   mode='model';wrap.classList.remove('cut');isOpen=true;document.body.classList.add('p3On');wrap.style.display='flex';
   {const bc=document.getElementById('modeCutlistBtn');if(bc)bc.classList.remove('active')}

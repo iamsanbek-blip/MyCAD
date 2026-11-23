@@ -6,6 +6,10 @@
 - `tests/panel3d-hw.cjs` 14 ga kengaydi: aralash ulagich (krisha ekssentrik + shkant, dno yevrovint, «yo'q»); CNC detali (B tomondan
   ko'zgu, teksturali 720×500 burilgan, chet teshigi sanaladi, paz B da); narx (list soni, m² + chiqit, kromka, furnitura soni, detallar
   yig'indisi = jami, ustama, kiritilmagan narxlar, noto'g'ri narx tozalanadi).
+- Qo'shimcha (o'sha kun): `modeling-cnc-price` 9 ga kengaydi — xossalarda o'ng boka 100 mm suriladi (ulanish teshiklari yo'qoladi),
+  krisha 668 ga kengaytiriladi (chet teshigi u = 668, bokada qaytadi), Ctrl+Z / Ctrl+Y bitta qadam; CNC sahifasida Modeling va Cutlist
+  bosilganda «Sahifa 1» ochiladi (7 panel); CNC sahifasining Drawing DXF'ida DRILL_D5_Z10 / DRILL_D7_THRU / DRILL_D15_Z13 qatlamlari.
+  Barcha suite va Electron sinovlari qayta o'tdi.
 - `tests/modeling-cnc-price.cjs` (yangi, web build, Chromium 1243, haqiqiy sichqoncha, 8): xossalarda ulagich tanlash → korpus qayta
   teshiladi; Narx paneli (jami = hisob, narx o'zgarganda yangilanadi, localStorage, detal narxi, smeta CSV); CNC'ga yuborish — 3 sahifa,
   detallar list ichida, teshiklar detal ichida, teksturali burilmagan; detal konturini bosish butun guruhni tanlaydi, Move bilan boshqa

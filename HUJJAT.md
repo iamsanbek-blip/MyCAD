@@ -1,5 +1,9 @@
 # Rugby 1.1.2 — CNC nesting, panelni Drawing'da tahrirlash, aralash ulagich, narx (2026-11-23)
 
+- **Furnitura modelga avtomatik moslashadi.** Furnituralangan korpusda panel cho'zilsa (Stretch), o'lchami o'zgarsa, ko'chsa, burilsa,
+  Mirror qilinsa, nomi yoki ulagichi o'zgarsa yoki unga yangi panel tegsa — o'sha korpus o'zi qayta teshiladi (Ctrl+Z — bitta qadam).
+  Qo'lda qo'yilgan teshiklar saqlanadi. Furnitura oynasida «Model o'zgarsa teshiklar avtomatik yangilansin» bilan o'chiriladi.
+- **CNC sahifasida Modeling bosilsa** model saqlangan sahifa o'zi ochiladi (model CNC sahifasiga ko'chirilmaydi — bitta nusxa).
 - **Bitta detalda turli ulagich.** Panel xossalari ▸ **Ulagich**: Umumiy / yevrovint / ekssentrik / shkant / yevrovint + shkant /
   ekssentrik + shkant / yo'q. Shu panel QIRRASI tegadigan ulanishlarda ishlaydi (masalan krisha → ikkala boka), bo'sh bo'lsa — yuzasi
   tegadigan panelniki, keyin Furnitura oynasidagi umumiy tur. Masalan krisha — ekssentrik + shkant, dno — yevrovint: bokada ikkala tur.
