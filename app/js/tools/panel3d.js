@@ -1404,11 +1404,11 @@ function hwWire(){
    (kontur + teshik aylanalari + paz to'rtburchaklari) — nestingda ham, qo'lda boshqa listga surilganda ham teshiklar detal bilan
    ko'chadi. Qatlam nomlari DXF eksport bilan bir xil (DRILL_D5_Z10 …). List o'lchami — Cutlist «List hisobi» dan.
    Model o'z sahifasida qoladi (CNC sahifasida Modeling bo'sh). --- */
-function cncFit(){   // listlar (yoki detallar) ekranga sig'adi — sahifa ko'rinishi shu bilan saqlanadi
+function cncFit(bot){   // listlar (yoki detallar) ekranga sig'adi — sahifa ko'rinishi shu bilan saqlanadi; yordamchi chiziqlar hisobga olinmaydi
   try{let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;const add=(a,b,c,d)=>{x0=Math.min(x0,a);y0=Math.min(y0,b);x1=Math.max(x1,c);y1=Math.max(y1,d)};
-    if(nestSheets&&nestSheets.length)nestSheets.forEach(s=>add(s.x0,s.y0,s.x1,s.y1));else drawnLines.forEach(l=>{const b=shapeBBox(l);if(b)add(b.x0,b.y0,b.x1,b.y1)});
-    if(!isFinite(x0))return;const cw=Math.max(200,canvas.width/devicePixelRatio),ch=Math.max(200,canvas.height/devicePixelRatio),pad=50,top=Math.min(250,ch*.3),w=x1-x0||1,h=y1-y0||1;   // tepada asboblar paneli
-    const sc=Math.min((cw-2*pad)/w,(ch-pad-top)/h);if(!(sc>0))return;view.scale=sc;view.ox=pad-x0*sc+(cw-2*pad-w*sc)/2;view.oy=ch-pad+y0*sc-(ch-pad-top-h*sc)/2;
+    if(nestSheets&&nestSheets.length)nestSheets.forEach(s=>add(s.x0,s.y0,s.x1,s.y1));else drawnLines.forEach(l=>{if(l.p3g)return;const b=shapeBBox(l);if(b)add(b.x0,b.y0,b.x1,b.y1)});
+    if(!isFinite(x0))return;const cw=Math.max(200,canvas.width/devicePixelRatio),ch=Math.max(200,canvas.height/devicePixelRatio),pad=50,top=bot?Math.min(330,ch*.42):Math.min(250,ch*.3),bp=bot||pad,w=x1-x0||1,h=y1-y0||1;   // tepada asboblar paneli, pastda (tahrirlashda) panel
+    const sc=Math.min((cw-2*pad)/w,(ch-bp-top)/h);if(!(sc>0))return;view.scale=sc;view.ox=pad-x0*sc+(cw-2*pad-w*sc)/2;view.oy=ch-bp+y0*sc-(ch-bp-top-h*sc)/2;
     if(typeof updateZoomBadge==='function')updateZoomBadge();if(typeof draw==='function')draw()}catch(e){}}
 function cncSend(){
   if(!HW||typeof addPage!=='function'||typeof runNesting!=='function'){say("CNC sahifasi faqat to'liq dasturda");return null}
@@ -1453,10 +1453,29 @@ function cncSend(){
    panel konturi bo'ladi, yangi aylanalar — teshik (qatlami DRILL_D…_Z… bo'lsa o'sha chuqurlik, aks holda 10 mm), surilgan/o'chirilgan
    teshiklar yangilanadi. Panel joyi: profil burchagi (0,0) dunyoda qimirlamaydi. Vaqtinchalik sahifa o'chiriladi. --- */
 let p3edit=null;
+/* Yordamchi chiziqlar (YORDAMCHI qatlami): shu panelga tegib turgan / kesib o'tgan qo'shni panellarning izi (to'rtburchak + nomi) va izlar
+   qirralaridan butun panel bo'ylab davom etuvchi chiziqlar, panel o'rta chiziqlari. Magnit ularga yopishadi; «Modeling'ga qaytarish» ularni
+   hisobga olmaydi (faqat chizish uchun). Qo'shni = panel qalinligi qatlamiga ±3 mm yaqin. */
+function guideData(p){   // sahifa almashishidan OLDIN (model panellari hali yuklangan) hisoblanadi
+  if(!HW)return null;const tol=3,W=p.w,H=p.h,us=new Set([0,W,W/2]),vs=new Set([0,H,H/2]),rects=[];
+  for(const q of panels){if(q===p||q.hid)continue;const b=boxOf(q),cs=[];
+    for(const x of b[0])for(const y of b[1])for(const z of b[2])cs.push(HW.toLocal(p,[x,y,z]));
+    const zr=[Math.min(...cs.map(c=>c[2])),Math.max(...cs.map(c=>c[2]))];if(zr[1]<-p.t/2-tol||zr[0]>p.t/2+tol)continue;
+    const u0=+Math.min(...cs.map(c=>c[0])).toFixed(2),u1=+Math.max(...cs.map(c=>c[0])).toFixed(2),v0=+Math.min(...cs.map(c=>c[1])).toFixed(2),v1=+Math.max(...cs.map(c=>c[1])).toFixed(2);
+    if(u1<-tol||u0>W+tol||v1<-tol||v0>H+tol)continue;rects.push({u0,u1,v0,v1,n:String(q.n||'Panel')});
+    [u0,u1].forEach(u=>{if(u>-tol&&u<W+tol)us.add(u)});[v0,v1].forEach(v=>{if(v>-tol&&v<H+tol)vs.add(v)})}
+  return{W,H,rects,us:[...us],vs:[...vs]}}
+function editGuides(gd,L){
+  if(!gd)return 0;const G=L('YORDAMCHI',8),M=120,ly=layers.find(l=>l.id===G);if(ly){ly.color='#5f7088';ly.aci=8}
+  const push=(pts,closed,kind,col)=>drawnLines.unshift({kind:kind||'line',closed:!!closed,selected:false,layer:G,color:col||'#46546a',points:pts,grips:pts.map(o=>({x:o.x,y:o.y})),p3g:1});   // kulrang: iz — ochroq, davom chiziqlari — xira
+  gd.rects.forEach((r,k)=>{push(genRectPts({x:r.u0,y:r.v0},{x:r.u1,y:r.v1}),true,'rect','#7f93ad');const h=Math.max(12,Math.min(40,Math.min(r.u1-r.u0,r.v1-r.v0,200)/3));
+    if(typeof texts!=='undefined')texts.push({id:typeof newTextId==='function'?newTextId():'tg'+k,x:(r.u0+r.u1)/2-r.n.length*h*.28,y:(r.v0+r.v1)/2-h/2,text:r.n,size:h,rot:0,color:'#8fa3bf',layer:G,selected:false})});
+  for(const u of gd.us)push([{x:u,y:-M},{x:u,y:gd.H+M}]);for(const v of gd.vs)push([{x:-M,y:v},{x:gd.W+M,y:v}]);
+  return gd.rects.length}
 function editInDrawing(p){
   if(typeof addPage!=='function'||typeof documentPages==='undefined'){startDraw(p);return false}
   if(p3edit)editCancel();
-  const src=activePageId,ops=JSON.parse(JSON.stringify(p.ops||[])),N=HW?HW.layerNames(hwOpts):null,pr=prof(p).map(a=>({x:a[0],y:a[1]}));
+  const gd=guideData(p),src=activePageId,ops=JSON.parse(JSON.stringify(p.ops||[])),N=HW?HW.layerNames(hwOpts):null,pr=prof(p).map(a=>({x:a[0],y:a[1]}));
   if(isOpen)close();
   if(addPage()===false)return false;
   const pg=activePage();pg.name=('✎ '+(p.n||'Panel')).slice(0,80);
@@ -1465,16 +1484,16 @@ function editInDrawing(p){
   drawnLines.push({kind:'line',closed:true,selected:false,layer:cut,points:pr,grips:pr.map(o=>({x:o.x,y:o.y}))});
   ops.forEach((o,i)=>{if(o.k!=='d')return;const B=o.f==='B'&&!o.th,ly=L(B?'B_D'+f1(o.d).toString().replace('.','_')+'_Z'+f1(o.z).toString().replace('.','_'):(o.th?N.thru(o.d,p.t):N.drill(o.d,o.z)),B?4:2),c={x:o.u,y:o.v},r=o.d/2;
     drawnLines.push({kind:'circle',center:c,radius:r,closed:true,selected:false,layer:ly,points:genCirclePts(c,r),grips:[{x:c.x+r,y:c.y},{x:c.x-r,y:c.y},{x:c.x,y:c.y+r},{x:c.x,y:c.y-r}],p3op:i+1})});
-  activeLayer=cut;pushHistory();
+  editGuides(gd,L);activeLayer=cut;pushHistory();
   p3edit={pid:p.id,src,tmp:pg.id,name:p.n||'Panel'};
   const m=document.getElementById('mbDraw');if(m)m.click();
-  cncFit();if(typeof repaintPage==='function')repaintPage();editBar();
+  cncFit(140);if(typeof repaintPage==='function')repaintPage();editBar();
   try{setHint('Panel shakli: chizing yoki tahrirlang (eng katta yopiq shakl — kontur, aylana — teshik). Tayyor bo\'lsa «Modeling\'ga qaytarish».')}catch(e){}
   return true}
 function editBar(){let b=document.getElementById('p3editBar');
   if(!p3edit){if(b)b.remove();return}
   if(!b){b=document.createElement('div');b.id='p3editBar';b.className='p3editBar';document.body.appendChild(b)}
-  b.innerHTML=`<span>✎ Panel shakli: <b>${esc(p3edit.name)}</b> — eng katta yopiq shakl kontur bo'ladi, aylanalar — teshik</span><button id="p3edOk">✓ Modeling'ga qaytarish</button><button id="p3edNo">✕ Bekor</button>`;
+  b.innerHTML=`<span>✎ Panel shakli: <b>${esc(p3edit.name)}</b> — eng katta yopiq shakl kontur bo'ladi, aylanalar — teshik. Kulrang — qo'shni panellar izi va yordamchi chiziqlar (magnit yopishadi)</span><button id="p3edOk">✓ Modeling'ga qaytarish</button><button id="p3edNo">✕ Bekor</button>`;
   b.querySelector('#p3edOk').onclick=()=>editApply();b.querySelector('#p3edNo').onclick=()=>editCancel()}
 function editDrop(){   // vaqtinchalik sahifani olib tashlash va model sahifasiga qaytish
   const e=p3edit;p3edit=null;editBar();if(!e)return false;
@@ -1483,11 +1502,11 @@ function editDrop(){   // vaqtinchalik sahifani olib tashlash va model sahifasig
   if(typeof renderPageTabs==='function')renderPageTabs();return documentPages.some(x=>x.id===e.src)}
 function editCancel(){const pid=p3edit&&p3edit.pid;if(editDrop()){open();if(panels.some(x=>x.id===pid))select(pid)}say('Panel shakli o\'zgartirilmadi')}
 function editRead(){   // joriy (vaqtinchalik) sahifadagi shakllardan: kontur, teshiklar
-  const cl=drawnLines.filter(l=>l.closed&&l.points&&l.points.length>=3),area=pts=>{let s=0;for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length];s+=a.x*b.y-b.x*a.y}return Math.abs(s)/2};
+  const cl=drawnLines.filter(l=>!l.p3g&&l.layer!=='YORDAMCHI'&&l.closed&&l.points&&l.points.length>=3),area=pts=>{let s=0;for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length];s+=a.x*b.y-b.x*a.y}return Math.abs(s)/2};
   const outer=cl.filter(l=>!l.p3op&&l.kind!=='circle').sort((a,b)=>area(b.points)-area(a.points))[0]||cl.filter(l=>!l.p3op).sort((a,b)=>area(b.points)-area(a.points))[0];
   if(!outer)return{err:'Yopiq kontur topilmadi — panel shaklini yopiq chiziq bilan chizing.'};
   const pts=outer.points.map(o=>[o.x,o.y]),inside=(x,y)=>{let c=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const a=pts[i],b=pts[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])c=!c}return c};
-  const circles=drawnLines.filter(l=>l.kind==='circle'&&l!==outer&&l.radius>0).map(l=>({x:l.center.x,y:l.center.y,d:l.radius*2,i:l.p3op?l.p3op-1:-1,layer:l.layer,in:inside(l.center.x,l.center.y)}));
+  const circles=drawnLines.filter(l=>!l.p3g&&l.layer!=='YORDAMCHI'&&l.kind==='circle'&&l!==outer&&l.radius>0).map(l=>({x:l.center.x,y:l.center.y,d:l.radius*2,i:l.p3op?l.p3op-1:-1,layer:l.layer,in:inside(l.center.x,l.center.y)}));
   const other=cl.filter(l=>l!==outer&&l.kind!=='circle').length;
   return{pts,circles,other}}
 function editApply(){
@@ -1914,5 +1933,5 @@ window.Panel3D={retheme:()=>{if(inited)theme()},hotkeys:{commands:P3CMD.map(({id
     for(let a=0;a<3;a++){const A=new THREE.Vector3();A.setComponent(a,1);o['a'+a]=P(c.clone().addScaledVector(A,90*k));o['v'+a]=gzAx[a].visible;
       const g=gzPl[a];g.updateMatrixWorld(true);o['p'+a]=P(g.getWorldPosition(new THREE.Vector3()));o['pv'+a]=g.visible}return o},
   _cursor:()=>c3?c3.toArray():null,_autoName:()=>autoName(),_clusters:()=>corpusClusters(panels.filter(p=>!p.hid)).map(c=>c.map(p=>p.id)),_pivot:()=>pivot,_act:()=>act?{k:act.k,con:act.con,typed:act.typed,hit:act.hit?act.hit.k:null}:null,_snap:()=>snapHit?{k:snapHit.k,T:snapHit.T.toArray()}:null,
-  _cnc:()=>cncSend(),_vsel:keys=>{if(keys){vsel=new Set(keys);dirtyR=true}return{keys:[...vsel],gz:!!(gz&&gz.visible)}},_group:()=>groupSel(),_ungroup:()=>ungroupSel(),_array:(n,d)=>arraySel(n,d),_dist:a=>distSel(a),_joints:()=>HW.jointLines(panels,hwOpts),_jointScr:k=>{const l=HW.jointLines(panels,hwOpts).find(x=>x.key===k);if(!l)return null;const r=cv.getBoundingClientRect(),s=scrOf(new THREE.Vector3((l.p0[0]+l.p1[0])/2,(l.p0[1]+l.p1[1])/2,(l.p0[2]+l.p1[2])/2));return{x:r.left+s.x,y:r.top+s.y}},_price:o=>{if(o){prices=PRC.merge(o);prSave()}return prCalc()},_prOpen:()=>{if(!prOpen)q('#p3prTab').click()},_edit:id=>{const p=panels.find(x=>x.id===id);return p?editInDrawing(p):false},_editApply:()=>editApply(),_editCancel:()=>editCancel(),_editing:()=>p3edit?{...p3edit}:null,_hw:{place:o=>{if(o)hwOpts=HW.merge(HW.DEF,o);return hwPlace()},clear:hwClear,dxf:()=>hwDxfData(),csv:()=>HW.csv(hwTargets()),check:hwCheck,open:hwOpen,opts:()=>hwOpts,ops:id=>{const p=panels.find(x=>x.id===id);return p&&p.ops?JSON.parse(JSON.stringify(p.ops)):[]},showOps:()=>showOps},_snapM:snapM,_setTool:t=>setTool(t),_view:v=>setView(v),_select:ids=>{msel=ids.slice();sel=ids[ids.length-1];paint();props();list();dirtyR=true}};
+  _cnc:()=>cncSend(),_vsel:keys=>{if(keys){vsel=new Set(keys);dirtyR=true}return{keys:[...vsel],gz:!!(gz&&gz.visible)}},_group:()=>groupSel(),_ungroup:()=>ungroupSel(),_array:(n,d)=>arraySel(n,d),_dist:a=>distSel(a),_joints:()=>HW.jointLines(panels,hwOpts),_jointScr:k=>{const l=HW.jointLines(panels,hwOpts).find(x=>x.key===k);if(!l)return null;const r=cv.getBoundingClientRect(),s=scrOf(new THREE.Vector3((l.p0[0]+l.p1[0])/2,(l.p0[1]+l.p1[1])/2,(l.p0[2]+l.p1[2])/2));return{x:r.left+s.x,y:r.top+s.y}},_price:o=>{if(o){prices=PRC.merge(o);prSave()}return prCalc()},_prOpen:()=>{if(!prOpen)q('#p3prTab').click()},_guides:()=>drawnLines.filter(l=>l.p3g).map(l=>({k:l.kind,pts:l.points.map(o=>[+o.x.toFixed(2),+o.y.toFixed(2)])})),_edit:id=>{const p=panels.find(x=>x.id===id);return p?editInDrawing(p):false},_editApply:()=>editApply(),_editCancel:()=>editCancel(),_editing:()=>p3edit?{...p3edit}:null,_hw:{place:o=>{if(o)hwOpts=HW.merge(HW.DEF,o);return hwPlace()},clear:hwClear,dxf:()=>hwDxfData(),csv:()=>HW.csv(hwTargets()),check:hwCheck,open:hwOpen,opts:()=>hwOpts,ops:id=>{const p=panels.find(x=>x.id===id);return p&&p.ops?JSON.parse(JSON.stringify(p.ops)):[]},showOps:()=>showOps},_snapM:snapM,_setTool:t=>setTool(t),_view:v=>setView(v),_select:ids=>{msel=ids.slice();sel=ids[ids.length-1];paint();props();list();dirtyR=true}};
 })();

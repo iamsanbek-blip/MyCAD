@@ -1,5 +1,9 @@
 # Rugby 1.1.2 — CNC nesting, panelni Drawing'da tahrirlash, aralash ulagich, narx (2026-11-23)
 
+- **Drawing'da tahrirlashda yordamchi chiziqlar.** Panel 2 marta bosilganda vaqtinchalik sahifada `YORDAMCHI` qatlamida (kulrang):
+  shu panelga tegib turgan yoki kesib o'tgan qo'shni panellarning izi (to'rtburchak + nomi — krisha, polka, orqa devor, fasad …), iz
+  qirralaridan butun panel bo'ylab davom etuvchi chiziqlar va panel o'rta chiziqlari. Magnit (uch, kesishish) ularga yopishadi — o'yiq,
+  kesik yoki shaklni qo'shni detalga aynan moslab chizasiz. «Modeling'ga qaytarish» ularni hisobga olmaydi; sahifa bilan o'chadi.
 - **Stretch (W) strelkalari.** Nuqtalar tanlansa ularning markazida X/Y/Z strelkalari, tekislik kvadratlari va oq markaz chiqadi (Move kabi).
   Strelkani sudrash — faqat o'sha o'q bo'ylab cho'zish, kvadrat — tekislikda, markaz — ekran tekisligida; qadam (Make ▸ Qadam) va magnit
   ishlaydi, pastda ΔX/ΔY/ΔZ. Cho'zgandan keyin nuqtalar tanlovi qoladi — keyingi o'q bilan davom etish mumkin.

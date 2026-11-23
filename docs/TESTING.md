@@ -34,6 +34,9 @@
 - Qo'shimcha: Stretch strelkalari — `modeling-cnc-price` 13 (krisha o'ng nuqtalari tanlanib X strelkasi haqiqiy sichqoncha bilan sudraldi:
   +55 mm, faqat X, chap tomon joyida, ΔY = ΔZ = 0, tanlov qoladi). Ingichka gizmo bilan `modeling-precision` (13), Electron `modeling-smoke`,
   `stretch-select` va qolgan suite'lar qayta o'tdi; skrinshotda faol X sariq, qolganlari xira.
+- Qo'shimcha (izoh bo'yicha): Drawing'da tahrirlash yordamchi chiziqlari — `modeling-cnc-price` 13 (fasad: 4 qo'shni iz — 2 boka, dno,
+  krisha; chap boka izi u −2..14; nomlar YORDAMCHI qatlamida; «Modeling'ga qaytarish» natijasi o'zgarmadi). Topilgan: vaqtinchalik sahifa
+  ochilganda model panellari yuklab tashlanardi — izlar endi sahifa almashishidan oldin hisoblanadi; chiziqlar kontur ostida chiziladi.
 - `tests/modeling-cnc-price.cjs` (yangi, web build, Chromium 1243, haqiqiy sichqoncha, 8): xossalarda ulagich tanlash → korpus qayta
   teshiladi; Narx paneli (jami = hisob, narx o'zgarganda yangilanadi, localStorage, detal narxi, smeta CSV); CNC'ga yuborish — 3 sahifa,
   detallar list ichida, teshiklar detal ichida, teksturali burilmagan; detal konturini bosish butun guruhni tanlaydi, Move bilan boshqa

@@ -149,6 +149,10 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     await page.waitForFunction(()=>Panel3D._editing()&&document.getElementById('mbDraw').classList.contains('active'));
     const ed=await ev(()=>({page:activePage().name,c:drawnLines.filter(l=>l.kind==='circle').length,ops:0,bar:document.getElementById('p3editBar').textContent}));
     assert.equal(ed.page,'✎ A. fasad');assert.match(ed.bar,/A\. fasad/);
+    const gd=await ev(()=>Panel3D._guides()),gr=gd.filter(g=>g.k==='rect');   // qo'shni panellar izi: 2 boka, dno, krisha (fasadga tegadi)
+    assert.equal(gr.length,4,JSON.stringify(gr));assert.ok(gd.filter(g=>g.k==='line').length>=6);
+    assert.ok(gr.some(g=>{const xs=g.pts.map(q=>q[0]);return Math.min(...xs)===-2&&Math.max(...xs)===14}),'chap boka izi fasad chetida (u −2..14)');
+    assert.ok(await ev(()=>texts.some(t=>t.text==='A. dno'&&t.layer==='YORDAMCHI')));
     const fOps=await ev(()=>{const s=documentPages[0].panel3d.panels.find(p=>p.id===8);return(s.ops||[]).filter(o=>o.k==='d').length});assert.equal(ed.c,fOps);
     await ev(()=>{const c=drawnLines.find(l=>l.kind==='line');const pts=[{x:0,y:0},{x:596,y:0},{x:596,y:616},{x:496,y:716},{x:0,y:716}];c.points=pts;c.grips=pts.map(o=>({...o}));
       const ce={x:298,y:60};drawnLines.push({kind:'circle',center:ce,radius:4,closed:true,selected:false,layer:'DRILL_D8_Z12',points:genCirclePts(ce,4),grips:[]})});
@@ -158,7 +162,7 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     assert.deepEqual(F.man,[{k:'d',f:'A',u:298,v:60,d:8,z:12,t:'man'}]);assert.equal(F.n,fOps+1);assert.equal(F.eb,null,'kromka qirralar soni o\'zgardi');
     assert.deepEqual(F.pages,['Sahifa 1','CNC · LDSP oq 16 mm','CNC · MDF 16 mm','CNC · XDF 4 mm']);
     await page.keyboard.press('Control+z');assert.equal(await ev(()=>Panel3D._state().panels.find(p=>p.id===8).pts),undefined);
-    passed.push("Fasad 2 marta bosildi → «✎ A. fasad» Drawing sahifasi; kesilgan burchak va Ø8×12 teshik «Modeling'ga qaytarish» bilan panelga o'tdi, joyi o'zgarmadi, vaqtinchalik sahifa o'chdi; Ctrl+Z qaytaradi");
+    passed.push("Fasad 2 marta bosildi → «✎ A. fasad» Drawing sahifasi (qo'shni 4 panel izi va yordamchi chiziqlar, nomlari bilan); kesilgan burchak va Ø8×12 teshik «Modeling'ga qaytarish» bilan panelga o'tdi, joyi o'zgarmadi, vaqtinchalik sahifa o'chdi; Ctrl+Z qaytaradi");
     await ev(()=>Panel3D._select([]));await page.mouse.dblclick(fc.x,fc.y);await page.waitForFunction(()=>Panel3D._editing());
     await ev(()=>{drawnLines.length=0});await page.locator('#p3edNo').click();await page.waitForFunction(()=>Panel3D.isOpen());
     assert.equal(await ev(()=>Panel3D._state().panels.find(p=>p.id===8).pts),undefined);assert.equal(await ev(()=>documentPages.length),4);
