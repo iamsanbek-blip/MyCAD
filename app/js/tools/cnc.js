@@ -152,7 +152,7 @@ function nestPack(items, order, heur, cfg, holes){
     // holatlarda butun bir list kamaydi.
     let spot=null, target=-1;
     for(let s=0;s<sheets.length;s++){
-      const cand=nestFindSpot(sheets[s].free, w, h, heur, cfg.allowRot);
+      const cand=nestFindSpot(sheets[s].free, w, h, heur, cfg.allowRot && !it.noRot);
       // MUHIM: nestBetter(score, candidateObj) — ikkinchi argument to'liq
       // NOMZOD OBYEKTI bo'lishi kerak (u o'zining .s maydoniga qaraydi),
       // xom ball massivi emas.
@@ -160,7 +160,7 @@ function nestPack(items, order, heur, cfg, holes){
     }
     if(!spot){
       const fresh=[{x:0, y:0, w:cw, h:ch}];
-      spot=nestFindSpot(fresh, w, h, heur, cfg.allowRot);
+      spot=nestFindSpot(fresh, w, h, heur, cfg.allowRot && !it.noRot);
       if(!spot) return null;                     // umuman sig'maydi
       sheets.push({free:fresh});
       target=sheets.length-1;
@@ -251,12 +251,13 @@ function runNesting(){
   if(usableW<=0 || usableH<=0){ alert('List o\'lchami juda kichik (chet juda katta).'); return false; }
   const cfg = {SW, SH, gap, MAR, usableW, usableH, allowRot};
 
-  const items = units.map(u=>({w:u.bbox.x1-u.bbox.x0, h:u.bbox.y1-u.bbox.y0}));
+  // nr — teksturali detal (Modeling'dan): burilmaydi
+  const items = units.map(u=>({w:u.bbox.x1-u.bbox.x0, h:u.bbox.y1-u.bbox.y0, noRot:u.shapes.some(s=>s.nr)}));
 
   // Sig'maydiganlarni oldindan aniqlab, tushunarli xabar berish
   const tooBig = items.filter(it=>{
     const fits    = it.w<=usableW+NEST_EPS && it.h<=usableH+NEST_EPS;
-    const fitsRot = allowRot && it.h<=usableW+NEST_EPS && it.w<=usableH+NEST_EPS;
+    const fitsRot = allowRot && !it.noRot && it.h<=usableW+NEST_EPS && it.w<=usableH+NEST_EPS;
     return !fits && !fitsRot;
   });
   if(tooBig.length){
@@ -267,7 +268,7 @@ function runNesting(){
 
   // Bir xil so'rovmi? Ha bo'lsa — navbatdagi variantni ko'rsatamiz.
   const sig = [units.length, SW, SH, gap, MAR, allowRot,
-               items.map(i=>Math.round(i.w)+'x'+Math.round(i.h)).sort().join(',')].join('|');
+               items.map(i=>Math.round(i.w)+'x'+Math.round(i.h)+(i.noRot?'n':'')).sort().join(',')].join('|');
 
   const idxs = items.map((_,i)=>i);
   const ORDERS = {

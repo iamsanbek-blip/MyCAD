@@ -1,3 +1,28 @@
+# Rugby 1.1.2 — CNC nesting, panelni Drawing'da tahrirlash, aralash ulagich, narx (2026-11-23)
+
+- **Bitta detalda turli ulagich.** Panel xossalari ▸ **Ulagich**: Umumiy / yevrovint / ekssentrik / shkant / yevrovint + shkant /
+  ekssentrik + shkant / yo'q. Shu panel QIRRASI tegadigan ulanishlarda ishlaydi (masalan krisha → ikkala boka), bo'sh bo'lsa — yuzasi
+  tegadigan panelniki, keyin Furnitura oynasidagi umumiy tur. Masalan krisha — ekssentrik + shkant, dno — yevrovint: bokada ikkala tur.
+  Korpus allaqachon furnituralangan bo'lsa, tanlov bilan darhol qayta teshiladi. Bir nechta panel tanlab ham qo'yish mumkin.
+- **CNC'ga yuborish — listga joylash** (Furnitura oynasi, Alt+F). Har material + qalinlik uchun yangi sahifa «CNC · LDSP oq 16 mm».
+  Har detal — bitta **guruh**: kontur (`CUT_Z16`), teshiklar (`DRILL_D5_Z10`, `DRILL_D7_THRU` …), paz (`GROOVE_…`). Detal nestingda ham,
+  qo'lda (bosib tanlash → Move) boshqa listga surilganda ham teshiklari bilan ko'chadi. List o'lchami va chekka — Cutlist «List hisobi»dan.
+  Ishlov tomoni — ko'r teshik/pazi ko'p tomon (B bo'lsa ag'darib, ko'zgu). Teksturali detal tekstura list uzunligi (X) bo'ylab
+  yotqiziladi va nestingda burilmaydi. Ikkinchi tomondagi ko'r teshik va chet teshiklari CNC sahifasiga chiqmaydi — hisobotda soni,
+  DXF/CSV'da o'zi. Teshik aylanalari nestingda «bo'sh joy» hisoblanmaydi. Model o'z sahifasida qoladi (CNC sahifasida Modeling bo'sh).
+- **Panelni 2 marta bosish → Drawing'da tahrirlash.** Vaqtinchalik sahifa «✎ nom»: kontur va teshiklar (A tomon va teshib o'tadigan —
+  `DRILL_…`, B tomon — `B_…`). Drawing asboblari bilan istalgan shakl chiziladi; pastdagi **✓ Modeling'ga qaytarish** — eng katta yopiq
+  shakl panel konturi bo'ladi, aylanalar — teshik (qatlam `DRILL_D8_Z12` bo'lsa Ø va chuqurlik shundan, aks holda 10 mm; `…THRU` — teshib
+  o'tadi), surilgan/o'chirilgan teshiklar yangilanadi, kontur tashqarisidagisi tashlanadi. Panel joyi (profil burchagi) qimirlamaydi;
+  qirralar soni o'zgarsa kromka belgisi olib tashlanadi. **✕ Bekor** — o'zgarishsiz. Ctrl+Z — qaytarish. Alt + 2 marta — eski 3D tez chizish.
+- **Narx (smeta)** — 3D oynaning o'ng chetidagi «Narx» tugmasi (jami doim ko'rinadi). Bir marta kiritiladi va eslab qolinadi:
+  1 list narxi (material + qalinlik), kromka 1 m (qalinlik bo'yicha), furnitura dona (yevrovint, ekssentrik, shkant, polkaderjatel,
+  petlya, ruchka — teshiklardan sanaladi), ishlar (raspil m, kromka yopishtirish m, teshik dona, paz m, CNC list), qo'shimcha qatorlar,
+  ustama %. Material: list soni (Cutlist list hisobi bilan bir xil) yoki m² + chiqit %. Har detal narxi (material ulushi, kromka, ishlar,
+  furnitura) jadvalda va panel xossalarida; detallar yig'indisi = jami (qo'shimcha va ustamasiz). Kiritilmagan narx sariq. **CSV** — smeta.
+
+---
+
 # Rugby 1.1.2 — Furnitura, teshik va CNC DXF (2026-11-23)
 
 - **Object ▸ Furnitura va teshiklar (CNC DXF)…** — Modeling, **Alt+F**. Tanlov bo'lsa tanlangan panellar, aks holda hamma ko'rinadigan panellar.
@@ -143,7 +168,8 @@ hotkeylar va CorelDRAW/Excel kabi bitta faylda ko'p sahifa.
 Renderer 45 ta oddiy scriptdan iborat. `app/index.html` dagi tartib muhim;
 ular umumiy global scope'da ishlaydi. Yangi `core/` modullarida sof format va
 hotkey qoidalari, `model/pages.js` da eski state bilan adapter bor.
-`tools/panel3d-hw.js` — furnitura/teshik/DXF sof mantig'i (DOM'siz, Node'da test qilinadi), `panel3d.js` dan oldin yuklanadi.
+`tools/panel3d-hw.js` — furnitura/teshik/DXF/CNC detali sof mantig'i, `tools/panel3d-price.js` — narx hisobi (ikkalasi DOM'siz,
+Node'da test qilinadi), `panel3d.js` dan oldin yuklanadi.
 `docs/ARCHITECTURE.md` da har qism va kengaytirish tartibi tushuntirilgan.
 
 ## Ishga tushirish va tekshirish

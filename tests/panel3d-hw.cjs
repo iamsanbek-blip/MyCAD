@@ -111,4 +111,38 @@ const ops=(p,t)=>(p.ops||[]).filter(o=>!t||o.t===t);
   const re=Doc.decode(JSON.stringify(enc));assert.deepEqual((re.pages||re.document.pages)[0].panel3d.panels.map(p=>p.ops||[]),ps.map(p=>p.ops||[]));
   ok("Tekshiruv: tashqarida, chetga yaqin, teshilib ketadi, ustma-ust, chetga sig'maydi; loyiha faylida (encode/decode) teshiklar saqlanadi")}
 
+// 11. Bitta detalda turli ulagich: krisha (B panel) — «ekssentrik + shkant», dno — umumiy (yevrovint)
+{const ps=corpus();byId(ps,4).con='ekss+shkant';const r=HW.place(ps,ps,{pin:{on:false}});const L=byId(ps,1),types=new Set(ops(L).map(o=>o.t));
+  assert.ok(types.has('konf')&&types.has('ekss')&&types.has('shkant'),'chap bokada uch tur');
+  assert.equal(ops(byId(ps,3)).filter(o=>o.t==='konf').length,4);assert.ok(ops(byId(ps,4)).some(o=>o.t==='ekss'&&o.d===15));assert.ok(ops(byId(ps,4)).some(o=>o.t==='shkant'&&o.k==='e'));
+  byId(ps,4).con='none';HW.place(ps,ps,{pin:{on:false}});assert.equal(ops(byId(ps,4)).filter(o=>o.t!=='paz').length,0,'krisha: «yo\'q» — faqat orqa devor pazi qoladi');assert.equal(ops(byId(ps,3)).filter(o=>o.t==='konf').length,4);
+  const ps2=corpus();byId(ps2,3).con='shkant';HW.place(ps2,ps2,{});assert.ok(ops(byId(ps2,3)).filter(o=>o.k==='e').every(o=>o.t==='shkant'&&o.d===8));assert.ok(ops(byId(ps2,4)).filter(o=>o.k==='e').every(o=>o.t==='konf'));
+  ok("Bitta detalda aralash ulagich: krisha — ekssentrik + shkant, dno — yevrovint (bokada uch tur); panel tanlovi umumiydan ustun")}
+
+// 12. CNC uchun tekis detal: ishlov tomoni (B ko'p bo'lsa — ko'zgu), teksturali panel X bo'ylab, chet teshigi sanaladi
+{const ps=corpus();byId(ps,1).gr='h';HW.place(ps,ps,{});
+  const R=HW.flat(byId(ps,2),{});assert.equal(R.side,'B');const pin=ops(byId(ps,2),'polka')[0];assert.ok(R.circles.some(c=>Math.abs(c.x-(500-pin.u))<.01&&Math.abs(c.y-pin.v)<.01&&c.layer==='DRILL_D5_Z10'));
+  const L=HW.flat(byId(ps,1),{});assert.equal(L.side,'A');assert.ok(L.rot&&L.noRot);assert.deepEqual([L.w,L.h],[720,500]);
+  const xs=L.contour.map(c=>c[0]),ys=L.contour.map(c=>c[1]);assert.deepEqual([Math.min(...xs),Math.max(...xs),Math.min(...ys),Math.max(...ys)],[0,720,0,500]);
+  assert.ok(L.circles.every(c=>c.x>=0&&c.x<=720&&c.y>=0&&c.y<=500));const p0=ops(byId(ps,1),'polka')[0];assert.ok(L.circles.some(c=>Math.abs(c.x-p0.v)<.01&&Math.abs(c.y-(500-p0.u))<.01));
+  const D=HW.flat(byId(ps,3),{});assert.equal(D.edge,4);assert.equal(D.circles.length,0);
+  const K=HW.flat(byId(ps,4),{});assert.equal(K.side,'B');assert.equal(K.rects.length,1);assert.equal(K.rects[0].layer,'GROOVE_W4_5_Z8');
+  ok("CNC detali: o'ng boka B tomondan (ko'zgu), teksturali chap boka 720×500 burilgan va burilmaydi, dno chet teshiklari sanaladi, krisha pazi B tomonda")}
+
+// 13. Narx: list soni × narx, kromka metri, furnitura teshiklardan, ishlar; detallar yig'indisi = jami (qo'shimcha va ustamasiz)
+{const PR=require('../app/js/tools/panel3d-price.js'),src2=src;const fn=n=>{const i=src2.indexOf('function '+n+'(');let d=0,j=src2.indexOf('{',i);for(;;j++){if(src2[j]==='{')d++;else if(src2[j]==='}'){d--;if(!d)break}}return src2.slice(i,j+1)};
+  const {packSheets,ebInfo}=new Function('prof',fn('packSheets')+';'+fn('ebInfo')+';return{packSheets,ebInfo}')(prof);
+  const ps=corpus();ps.forEach(p=>p.mat=p.t===4?'XDF':'LDSP');byId(ps,1).eb=[0,1,0,0];byId(ps,5).q=2;HW.place(ps,ps,{});
+  const H={prof,matN:p=>p.mat||'',LW:p=>[Math.max(p.w,p.h),Math.min(p.w,p.h)],canRot:()=>true,ebInfo,pack:packSheets,sheet:{L:2800,W:2070,K:4,T:10}};
+  const P={mat:{'LDSP|16':500000,'XDF|4':100000},eb:{'1':2000},hw:{konf:400,polka:200,petlya:12000,ruchka:20000},work:{cut:3000,drill:500,groove:2000,edge:1000},extra:[{n:'Yetkazish',v:50000}],markup:10};
+  const r=PR.compute(ps,P,H);
+  assert.deepEqual(r.groups.map(g=>[g.key,g.sheets,g.cost]),[['LDSP|16',1,500000],['XDF|4',1,100000]]);
+  assert.deepEqual(r.hw.map(h=>[h.k,h.n]),[['konf',8],['polka',4],['petlya',2],['ruchka',1]]);
+  assert.equal(r.eb[0].m,0.72);assert.equal(r.eb[0].cost,1440);
+  const per=r.perPanel.reduce((a,x)=>a+x.sum,0);assert.ok(Math.abs(per-(r.matT+r.ebT+r.hwT+r.workT))<1e-6,'detallar yig\'indisi');
+  assert.ok(Math.abs(r.total-(r.sub*1.1))<1e-6);assert.equal(r.sub,r.matT+r.ebT+r.hwT+r.workT+50000);
+  const m2=PR.compute(ps,Object.assign({},P,{mode:'m2',waste:20}),H);assert.ok(Math.abs(m2.groups[0].cost-m2.groups[0].area*1.2*500000/(2.8*2.07))<1e-6);
+  assert.deepEqual(PR.compute(ps,{},H).missing.slice(0,2),['mat:LDSP|16','mat:XDF|4']);assert.deepEqual(PR.merge({mat:{a:-5,b:'x'},extra:[{n:'q',v:-1}]}).extra,[{n:'q',v:0}]);
+  ok("Narx: list soni × narx (m² + chiqit rejimi ham), kromka metri, furnitura (yevrovint 8, polkaderjatel 4 — bokadagi teshiklardan, polka soni 2 bo'lsa ham), ishlar; detallar yig'indisi = jami, ustama 10%")}
+
 console.log(passed.map(s=>'PASS '+s).join('\n'));console.log(`panel3d-hw: ${passed.length} checks passed`);

@@ -30,6 +30,7 @@ const RASTER_CELL_MM = 4;        // bitta katak = 4 mm (aniqlik / tezlik muvozan
 function unitPolygons(u){
   const polys=[];
   u.shapes.forEach(s=>{
+    if(s.p3op) return;   // Modeling detalining teshik/pazi — bo'sh joy emas (ichiga detal qo'yilmaydi)
     const pts = s.points && s.points.length>2 ? s.points : null;
     if(pts) polys.push(pts);
   });

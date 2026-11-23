@@ -137,7 +137,7 @@ function histGo(d){
   for(const p of panels)if(p.g){P.remove(p.g);p.g.traverse(o=>o.geometry&&o.geometry.dispose())}
   panels=JSON.parse(hist[hi]);panels.forEach(build);msel=msel.filter(i=>panels.some(p=>p.id===i));sel=msel.length?msel[msel.length-1]:null;
   paint();props();list();markDirty();if(mode==='cut')clRender();kzSync();histBtns()}
-function changed(){histPush();pmFill();markDirty();if(mode==='cut')clRender();kzSync()}
+function changed(){histPush();pmFill();markDirty();if(mode==='cut')clRender();kzSync();prRefresh()}
 
 /* ---------------- sahna, kamera ---------------- */
 function lum(c){const m=/#?([0-9a-f]{6})/i.exec(c);if(!m)return 0;const n=parseInt(m[1],16);return (((n>>16)&255)*.299+((n>>8)&255)*.587+(n&255)*.114)/255}
@@ -197,6 +197,7 @@ function multiProps(ps){
    <div class="p3r"><label>Qalinlik (mm)</label><input id="p3m_ebT" type="text" inputmode="decimal" value="${esc(q('#p3ebT')?q('#p3ebT').value:'0.4')}"></div>
    <div class="p3row"><button id="p3m_ebAll">Hamma qirra</button><button id="p3m_ebLong">Uzun tomonlar</button><button id="p3m_ebShort">Qisqa tomonlar</button><button id="p3m_ebClr">Tozalash</button></div>
    <p class="p3mu">Jami kromka: ${kr.toFixed(2)} m</p>
+   ${conSel((()=>{const v=ps.map(x=>x.con||'');return v.every(x=>x===v[0])?v[0]:null})())}
    <div class="p3row"><button id="p3m_copy">Nusxa</button><button id="p3m_del">O'chirish</button></div></div>`;
   const apply=fn=>{ps.forEach(fn);ps.forEach(build);paint();list();changed();props()};
   for(const k of['t','w','h'])q('#p3m_'+k).onchange=e=>{const v=num(e.target.value);if(!(v>0))return;apply(x=>{x[k]=Math.max(k==='t'?.1:1,v)})};
@@ -205,6 +206,7 @@ function multiProps(ps){
   q('#p3m_mat').onchange=e=>{const v=e.target.value.trim();apply(x=>{if(v)x.mat=v;else delete x.mat})};
   const ebT=()=>{const v=Math.max(.1,num(q('#p3m_ebT').value)||.4);if(q('#p3ebT'))q('#p3ebT').value=v;return v};
   [['All','all'],['Long','long'],['Short','short'],['Clr','clear']].forEach(([i,m])=>q('#p3m_eb'+i).onclick=()=>{ebApplyTo(ps,m,ebT());paint();list();changed();props()});
+  conWire(ps);
   q('#p3m_copy').onclick=()=>copySel();
   q('#p3m_del').onclick=()=>ps.forEach(del);
 }
@@ -219,8 +221,8 @@ function props(){
     :`<input id="p3f_${k}" type="text" inputmode="decimal" value="${+(k==='q'?(p.q||1):p[k]).toFixed(2)}">`;
   const row=k=>`<div class="p3r" data-k="${k}"><span class="p3h" title="Sudrab joyini almashtiring">⠿</span><label>${PROPL[k]}</label>${field(k)}<span class="p3ar"><button class="p3u" title="Yuqoriga">↑</button><button class="p3d" title="Pastga">↓</button></span></div>`;
   b.innerHTML=propOrder.filter(k=>k!=='c'||hasC(p)).map(row).join('')+`
-  <p class="p3mu">X, Y, Z — panel markazi (mm). Eni/bo'yi o'zgarsa qalinlik o'zgarmaydi. Qatorlarni ⠿ dan sudrab yoki ↑↓ bilan tartiblang. Panelga 2 marta bosing — shaklini chizish.</p>
-  <div class="p3row"><button id="p3bRot">↻ 90°</button><button id="p3bDup">Nusxa</button><button id="p3bDel">O'chirish</button></div>`+opsProps(p);
+  <p class="p3mu">X, Y, Z — panel markazi (mm). Eni/bo'yi o'zgarsa qalinlik o'zgarmaydi. Qatorlarni ⠿ dan sudrab yoki ↑↓ bilan tartiblang. Panelga 2 marta bosing — Drawing'da shaklini tahrirlash (Alt + 2 marta — 3D da tez chizish).</p>
+  <div class="p3row"><button id="p3bRot">↻ 90°</button><button id="p3bDup">Nusxa</button><button id="p3bDel">O'chirish</button></div>`+opsProps(p)+prLine(p);
   q('#p3f_n').onchange=e=>{p.n=e.target.value;list();changed()};
   for(const k of['w','h','t','c'])if(q('#p3f_'+k))q('#p3f_'+k).onchange=e=>{p[k]=Math.max(1,num(e.target.value)||1);build(p);props();list();changed()};
   q('#p3f_q').onchange=e=>{p.q=Math.max(1,Math.round(num(e.target.value))||1);props();changed()};
@@ -1210,7 +1212,7 @@ const HW_STORE='rugby.hw.v1';
 let hwOpts=(()=>{try{return HW?HW.merge(HW.DEF,JSON.parse(localStorage.getItem(HW_STORE)||'null')):null}catch(e){return HW?HW.merge(HW.DEF,null):null}})();
 const HWF=[
   ['h','Ulanish (boka, krisha, dno, oraliq boka)'],
-  ['con','Turi','sel',{konf:'Yevrovint (konfirmat)',ekss:'Ekssentrik (minifiks)',shkant:'Shkant',none:"Yo'q"}],
+  ['con','Turi (umumiy; panelda alohida tanlansa — o\'shanisi)','sel',HW?HW.CONS:{}],
   ['dowel',"Yoniga shkant qo'shish (+32 mm)",'chk'],['e','Uchidan masofa'],['step','Eng katta qadam'],
   ['konf.fd','Yevrovint: yuza Ø (teshib o\'tadi)'],['konf.ed','Yevrovint: chet Ø'],['konf.ez','Yevrovint: chet chuqurligi'],
   ['ekss.d','Ekssentrik Ø'],['ekss.z','Ekssentrik chuqurligi'],['ekss.b','Ekssentrik: chetdan markazigacha'],['ekss.ed','Ekssentrik: chet Ø'],['ekss.ez','Ekssentrik: chet chuqurligi'],['ekss.bd','Shtok Ø'],['ekss.bz','Shtok chuqurligi'],
@@ -1262,23 +1264,207 @@ function hwWire(){
    <div class="p3hwb"><div class="p3hwf" id="p3hwF"></div>
     <div class="p3hws"><div class="p3row" style="margin-top:0"><button id="p3hwGo" class="on">Furnituralash</button><button id="p3hwClr">Avto teshiklarni o'chirish</button><button id="p3hwChk">Tekshirish</button></div>
      <div class="p3row"><button id="p3hwDxf">DXF eksport (CNC)</button><button id="p3hwCsv">Teshiklar CSV</button></div>
+     <div class="p3row"><button id="p3hwNest" title="Har material/qalinlik — alohida Drawing sahifasi; detallar teshiklari bilan guruh bo'lib listga joylanadi (Cnc ▸ Joylash bilan qayta joylash mumkin)">CNC'ga yuborish — listga joylash</button></div>
      <div id="p3hwOut" class="p3hwo"><p class="p3mu">Bokaning yuzasiga boshqa panel qirrasi tegib turgan joylar ulanish hisoblanadi. «Furnituralash» — avtomatik teshiklar qayta qo'yiladi (qo'lda qo'yilganlar saqlanadi). Panel o'lchami yoki joyi o'zgarsa qayta bosing.</p><p class="p3mu">DXF: har panel o'z koordinatasida, A tomoni; B tomonida teshik bo'lsa — ag'darilgan (ko'zgu) B chizmasi ham. Qatlam nomi teshik Ø va chuqurligini bildiradi — CAM dasturida qatlamni sverloga bog'lang.</p></div></div></div></div>`);
   const d=q('#p3hw');
   d.addEventListener('change',e=>{const t=e.target,k=t.dataset.k;if(!k)return;
     if(t.type==='checkbox')hwSet(k,t.checked);else if(t.tagName==='SELECT'||/^dxf\.(drills|cut|drill|thru|groove|edge|dec)$/.test(k))hwSet(k,t.value);
     else{const v=num(t.value);if(Number.isFinite(v)&&v>=0)hwSet(k,v);t.value=hwGet(k)}hwSave()});
   d.addEventListener('keydown',e=>{if(e.key==='Escape'){d.hidden=true;e.stopPropagation()}});
-  q('#p3hwX').onclick=()=>{d.hidden=true};q('#p3hwGo').onclick=hwPlace;q('#p3hwClr').onclick=hwClear;q('#p3hwChk').onclick=hwCheck;q('#p3hwDxf').onclick=hwExportDxf;q('#p3hwCsv').onclick=hwExportCsv}
+  q('#p3hwX').onclick=()=>{d.hidden=true};q('#p3hwGo').onclick=hwPlace;q('#p3hwClr').onclick=hwClear;q('#p3hwChk').onclick=hwCheck;q('#p3hwDxf').onclick=hwExportDxf;q('#p3hwCsv').onclick=hwExportCsv;q('#p3hwNest').onclick=()=>{d.hidden=true;cncSend()}}
+/* --- CNC'ga yuborish: har material + qalinlik uchun yangi Drawing sahifasi («CNC · MDF 16 mm»). Har detal — bitta GURUH
+   (kontur + teshik aylanalari + paz to'rtburchaklari) — nestingda ham, qo'lda boshqa listga surilganda ham teshiklar detal bilan
+   ko'chadi. Qatlam nomlari DXF eksport bilan bir xil (DRILL_D5_Z10 …). List o'lchami — Cutlist «List hisobi» dan.
+   Model o'z sahifasida qoladi (CNC sahifasida Modeling bo'sh). --- */
+function cncFit(){   // listlar (yoki detallar) ekranga sig'adi — sahifa ko'rinishi shu bilan saqlanadi
+  try{let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;const add=(a,b,c,d)=>{x0=Math.min(x0,a);y0=Math.min(y0,b);x1=Math.max(x1,c);y1=Math.max(y1,d)};
+    if(nestSheets&&nestSheets.length)nestSheets.forEach(s=>add(s.x0,s.y0,s.x1,s.y1));else drawnLines.forEach(l=>{const b=shapeBBox(l);if(b)add(b.x0,b.y0,b.x1,b.y1)});
+    if(!isFinite(x0))return;const cw=Math.max(200,canvas.width/devicePixelRatio),ch=Math.max(200,canvas.height/devicePixelRatio),pad=50,top=Math.min(250,ch*.3),w=x1-x0||1,h=y1-y0||1;   // tepada asboblar paneli
+    const sc=Math.min((cw-2*pad)/w,(ch-pad-top)/h);if(!(sc>0))return;view.scale=sc;view.ox=pad-x0*sc+(cw-2*pad-w*sc)/2;view.oy=ch-pad+y0*sc-(ch-pad-top-h*sc)/2;
+    if(typeof updateZoomBadge==='function')updateZoomBadge();if(typeof draw==='function')draw()}catch(e){}}
+function cncSend(){
+  if(!HW||typeof addPage!=='function'||typeof runNesting!=='function'){say("CNC sahifasi faqat to'liq dasturda");return null}
+  const ps=hwTargets();if(!ps.length){hwSay("Panel yo'q.");return null}
+  const G=new Map();
+  for(const p of ps){const t=+p.t.toFixed(2),k=matN(p)+'|'+t;if(!G.has(k))G.set(k,{m:matN(p),t,parts:[]});const f=HW.flat(p,hwOpts);for(let i=0;i<(p.q||1);i++)G.get(k).parts.push(f)}
+  const SW=num(q('#p3shL').value)||2800,SH=num(q('#p3shW').value)||2070,MAR=Math.max(0,num(q('#p3shT').value)),srcPage=typeof activePageId!=='undefined'?activePageId:null;
+  const out=[];let other=0,edge=0,mapped=0,none=0;
+  if(isOpen)close();
+  for(const g of [...G.values()].sort((a,b)=>a.m.localeCompare(b.m)||b.t-a.t)){   // material nomi, keyin qalinlik
+    if(addPage()===false)break;
+    const pg=activePage(),base=`CNC · ${matLbl(g.m)} ${g.t} mm`;let nm=base,i=2;while(documentPages.some(x=>x!==pg&&x.name===nm))nm=base+' ('+(i++)+')';pg.name=nm;
+    const set=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v};set('nestSheetW',SW);set('nestSheetH',SH);set('nestMargin',MAR);
+    const want=[];for(const f of g.parts){for(const n of[f.cut,...f.circles.map(c=>c.layer),...f.rects.map(r=>r.layer)])if(!want.includes(n))want.push(n)}
+    want.forEach((n,k)=>{if(layers.some(l=>l.id===n))return;const pal=COLOR_PALETTE[(/^CUT/.test(n)?1:/^GROOVE/.test(n)?6:2+k)%COLOR_PALETTE.length];layers.push({id:n,name:n,color:pal.hex,aci:pal.aci,visible:true,locked:false})});
+    let x=0;
+    for(const f of g.parts){const gid=newGroupId(),P=(a,b)=>({x:a+x,y:b});
+      const pts=f.contour.map(c=>P(c[0],c[1]));
+      drawnLines.push(Object.assign({kind:'line',closed:true,selected:false,layer:f.cut,points:pts,grips:pts.map(o=>({x:o.x,y:o.y})),group:gid,p3:{n:f.name,id:f.id,side:f.side}},f.noRot?{nr:1}:{}));
+      for(const c of f.circles){const ce=P(c.x,c.y),r=c.r;drawnLines.push({kind:'circle',center:ce,radius:r,closed:true,selected:false,layer:c.layer,points:genCirclePts(ce,r),
+        grips:[{x:ce.x+r,y:ce.y},{x:ce.x-r,y:ce.y},{x:ce.x,y:ce.y+r},{x:ce.x,y:ce.y-r}],group:gid,p3op:1});if(c.none)none++}
+      for(const r of f.rects){const rp=genRectPts(P(r.x0,r.y0),P(r.x1,r.y1));drawnLines.push({kind:'rect',closed:true,selected:false,layer:r.layer,points:rp,grips:rp.map(o=>({x:o.x,y:o.y})),group:gid,p3op:1})}
+      x+=f.w+60;other+=f.other;edge+=f.edge;mapped+=f.mapped.length}
+    activeLayer=g.parts[0].cut;
+    const ok=runNesting()!==false;pushHistory();cncFit();
+    out.push({page:pg.id,name:nm,parts:g.parts.length,sheets:ok?(nestSheets||[]).length:0,ok,rep:(document.getElementById('nestReport')||{}).textContent||''})}
+  if(typeof repaintPage==='function')repaintPage();
+  if(out.length&&out[0].page!==activePageId)switchPage(out[0].page);
+  {const r=document.getElementById('nestReport');if(r&&out[0])r.textContent=out[0].rep}
+  const m=document.getElementById('mbCnc');if(m&&!m.classList.contains('active'))m.click();
+  const msg=out.map(r=>`${r.name}: ${r.parts} detal → ${r.ok?r.sheets+' list':'joylanmadi'}`).join(' · ')+
+    (other?` · ikkinchi tomonda ${other} ta teshik/paz (ag'darib ishlanadi — DXF/CSV da)`:'')+(edge?` · ${edge} ta chet teshigi (присадка)`:'')+(mapped?` · ${mapped} ta Ø sverloga yaxlitlandi`:'')+(none?` · ${none} ta teshikka mos sverlo yo'q`:'');
+  try{setHint(msg+'. Model «'+(documentPages.find(x=>x.id===srcPage)||{}).name+'» sahifasida.')}catch(e){}
+  if(typeof markProjectDirty==='function')markProjectDirty();
+  return{pages:out,other,edge,mapped,none,msg}}
+/* --- Panelni Drawing'da tahrirlash (2 marta bosish): vaqtinchalik sahifa «✎ <nom>» — kontur (CUT), A tomondagi va teshib o'tadigan
+   teshiklar (DRILL_…), B tomondagilar (B_…). Istalgan shakl chiziladi/tahrirlanadi; «Modeling'ga qaytarish» — eng katta yopiq shakl
+   panel konturi bo'ladi, yangi aylanalar — teshik (qatlami DRILL_D…_Z… bo'lsa o'sha chuqurlik, aks holda 10 mm), surilgan/o'chirilgan
+   teshiklar yangilanadi. Panel joyi: profil burchagi (0,0) dunyoda qimirlamaydi. Vaqtinchalik sahifa o'chiriladi. --- */
+let p3edit=null;
+function editInDrawing(p){
+  if(typeof addPage!=='function'||typeof documentPages==='undefined'){startDraw(p);return false}
+  if(p3edit)editCancel();
+  const src=activePageId,ops=JSON.parse(JSON.stringify(p.ops||[])),N=HW?HW.layerNames(hwOpts):null,pr=prof(p).map(a=>({x:a[0],y:a[1]}));
+  if(isOpen)close();
+  if(addPage()===false)return false;
+  const pg=activePage();pg.name=('✎ '+(p.n||'Panel')).slice(0,80);
+  const L=(id,k)=>{if(!layers.some(l=>l.id===id)){const pal=COLOR_PALETTE[k%COLOR_PALETTE.length];layers.push({id,name:id,color:pal.hex,aci:pal.aci,visible:true,locked:false})}return id};
+  const cut=L(N?N.cut(p.t):'CUT',1);
+  drawnLines.push({kind:'line',closed:true,selected:false,layer:cut,points:pr,grips:pr.map(o=>({x:o.x,y:o.y}))});
+  ops.forEach((o,i)=>{if(o.k!=='d')return;const B=o.f==='B'&&!o.th,ly=L(B?'B_D'+f1(o.d).toString().replace('.','_')+'_Z'+f1(o.z).toString().replace('.','_'):(o.th?N.thru(o.d,p.t):N.drill(o.d,o.z)),B?4:2),c={x:o.u,y:o.v},r=o.d/2;
+    drawnLines.push({kind:'circle',center:c,radius:r,closed:true,selected:false,layer:ly,points:genCirclePts(c,r),grips:[{x:c.x+r,y:c.y},{x:c.x-r,y:c.y},{x:c.x,y:c.y+r},{x:c.x,y:c.y-r}],p3op:i+1})});
+  activeLayer=cut;pushHistory();
+  p3edit={pid:p.id,src,tmp:pg.id,name:p.n||'Panel'};
+  const m=document.getElementById('mbDraw');if(m)m.click();
+  cncFit();if(typeof repaintPage==='function')repaintPage();editBar();
+  try{setHint('Panel shakli: chizing yoki tahrirlang (eng katta yopiq shakl — kontur, aylana — teshik). Tayyor bo\'lsa «Modeling\'ga qaytarish».')}catch(e){}
+  return true}
+function editBar(){let b=document.getElementById('p3editBar');
+  if(!p3edit){if(b)b.remove();return}
+  if(!b){b=document.createElement('div');b.id='p3editBar';b.className='p3editBar';document.body.appendChild(b)}
+  b.innerHTML=`<span>✎ Panel shakli: <b>${esc(p3edit.name)}</b> — eng katta yopiq shakl kontur bo'ladi, aylanalar — teshik</span><button id="p3edOk">✓ Modeling'ga qaytarish</button><button id="p3edNo">✕ Bekor</button>`;
+  b.querySelector('#p3edOk').onclick=()=>editApply();b.querySelector('#p3edNo').onclick=()=>editCancel()}
+function editDrop(){   // vaqtinchalik sahifani olib tashlash va model sahifasiga qaytish
+  const e=p3edit;p3edit=null;editBar();if(!e)return false;
+  if(documentPages.some(x=>x.id===e.src)&&activePageId!==e.src)switchPage(e.src);
+  const i=documentPages.findIndex(x=>x.id===e.tmp);if(i>=0&&documentPages.length>1)documentPages.splice(i,1);
+  if(typeof renderPageTabs==='function')renderPageTabs();return documentPages.some(x=>x.id===e.src)}
+function editCancel(){const pid=p3edit&&p3edit.pid;if(editDrop()){open();if(panels.some(x=>x.id===pid))select(pid)}say('Panel shakli o\'zgartirilmadi')}
+function editRead(){   // joriy (vaqtinchalik) sahifadagi shakllardan: kontur, teshiklar
+  const cl=drawnLines.filter(l=>l.closed&&l.points&&l.points.length>=3),area=pts=>{let s=0;for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length];s+=a.x*b.y-b.x*a.y}return Math.abs(s)/2};
+  const outer=cl.filter(l=>!l.p3op&&l.kind!=='circle').sort((a,b)=>area(b.points)-area(a.points))[0]||cl.filter(l=>!l.p3op).sort((a,b)=>area(b.points)-area(a.points))[0];
+  if(!outer)return{err:'Yopiq kontur topilmadi — panel shaklini yopiq chiziq bilan chizing.'};
+  const pts=outer.points.map(o=>[o.x,o.y]),inside=(x,y)=>{let c=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const a=pts[i],b=pts[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])c=!c}return c};
+  const circles=drawnLines.filter(l=>l.kind==='circle'&&l!==outer&&l.radius>0).map(l=>({x:l.center.x,y:l.center.y,d:l.radius*2,i:l.p3op?l.p3op-1:-1,layer:l.layer,in:inside(l.center.x,l.center.y)}));
+  const other=cl.filter(l=>l!==outer&&l.kind!=='circle').length;
+  return{pts,circles,other}}
+function editApply(){
+  if(!p3edit)return null;
+  if(activePageId!==p3edit.tmp){if(!documentPages.some(x=>x.id===p3edit.tmp)){p3edit=null;editBar();return null}switchPage(p3edit.tmp)}
+  const r=editRead();if(r.err){try{setHint(r.err)}catch(e){}alert(r.err);return null}
+  const pid=p3edit.pid;if(!editDrop()){return null}
+  const p=panels.find(x=>x.id===pid);if(!p){open();say('Panel topilmadi');return null}
+  const xs=r.pts.map(a=>a[0]),ys=r.pts.map(a=>a[1]),x0=Math.min(...xs),y0=Math.min(...ys),W=Math.max(...xs)-x0,H=Math.max(...ys)-y0;
+  if(W<1||H<1){open();say('Kontur juda kichik');return null}
+  // profil burchagi (0,0) dunyoda joyida qoladi: yangi markaz = eski markaz + M·(x0+W/2−w/2, y0+H/2−h/2, 0)
+  const m=Mof(p),d=[x0+W/2-p.w/2,y0+H/2-p.h/2];p.x+=m[0]*d[0]+m[1]*d[1];p.y+=m[3]*d[0]+m[4]*d[1];p.z+=m[6]*d[0]+m[7]*d[1];
+  const old=p.ops||[],keep=old.filter(o=>o.k!=='d'),seen=new Set(),nw=[];let added=0,moved=0;
+  for(const c of r.circles){if(!c.in)continue;
+    if(c.i>=0&&old[c.i]&&old[c.i].k==='d'){const o=Object.assign({},old[c.i]);seen.add(c.i);if(Math.abs(o.u-c.x)>.01||Math.abs(o.v-c.y)>.01||Math.abs(o.d-c.d)>.01)moved++;o.u=+c.x.toFixed(2);o.v=+c.y.toFixed(2);o.d=+c.d.toFixed(2);nw.push(o);continue}
+    const mz=/_Z(\d+(?:_\d+)?)/.exec(c.layer||''),th=/THRU/.test(c.layer||''),z=th?p.t:mz?+mz[1].replace('_','.'):10;
+    nw.push({k:'d',f:/^B_/.test(c.layer||'')?'B':'A',u:+c.x.toFixed(2),v:+c.y.toFixed(2),d:+c.d.toFixed(2),z,...(th?{th:1}:{}),t:'man'});added++}
+  const removed=old.filter((o,i)=>o.k==='d'&&!seen.has(i)).length;
+  const sh=o=>{if(o.k==='g'){o.u0-=x0;o.u1-=x0;o.v0-=y0;o.v1-=y0}else{o.u=+(o.u-x0).toFixed(2);o.v=+(o.v-y0).toFixed(2)}return o};
+  const ops=[...keep,...nw].map(sh);if(ops.length)p.ops=ops;else delete p.ops;
+  const rect=r.pts.length===4&&r.pts.every(a=>(Math.abs(a[0]-x0)<.01||Math.abs(a[0]-x0-W)<.01)&&(Math.abs(a[1]-y0)<.01||Math.abs(a[1]-y0-H)<.01));
+  const n0=prof(p).length;
+  if(rect){delete p.pts;delete p.bw;delete p.bh;p.shape='rect';delete p.c}else{p.pts=r.pts.map(a=>[+(a[0]-x0).toFixed(3),+(a[1]-y0).toFixed(3)]);p.bw=W;p.bh=H;p.shape='poly';delete p.c}
+  p.w=W;p.h=H;if(p.eb&&prof(p).length!==n0)delete p.eb;
+  open();if(inited)build(p);select(p.id);list();changed();
+  const msg=`Panel shakli yangilandi: ${f1(W)}×${f1(H)} mm`+(added?` · ${added} ta yangi teshik`:'')+(moved?` · ${moved} ta teshik o'zgardi`:'')+(removed?` · ${removed} ta teshik o'chdi`:'')+(r.other?` · ${r.other} ta ichki shakl qo'llanmadi (faqat aylana teshik bo'ladi)`:'');
+  say(msg);return{w:W,h:H,added,moved,removed,other:r.other}}
+/* ---------------- Narx (smeta) — 3D oyna o'ng chetida ----------------
+   Narxlar bir marta kiritiladi (rugby.price.v1, shu kompyuterda); model o'zgarishi bilan jami va har detal narxi qayta hisoblanadi. */
+const PR_STORE='rugby.price.v1',PRC=typeof RugbyPrice!=='undefined'?RugbyPrice:null;
+let prices=(()=>{try{return PRC?PRC.merge(JSON.parse(localStorage.getItem(PR_STORE)||'null')):null}catch(e){return PRC?PRC.merge(null):null}})(),prOpen=false,prLast=null;
+function prSave(){try{localStorage.setItem(PR_STORE,JSON.stringify(prices))}catch(e){}}
+function prSheet(){const g=id=>wrap&&q(id)?num(q(id).value):0;return{L:g('#p3shL')||2800,W:g('#p3shW')||2070,K:Math.max(0,g('#p3shK')),T:Math.max(0,g('#p3shT'))}}
+function prCalc(){if(!PRC)return null;prLast=PRC.compute(panels,prices,{prof,matN,LW,canRot,ebInfo,pack:packSheets,sheet:prSheet()});return prLast}
+const prM=v=>PRC?PRC.money(v,''):String(Math.round(v));
+function prRefresh(){if(!wrap||!PRC)return;const r=prCalc(),t=q('#p3prTab');
+  if(t)t.innerHTML=`<b>Narx</b><span>${panels.some(p=>!p.hid)?esc(prM(r.total)):'—'}</span>${r.missing.length?'<i title="Ba\'zi narxlar kiritilmagan">!</i>':''}`;
+  if(prOpen)prRender(r)}
+function prRender(r){
+  const b=q('#p3prB');if(!b)return;r=r||prCalc();const cur=esc(r.cur),inp=(k,v,ttl,need=true)=>`<input class="p3prI${v||!need?'':' miss'}" data-k="${k}" inputmode="decimal" value="${v||''}" placeholder="narx"${ttl?` title="${esc(ttl)}"`:''}>`;
+  const row=(cells)=>'<tr>'+cells.map(c=>`<td>${c}</td>`).join('')+'</tr>',S=v=>esc(prM(v));
+  const hwN=Object.fromEntries(r.hw.map(h=>[h.k,h])),wN=Object.fromEntries(r.work.map(w=>[w.k,w]));
+  b.innerHTML=`<div class="p3prSum"><div><span>Jami</span><b>${S(r.total)} ${cur}</b></div>
+    <p>Material ${S(r.matT)} · Kromka ${S(r.ebT)} · Furnitura ${S(r.hwT)} · Ishlar ${S(r.workT)}${r.exT?' · Qo\'shimcha '+S(r.exT):''}${r.markup?' · Ustama '+S(r.markup):''}</p>
+    ${r.missing.length?`<p class="p3prW">Narxi kiritilmagan: ${r.missing.length} ta (sariq maydonlar)</p>`:''}</div>
+   <div class="p3prOpt"><label>Valyuta <input id="p3prCur" value="${cur}"></label><label>Material <select id="p3prMode"><option value="sheet"${r.mode==='sheet'?' selected':''}>list soni bo'yicha</option><option value="m2"${r.mode==='m2'?' selected':''}>m² + chiqit</option></select></label>${r.mode==='m2'?`<label>Chiqit % <input id="p3prWaste" inputmode="decimal" value="${prices.waste}"></label>`:''}</div>
+   <h5>Material (1 list narxi · list ${prSheet().L}×${prSheet().W})</h5>
+   <table><tr><th>Material</th><th>List</th><th>m²</th><th>1 list</th><th>Summa</th></tr>${r.groups.map(g=>row([`${esc(matLbl(g.m))} ${g.t}`,g.sheets+(g.unfit?` <span class="p3prW" title="Listga sig'maydi">(${g.unfit}!)</span>`:''),g.area.toFixed(2),inp('mat.'+g.key,g.price),S(g.cost)])).join('')||row(['<span class="p3mu">Panel yo\'q</span>','','','',''])}</table>
+   <h5>Kromka (1 metr)</h5>
+   <table><tr><th>Qalinlik</th><th>Metr</th><th>1 m</th><th>Summa</th></tr>${r.eb.map(e=>row([e.t+' mm',e.m.toFixed(2),inp('eb.'+e.t,e.price),S(e.cost)])).join('')||row(['<span class="p3mu">Kromka belgilanmagan</span>','','',''])}</table>
+   <h5>Furnitura (dona) — teshiklardan</h5>
+   <table><tr><th>Nomi</th><th>Soni</th><th>1 dona</th><th>Summa</th></tr>${PRC.HW_KEYS.map(([k,l])=>{const h=hwN[k];return row([esc(l),h?+h.n.toFixed(1):0,inp('hw.'+k,prices.hw[k],'',!!h),h?S(h.cost):'—'])}).join('')}</table>
+   <h5>Ishlar</h5>
+   <table><tr><th>Ish</th><th>Miqdor</th><th>Narx</th><th>Summa</th></tr>${PRC.WORK_KEYS.map(([k,l,u])=>{const w=wN[k];return row([esc(l),(w?+w.n.toFixed(2):0)+' '+u,inp('work.'+k,prices.work[k],'1 '+u,false),w?S(w.cost):'—'])}).join('')}</table>
+   <h5>Qo'shimcha va ustama</h5>
+   <table>${prices.extra.map((e,i)=>`<tr><td colspan="2"><input class="p3prX" data-i="${i}" data-f="n" value="${esc(e.n)}" placeholder="nomi (yetkazish, yig'ish…)"></td><td><input class="p3prX" data-i="${i}" data-f="v" inputmode="decimal" value="${e.v||''}" placeholder="summa"></td><td><button class="p3prDel" data-i="${i}" title="O'chirish">✕</button></td></tr>`).join('')}
+    <tr><td colspan="4"><button id="p3prAdd">+ qator</button></td></tr><tr><td colspan="2">Ustama (foyda) %</td><td><input id="p3prMk" inputmode="decimal" value="${prices.markup||''}" placeholder="0"></td><td>${S(r.markup)}</td></tr></table>
+   <h5>Detallar (1 dona) <button id="p3prCsv" title="Smeta jadvali (CSV, Excel)">CSV</button></h5>
+   <div class="p3prD"><table><tr><th>Detal</th><th>Soni</th><th>Material</th><th>Kromka</th><th>Ishlar</th><th>Furnit.</th><th>1 dona</th><th>Jami</th></tr>${r.perPanel.map(x=>`<tr data-id="${x.id}" class="${msel.includes(x.id)?'s':''}"><td>${esc(x.n)}</td><td>${x.q}</td><td>${S(x.mat)}</td><td>${S(x.edge)}</td><td>${S(x.work)}</td><td>${S(x.hw)}</td><td><b>${S(x.total)}</b></td><td>${S(x.sum)}</td></tr>`).join('')}</table></div>
+   <p class="p3mu">Material «list» rejimida — Cutlist list hisobi (MaxRects, kesim va chekka bilan); detalga list narxi maydon ulushida bo'linadi. Furnitura teshiklardan sanaladi (Furnituralash, Alt+F). Narxlar shu kompyuterda saqlanadi.</p>`}
+function prWire(){
+  if(!PRC||q('#p3pr'))return;
+  q('.p3view').insertAdjacentHTML('beforeend',`<button class="p3prTab" id="p3prTab" title="Narx (smeta): material, kromka, furnitura, ishlar"></button>
+   <div class="p3pr" id="p3pr" hidden role="dialog" aria-label="Narx"><div class="p3hwt"><b>Narx (smeta)</b><span style="flex:1"></span><button id="p3prX" title="Yopish">✕</button></div><div class="p3prB" id="p3prB"></div></div>`);
+  const d=q('#p3pr'),set=(k,v)=>{const[a,b]=k.split('.');if(b===undefined)prices[a]=v;else{const key=k.slice(a.length+1);if(v>0)prices[a][key]=v;else delete prices[a][key]}};
+  q('#p3prTab').onclick=()=>{prOpen=!prOpen;d.hidden=!prOpen;prRefresh()};q('#p3prX').onclick=()=>{prOpen=false;d.hidden=true};
+  d.addEventListener('change',e=>{const t=e.target;
+    if(t.classList.contains('p3prI'))set(t.dataset.k,num(t.value));
+    else if(t.classList.contains('p3prX')){const x=prices.extra[+t.dataset.i];if(x){if(t.dataset.f==='n')x.n=t.value.slice(0,60);else x.v=Math.max(0,num(t.value))}}
+    else if(t.id==='p3prCur')prices.cur=t.value.trim().slice(0,12)||"so'm";else if(t.id==='p3prMode')prices.mode=t.value;else if(t.id==='p3prWaste')prices.waste=Math.max(0,num(t.value));else if(t.id==='p3prMk')prices.markup=Math.max(0,num(t.value));else return;
+    prSave();prRefresh()});
+  d.addEventListener('click',e=>{const t=e.target;
+    if(t.id==='p3prAdd'){prices.extra.push({n:'',v:0});prSave();prRefresh();return}
+    if(t.classList.contains('p3prDel')){prices.extra.splice(+t.dataset.i,1);prSave();prRefresh();return}
+    if(t.id==='p3prCsv'){prCsv();return}
+    const tr=t.closest('tr[data-id]');if(tr)select(+tr.dataset.id)});
+  d.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName==='INPUT')e.target.blur();if(e.key==='Escape'){prOpen=false;d.hidden=true;e.stopPropagation()}});
+  prRefresh()}
+function prCsv(){const r=prCalc(),m=v=>Math.round(v),rows=[['Detal','Soni','Material','Kromka','Ishlar','Furnitura','1 dona','Jami']];
+  for(const x of r.perPanel)rows.push([x.n.replace(/[;\r\n]/g,' '),x.q,m(x.mat),m(x.edge),m(x.work),m(x.hw),m(x.total),m(x.sum)]);
+  rows.push([]);for(const g of r.groups)rows.push(['Material: '+matLbl(g.m)+' '+g.t+' mm',g.sheets+' list','','','','',m(g.price),m(g.cost)]);
+  for(const e of r.eb)rows.push(['Kromka '+e.t+' mm',e.m.toFixed(2)+' m','','','','',m(e.price),m(e.cost)]);
+  for(const h of r.hw)rows.push([h.l,+h.n.toFixed(1),'','','','',m(h.price),m(h.cost)]);for(const w of r.work)rows.push([w.l,+w.n.toFixed(2)+' '+w.u,'','','','',m(w.price),m(w.cost)]);
+  for(const e of r.extra)rows.push([e.n||"Qo'shimcha",'','','','','','',m(e.v)]);if(r.markup)rows.push(['Ustama '+prices.markup+'%','','','','','','',m(r.markup)]);
+  rows.push(['JAMI ('+r.cur+')','','','','','','',m(r.total)]);
+  try{downloadFile(rows.map(a=>a.join(';')).join('\r\n'),'rugby-smeta.csv','text/csv')}catch(e){}}
+function prLine(p){if(!PRC)return'';const r=prLast||prCalc(),x=r&&r.perPanel.find(o=>o.id===p.id);if(!x)return'';
+  return `<p class="p3mu p3prLine" title="Material ${esc(prM(x.mat))} · kromka ${esc(prM(x.edge))} · ishlar ${esc(prM(x.work))} · furnitura ${esc(prM(x.hw))}">Narx: <b>${esc(prM(x.total))}</b> ${esc(r.cur)}${x.q>1?` × ${x.q} = ${esc(prM(x.sum))}`:''}</p>`}
+/* panel ulagichi: shu panel QIRRASI boshqa panel yuzasiga tegadigan ulanishlarda ustun (keyin — yuzasi tegadigan panelniki, keyin umumiy).
+   Masalan bokada: krisha — ekssentrik, dno — yevrovint → bitta bokada ikkala tur. */
+function conSel(v){if(!HW)return'';const c=v===null?'*':(v||'');
+  return `<div class="p3con" title="Shu panel qirrasi tegadigan ulanishlar uchun (masalan krisha → boka). Bo'sh — Furnitura oynasidagi umumiy tur"><label>Ulagich</label><select id="p3opCon">${c==='*'?'<option value="*" selected>— turli —</option>':''}<option value=""${c===''?' selected':''}>Umumiy (${esc(HW.CONS[hwOpts.con]||'')})</option>${Object.entries(HW.CONS).map(([k,t])=>`<option value="${k}"${c===k?' selected':''}>${esc(t)}</option>`).join('')}</select></div>`}
+function conWire(ps){const e=q('#p3opCon');if(!e)return;e.onchange=()=>{const v=e.value;if(v==='*')return;
+  for(const p of ps){if(v)p.con=v;else delete p.con}
+  const auto=ps.some(p=>p.ops&&p.ops.some(o=>o.a))||panels.some(p=>p.ops&&p.ops.some(o=>o.a));
+  if(auto&&HW){const ids=new Set(ps.map(p=>p.id)),hit=p=>ids.has(p.id)||(p.ops&&p.ops.some(o=>o.a)),tg=corpusClusters(panels.filter(p=>!p.hid)).filter(c=>c.some(hit)).flat();   // furnituralangan korpus(lar) butunligicha qayta
+    HW.place(panels,tg,hwOpts);panels.forEach(build);paint()}
+  props();changed();say(auto?'Ulagich o\'zgardi — avtomatik teshiklar qayta qo\'yildi':'Ulagich tanlandi — Furnituralash (Alt+F) bosilganda qo\'llanadi')}}
 /* panel xossalarida: teshiklar ro'yxati, o'chirish, qo'lda yuza teshigi qo'shish */
 let opsOpen=false;
 function opsProps(p){
   const ops=p.ops||[],nd=ops.filter(o=>o.k!=='g').length,ng=ops.length-nd;
   const row=(o,i)=>`<tr><td>${esc(HW?HW.T_NAME[o.t]||o.t||'':'')}</td><td>${o.k==='e'?'chet':o.f}</td><td>${f1(o.k==='g'?o.u0:o.u)}</td><td>${f1(o.k==='g'?o.v0:o.v)}</td><td>${o.k==='g'?f1(Math.min(o.u1-o.u0,o.v1-o.v0))+'×'+f1(Math.max(o.u1-o.u0,o.v1-o.v0)):'Ø'+f1(o.d)}</td><td>${o.k==='d'&&o.th?'teshib':f1(o.z)}</td><td><button class="p3opX" data-i="${i}" title="O'chirish">✕</button></td></tr>`;
-  return `<div class="p3ops"><div class="p3row" style="margin-top:8px"><button id="p3opT">${opsOpen?'▾':'▸'} Teshiklar: ${nd}${ng?` · paz ${ng}`:''}</button></div>${opsOpen?`
+  return `<div class="p3ops">${conSel(p.con)}<div class="p3row" style="margin-top:8px"><button id="p3opT">${opsOpen?'▾':'▸'} Teshiklar: ${nd}${ng?` · paz ${ng}`:''}</button></div>${opsOpen?`
    ${ops.length?`<div class="p3opw"><table><tr><th>Turi</th><th title="Yuza: A, B yoki chet">Yz</th><th>U</th><th>V</th><th title="Diametr yoki paz eni×uzunligi">Ø</th><th title="Chuqurlik">Chuq</th><th></th></tr>${ops.map(row).join('')}</table></div>`:'<p class="p3mu">Teshik yo\'q. Object ▸ Furnitura (Alt+F) yoki pastda qo\'lda.</p>'}
    <div class="p3dh" style="padding:6px 0 2px">Qo'lda teshik (U, V — panel burchagidan, mm)</div>
    <div class="p3opadd"><select id="p3opF"><option value="A">A</option><option value="B">B</option></select><input id="p3opU" placeholder="U" inputmode="decimal"><input id="p3opV" placeholder="V" inputmode="decimal"><input id="p3opD" placeholder="Ø" inputmode="decimal" value="5"><input id="p3opZ" placeholder="chuq." inputmode="decimal" value="10"><label class="p3hwc"><input type="checkbox" id="p3opTh"> teshib</label><button id="p3opAdd">+</button></div>`:''}</div>`}
 function opsWire(p){
+  conWire([p]);
   const t=q('#p3opT');if(!t)return;t.onclick=()=>{opsOpen=!opsOpen;props()};
   qa('.p3opX').forEach(b=>b.onclick=()=>{p.ops.splice(+b.dataset.i,1);if(!p.ops.length)delete p.ops;build(p);paint();props();changed()});
   const a=q('#p3opAdd');if(a)a.onclick=()=>{const u=num(q('#p3opU').value),v=num(q('#p3opV').value),d=num(q('#p3opD').value),z=num(q('#p3opZ').value),th=q('#p3opTh').checked;
@@ -1302,7 +1488,7 @@ function load(d){
   histReset()}
 function sync(){
   if(inited){panels.forEach(build);drawLines();drawGuides();if(isOpen)frame()}
-  if(wrap){props();list();kzSync();if(mode==='cut')clRender();
+  if(wrap){props();list();kzSync();prRefresh();if(mode==='cut')clRender();
     q('#p3dxfInfo').textContent=lines.length?`${lines.length} ta chiziq (3D chizma).`:"DXF faylni tanlang yoki «2D chizmadan» bosing.";
     q('#p3bDxfP').hidden=!lines.some(l=>l.c&&!l.circle);q('#p3bDxfC').hidden=!lines.length}}
 
@@ -1335,7 +1521,8 @@ const HTML=`
     <div class="p3dr"><label>Soni</label><input id="p3pm_q" type="text" inputmode="decimal" disabled></div>
     <div class="p3dsep"></div><div class="p3dh">Shakl (turi)</div>
     <button class="p3di" data-shape="rect">To'rtburchak</button><button class="p3di" data-shape="tri">Uchburchak</button><button class="p3di" data-shape="pent">Beshburchak</button><button class="p3di" data-shape="L">L-simon</button><button class="p3di" data-shape="U">U-simon</button>
-    <button class="p3di" id="p3pnDraw">Shaklni chizish…<span class="kb">2 marta bosish</span></button>
+    <button class="p3di" id="p3pnEdit" title="Vaqtinchalik Drawing sahifasida istalgan shakl va teshik chizib, panelga qaytarish">Drawing'da tahrirlash…<span class="kb">2 marta bosish</span></button>
+    <button class="p3di" id="p3pnDraw">3D da tez chizish…<span class="kb">Alt + 2 marta</span></button>
     <div class="p3dsep"></div><div class="p3dh">Kromka (qirra lentasi)</div>
     <div class="p3dh" style="padding-top:0;text-transform:none;letter-spacing:0">Jadval, eksport va list hisobi — Cutlist bo'limida</div>
     <div class="p3dr"><label>Qalinlik (mm)</label><input id="p3ebT" type="text" inputmode="decimal" value="0.4"></div>
@@ -1387,7 +1574,7 @@ const HTML=`
 <div class="p3main">
  <aside class="p3lib">
   <h4>Shablonlar</h4><div class="p3tpl" id="p3tpl"></div>
-  <p class="p3mu">Bosing — panel kursorga ilashadi, joyiga bosib qo'ying. Magnit (Probel) — panel qo'yishda ham, sudrashda ham nuqtalari (uchlar, o'rta nuqta, markaz, qirra — «Magnit turi» da tanlanadi) boshqa panelniki bilan yopishadi; nishon kursor ostida belgilanadi. Panel joriy ko'rinishga mos tushadi: Old — frontal, Yon — vertikal, Yuqori — gorizontal. Panelga 2 marta bosing — shaklini chizish.</p>
+  <p class="p3mu">Bosing — panel kursorga ilashadi, joyiga bosib qo'ying. Magnit (Probel) — panel qo'yishda ham, sudrashda ham nuqtalari (uchlar, o'rta nuqta, markaz, qirra — «Magnit turi» da tanlanadi) boshqa panelniki bilan yopishadi; nishon kursor ostida belgilanadi. Panel joriy ko'rinishga mos tushadi: Old — frontal, Yon — vertikal, Yuqori — gorizontal. Panelga 2 marta bosing — Drawing'da shaklini tahrirlash (Alt + 2 marta — 3D da tez chizish).</p>
   <div class="p3row"><button id="p3bDemo">Namuna korpus</button><button id="p3bClear">Tozalash</button></div>
   <h4>Butun korpus</h4>
   <div id="p3kz">
@@ -1475,6 +1662,7 @@ function initUI(){
   q('#p3pnFromDraw').onclick=()=>{ensure();if(!inited)return;fromDrawing();const n=dxfToPanels();
     q('#p3hint').textContent=n?`Chizmadan ${n} ta panel yasaldi (extrude ${q('#p3dxD').value} mm). Tekislik: ${planeMode==='plan'?'Reja':'Old'}`:"Chizmada yopiq kontur topilmadi: Drawing bo'limida yopiq to'rtburchak chizing";};
   q('#p3pnDraw').onclick=()=>{const p=cur();if(p)startDraw(p)};
+  q('#p3pnEdit').onclick=()=>{const p=cur();if(p)editInDrawing(p);else say('Avval panel tanlang')};
   ['n','w','h','t','q'].forEach(k=>q('#p3pm_'+k).onchange=e=>setProp(k,e.target.value));
   qa('[data-shape]').forEach(b=>b.onclick=()=>setShape(b.dataset.shape));
   // Make
@@ -1488,7 +1676,7 @@ function initUI(){
   q('#p3mkGc').onclick=()=>{guides=[];drawGuides();markDirty()};
   // Object
   q('#p3oCopy').onclick=copySel;q('#p3oMx').onclick=()=>mirrorSel(0);q('#p3oMy').onclick=()=>mirrorSel(1);q('#p3oMz').onclick=()=>mirrorSel(2);
-  q('#p3oDel').onclick=()=>selected().forEach(del);q('#p3oAuto').onclick=()=>autoName();q('#p3oHw').onclick=()=>hwOpen();hwWire();
+  q('#p3oDel').onclick=()=>selected().forEach(del);q('#p3oAuto').onclick=()=>autoName();q('#p3oHw').onclick=()=>hwOpen();hwWire();prWire();
   q('#p3T').onchange=e=>{T=Math.max(1,num(e.target.value)||16);e.target.value=T;markDirty()};
   q('#p3bAllT').onclick=()=>{panels.forEach(p=>{p.t=T;build(p)});paint();props();list();changed()};
   q('#p3bGrp').onclick=()=>{grp=!grp;q('#p3bGrp').classList.toggle('on',grp)};
@@ -1532,7 +1720,7 @@ function ensure(){
   cv.style.cssText='display:block;width:100%;height:100%;touch-action:none';
   cv.oncontextmenu=e=>e.preventDefault();cv.onpointerdown=onDown;cv.onpointermove=onMove;cv.onpointerup=onUp;
   cv.onwheel=e=>{e.preventDefault();R=Math.max(100,Math.min(30000,R*Math.exp(e.deltaY*.001)));upd()};
-  cv.ondblclick=e=>{if(tool==='rotate'||tool==='scale')return;const id=pick(e),p=panels.find(a=>a.id===id);if(p&&!dr)startDraw(p)};
+  cv.ondblclick=e=>{if(tool==='rotate'||tool==='scale')return;const id=pick(e),p=panels.find(a=>a.id===id);if(p&&!dr){if(e.altKey)startDraw(p);else editInDrawing(p)}};   // 2 marta — Drawing'da tahrirlash; Alt+2 marta — 3D da tez chizish
   c3Build();   // 3D kursor; magnit belgisi — DOM (#p3snap): tur shakli + nomi
   buildGizmo();Gg=new THREE.Group();scene.add(Gg);rulerMat=new THREE.LineBasicMaterial({color:0xffb454,depthTest:false});
   inited=true;theme();panels.forEach(build);drawLines();drawGuides();
@@ -1573,5 +1761,5 @@ window.Panel3D={retheme:()=>{if(inited)theme()},hotkeys:{commands:P3CMD.map(({id
     for(let a=0;a<3;a++){const A=new THREE.Vector3();A.setComponent(a,1);o['a'+a]=P(c.clone().addScaledVector(A,90*k));o['v'+a]=gzAx[a].visible;
       const g=gzPl[a];g.updateMatrixWorld(true);o['p'+a]=P(g.getWorldPosition(new THREE.Vector3()));o['pv'+a]=g.visible}return o},
   _cursor:()=>c3?c3.toArray():null,_autoName:()=>autoName(),_clusters:()=>corpusClusters(panels.filter(p=>!p.hid)).map(c=>c.map(p=>p.id)),_pivot:()=>pivot,_act:()=>act?{k:act.k,con:act.con,typed:act.typed,hit:act.hit?act.hit.k:null}:null,_snap:()=>snapHit?{k:snapHit.k,T:snapHit.T.toArray()}:null,
-  _hw:{place:o=>{if(o)hwOpts=HW.merge(HW.DEF,o);return hwPlace()},clear:hwClear,dxf:()=>hwDxfData(),csv:()=>HW.csv(hwTargets()),check:hwCheck,open:hwOpen,opts:()=>hwOpts,ops:id=>{const p=panels.find(x=>x.id===id);return p&&p.ops?JSON.parse(JSON.stringify(p.ops)):[]},showOps:()=>showOps},_snapM:snapM,_setTool:t=>setTool(t),_view:v=>setView(v),_select:ids=>{msel=ids.slice();sel=ids[ids.length-1];paint();props();list();dirtyR=true}};
+  _cnc:()=>cncSend(),_price:o=>{if(o){prices=PRC.merge(o);prSave()}return prCalc()},_prOpen:()=>{if(!prOpen)q('#p3prTab').click()},_edit:id=>{const p=panels.find(x=>x.id===id);return p?editInDrawing(p):false},_editApply:()=>editApply(),_editCancel:()=>editCancel(),_editing:()=>p3edit?{...p3edit}:null,_hw:{place:o=>{if(o)hwOpts=HW.merge(HW.DEF,o);return hwPlace()},clear:hwClear,dxf:()=>hwDxfData(),csv:()=>HW.csv(hwTargets()),check:hwCheck,open:hwOpen,opts:()=>hwOpts,ops:id=>{const p=panels.find(x=>x.id===id);return p&&p.ops?JSON.parse(JSON.stringify(p.ops)):[]},showOps:()=>showOps},_snapM:snapM,_setTool:t=>setTool(t),_view:v=>setView(v),_select:ids=>{msel=ids.slice();sel=ids[ids.length-1];paint();props();list();dirtyR=true}};
 })();

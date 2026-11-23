@@ -1,3 +1,25 @@
+# CNC nesting, Drawing'da tahrirlash, aralash ulagich, narx — 2026-11-23 (Linux)
+
+**Windows'da va haqiqiy CNC dastgohda sinalmagan. EXE yig'ilmagan.**
+
+- `npm run check` (56 JS fayli, 0 xato); `npm test` (18 + 24 + `panel3d-hw`) — 0 yiqilgan.
+- `tests/panel3d-hw.cjs` 14 ga kengaydi: aralash ulagich (krisha ekssentrik + shkant, dno yevrovint, «yo'q»); CNC detali (B tomondan
+  ko'zgu, teksturali 720×500 burilgan, chet teshigi sanaladi, paz B da); narx (list soni, m² + chiqit, kromka, furnitura soni, detallar
+  yig'indisi = jami, ustama, kiritilmagan narxlar, noto'g'ri narx tozalanadi).
+- `tests/modeling-cnc-price.cjs` (yangi, web build, Chromium 1243, haqiqiy sichqoncha, 8): xossalarda ulagich tanlash → korpus qayta
+  teshiladi; Narx paneli (jami = hisob, narx o'zgarganda yangilanadi, localStorage, detal narxi, smeta CSV); CNC'ga yuborish — 3 sahifa,
+  detallar list ichida, teshiklar detal ichida, teksturali burilmagan; detal konturini bosish butun guruhni tanlaydi, Move bilan boshqa
+  joyga — 13 teshik nisbatan aynan joyida; Cnc ▸ Joylash qayta; model sahifasi saqlangan; fasadni haqiqiy 2 marta bosish → Drawing
+  sahifasi, kontur + Ø8×12 → «Modeling'ga qaytarish» (joy o'zgarmadi, vaqtinchalik sahifa o'chdi), Ctrl+Z, Bekor.
+- Qayta o'tdi: `panel3d-hw-ui` (8), `panel3d`, `panel3d-export`, `modeling-precision` (13), `smart-autoname` (14); Electron 31.7.7 (xvfb):
+  `modeling-smoke`, `electron-smoke`, `panel-types-smoke`, `stretch-select`.
+- Topilgan va tuzatilgan: xossalardagi ulagich qatori `.p3r` sinfi bilan qatorlarni tartiblash tugmalarini kutib `props()` ni buzardi;
+  even-odd rasterda teshik aylanalari detal ichidagi «bo'sh joy» bo'lib qolardi (endi hisobga olinmaydi).
+
+Tekshirilmagan: Electron'da smeta/DXF saqlash oynasi, katta loyihada (yuzlab detal) narx hisobi tezligi, haqiqiy dastgoh, Windows.
+
+---
+
 # Furnitura, teshik va CNC DXF — 2026-11-23 (Linux)
 
 **Windows'da va haqiqiy CNC dastgohda sinalmagan. EXE yig'ilmagan.**

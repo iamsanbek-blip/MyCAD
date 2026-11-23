@@ -18,7 +18,7 @@
 (function(root){
 'use strict';
 const DEF={
-  con:'konf',          // konf | ekss | shkant | none
+  con:'konf',          // konf | ekss | shkant | none | konf+shkant | ekss+shkant (panelda p.con — ustun)
   dowel:false,         // ulagich yonida qo'shimcha shkant (+32 mm o'rtaga qarab)
   e:50, step:500, minL:40, tol:3,
   konf:{fd:7,ed:5,ez:50},
@@ -41,6 +41,7 @@ function merge(base,o){const r=clone(base);if(!o||typeof o!=='object')return r;
 const R2=v=>Math.round(v*100)/100;
 const f2=v=>String(+(+v).toFixed(2));
 const KPRE=/^([A-Z]{1,3})\.\s+/;
+const CONS={konf:'Yevrovint (konfirmat)',ekss:'Ekssentrik (minifiks)',shkant:'Shkant','konf+shkant':'Yevrovint + shkant','ekss+shkant':'Ekssentrik + shkant',none:"Yo'q"};
 const T_NAME={konf:'Yevrovint',ekss:'Ekssentrik',shkant:'Shkant',polka:'Polkaderjatel',petlya:'Petlya',planka:'Petlya planka',ruchka:'Ruchka',paz:'Paz',man:"Qo'lda"};
 
 function create(G){
@@ -99,24 +100,26 @@ function create(G){
         continue}
       if(thin(A))continue;   // yupqa panel yuzasiga qalin panel qirrasi (mix) — teshik qo'yilmaydi
       if(role(B)==='shelf'&&o.pin.on&&j.tb===1){const P=o.pin,y0=j.b[1][0]-P.drop;
-        for(const cp of[j.c0+P.e,j.c1-P.e])for(let k=-P.row;k<=P.row;k++)add(A,faceOp(A,pt(j,j.face,y0+32*k,cp),{d:P.d,z:P.z,t:'polka'}));
+        for(const cp of[j.c0+P.e,j.c1-P.e])for(let k=-P.row;k<=P.row;k++)add(A,faceOp(A,pt(j,j.face,y0+32*k,cp),Object.assign({d:P.d,z:P.z,t:'polka'},k===0?{m:1}:{})));   // m — polkaderjatel turadigan teshik (narx hisobi)
         continue}
-      if(o.con==='none')continue;
+      // ulagich turi: B (qirrasi tegadigan) panelniki → A panelniki → umumiy. Shunda bitta detalda turli ulagich bo'ladi
+      const own=CONS[j.B.con]?j.B.con:CONS[j.A.con]?j.A.con:'',cs=own||o.con,con=cs.replace('+shkant',''),dowel=cs.endsWith('+shkant')||(!own&&o.dowel);
+      if(con==='none'||!CONS[cs])continue;
       const S=spots(j.c0,j.c1,o.e,o.step),bLen=j.b[j.ta][1]-j.b[j.ta][0];
       const side=Math.sign(A[['x','y','z'][j.tb]]-B[['x','y','z'][j.tb]])||-1,bFace=side>0?j.b[j.tb][1]:j.b[j.tb][0];
       for(const cp of S){
-        if(o.con==='konf'){const K=o.konf;
+        if(con==='konf'){const K=o.konf;
           add(A,faceOp(A,pt(j,j.face,j.mid,cp),{d:K.fd,z:A.t,th:1,t:'konf'}));
           add(B,edgeOp(B,pt(j,j.bEdge,j.mid,cp),inw,{d:K.ed,z:K.ez,t:'konf'}));
           if(K.ez>bLen-5)warn.push(`${B.n}: yevrovint chuqurligi ${K.ez} mm panel o'lchamidan katta`)}
-        else if(o.con==='ekss'){const X=o.ekss;
+        else if(con==='ekss'){const X=o.ekss;
           add(B,faceOp(B,pt(j,j.bEdge+j.s*X.b,bFace,cp),{d:X.d,z:X.z,t:'ekss'}));
           add(B,edgeOp(B,pt(j,j.bEdge,j.mid,cp),inw,{d:X.ed,z:X.ez,t:'ekss'}));
           add(A,faceOp(A,pt(j,j.face,j.mid,cp),{d:X.bd,z:X.bz,t:'ekss'}))}
-        else if(o.con==='shkant'){const D=o.shkant;
+        else if(con==='shkant'){const D=o.shkant;
           add(A,faceOp(A,pt(j,j.face,j.mid,cp),{d:D.d,z:D.fz,t:'shkant'}));
           add(B,edgeOp(B,pt(j,j.bEdge,j.mid,cp),inw,{d:D.d,z:D.ez,t:'shkant'}))}
-        if(o.dowel&&o.con!=='shkant'&&S.length>1){const D=o.shkant,dc=cp<(j.c0+j.c1)/2?cp+32:cp-32;
+        if(dowel&&con!=='shkant'&&S.length>1){const D=o.shkant,dc=cp<(j.c0+j.c1)/2?cp+32:cp-32;
           add(A,faceOp(A,pt(j,j.face,j.mid,dc),{d:D.d,z:D.fz,t:'shkant'}));
           add(B,edgeOp(B,pt(j,j.bEdge,j.mid,dc),inw,{d:D.d,z:D.ez,t:'shkant'}))}}}
     // fasadlar: petlya (eshik) va ruchka
@@ -179,6 +182,26 @@ function create(G){
     return d=>{if(!o.snap||!list.length)return{d,m:false};let best=null;for(const x of list)if(Math.abs(x-d)<=o.tol+1e-9&&(best===null||Math.abs(x-d)<Math.abs(best-d)))best=x;
       return best===null?{d,m:false,none:true}:{d:best,m:best!==d}}}
 
+  /* ---- qatlam nomlari (DXF va CNC sahifasi uchun bir xil) ---- */
+  function layerNames(opts){const o=merge(DEF,opts).dxf,num=v=>f2(v).replace('.',o.dec),
+      ly=(tpl,x)=>tpl.replace(/\{(\w)\}/g,(_,k)=>x[k]!==undefined?num(x[k]):'').replace(/[^A-Za-z0-9_$-]/g,'_').slice(0,31)||'0';
+    return{cut:t=>ly(o.cut,{t}),drill:(d,z)=>ly(o.drill,{d,z}),thru:(d,t)=>ly(o.thru,{d,z:t}),groove:(w,z)=>ly(o.groove,{w,z}),edge:(d,z)=>ly(o.edge,{d,z})}}
+  /* ---- CNC nesting uchun tekis detal: bitta ishlov tomoni (ko'r teshik/pazi ko'p tomon, B bo'lsa — ko'zgu), teksturali panel
+     tekstura X (list uzunligi) bo'ylab yotqiziladi va burilmaydi. Ikkinchi tomondagi ko'r teshik va chet teshiklari — faqat sanaladi. ---- */
+  function flat(p,opts){const O=merge(DEF,opts),map=drillMap(O.dxf),N=layerNames(O),ops=p.ops||[];
+    const cnt=f=>ops.filter(x=>(x.k==='d'&&!x.th&&x.f===f)||(x.k==='g'&&x.f===f)).length,side=cnt('B')>cnt('A')?'B':'A';
+    const W=p.w,H=p.h,rot=p.gr==='h';   // tekstura bo'yi bo'ylab → 90° (X ga)
+    const T=(u,v)=>{const x=side==='B'?W-u:u;return rot?[v,W-x]:[x,v]};
+    const circles=[],rects=[],mapped=[];let other=0,edge=0;
+    for(const x of ops){
+      if(x.k==='e'){edge++;continue}
+      if(x.k==='d'){if(!x.th&&x.f!==side){other++;continue}const r=map(x.d);if(r.m)mapped.push(f2(x.d)+'→'+f2(r.d));
+        const c=T(x.u,x.v);circles.push({x:c[0],y:c[1],r:r.d/2,layer:x.th?N.thru(r.d,p.t):N.drill(r.d,x.z),none:!!r.none});continue}
+      if(x.k==='g'){if(x.f!==side){other++;continue}const a=T(x.u0,x.v0),b=T(x.u1,x.v1),w=Math.min(x.u1-x.u0,x.v1-x.v0);
+        rects.push({x0:Math.min(a[0],b[0]),y0:Math.min(a[1],b[1]),x1:Math.max(a[0],b[0]),y1:Math.max(a[1],b[1]),layer:N.groove(w,x.z)})}}
+    let contour=prof(p).map(q=>T(q[0],q[1]));if(side==='B')contour.reverse();
+    return{name:p.n||'Panel',id:p.id,side,rot,noRot:!!p.gr,w:rot?H:W,h:rot?W:H,contour,cut:N.cut(p.t),circles,rects,other,edge,mapped}}
+
   /* ---- DXF (AutoCAD R12): har panel — A tomoni (+ B tomoni, ko'zgu) ---- */
   function dxf(ps,opts){
     const o=merge(DEF,opts).dxf,map=drillMap(o),num=v=>f2(v).replace('.',o.dec),
@@ -222,7 +245,7 @@ function create(G){
       else rows.push([c(p.n||'Panel'),T_NAME[o.t]||o.t||'',o.k==='e'?'Chet':o.f,f2(o.u),f2(o.v),f2(o.d),f2(o.k==='d'&&o.th?p.t:o.z),o.th?1:'',o.k==='e'?`${o.n[0]},${o.n[1]}`:''])}
     return rows.map(r=>r.join(';')).join('\r\n')}
 
-  return{DEF,merge,place,check,joints,rot90,mirror,sanitize,dxf,csv,drillMap,tAx,toLocal,T_NAME}}
+  return{DEF,CONS,merge,layerNames,flat,place,check,joints,rot90,mirror,sanitize,dxf,csv,drillMap,tAx,toLocal,T_NAME}}
 const api={create,DEF};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.RugbyHW=api;
