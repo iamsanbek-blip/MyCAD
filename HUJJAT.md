@@ -1,5 +1,10 @@
 # Rugby 1.1.2 — CNC nesting, panelni Drawing'da tahrirlash, aralash ulagich, narx (2026-11-23)
 
+- **Modeling: guruh, massiv, teng taqsimlash** (Modeling ▸ Object va yuqori Object menyusi — Modeling ochiq bo'lsa panellarga ishlaydi).
+  **Group** (Ctrl+G) — tanlangan panellar guruh: birini bosish (yoki ramka) butun guruhni tanlaydi; ro'yxatda ⛓. **Ungroup** (Ctrl+Shift+G).
+  **Massiv…** — tanlangan panel(lar)ni N marta qadam X/Y/Z bilan nusxalash (standart qadam — tanlov eni bo'yicha, korpuslar qatori);
+  «umumiy masofa» belgilansa qadam = masofa / N. Guruh nusxasi o'z guruhini oladi. **Teng taqsimlash Y / X / Z** — eng chetdagi ikki panel
+  joyida, oradagilar teng oraliq bilan (masalan dno va krisha orasida polkalar). Furnituralangan korpusda yangi polkalarga teshik o'zi qo'yiladi.
 - **Detal raqami va birka.** «CNC'ga yuborish» har detalga raqam beradi (sahifada nom tartibida, #1, #2 …). Nesting xaritasida har detal
   o'rtasida «#3 A. krisha / 568×500 · L1» (L — list raqami) — detal bilan birga ko'chadi; Drawing DXF eksportida `LABEL` qatlamida
   TEXT (kesilmaydi). Cnc ▸ **🏷 Birkalar** — A4 stiker varaq: 24 ta (70×37), 21 ta (70×42.3), 14 ta (105×42.3), 40 ta (52.5×29.7).

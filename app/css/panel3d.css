@@ -180,3 +180,6 @@ body.lightTheme #p3wrap .p3seg button.on{color:#fff}
 #p3wrap .p3hwr{grid-template-columns:1fr 70px}#p3wrap .p3hwr:has(select),#p3wrap .p3hwr:has(input:not([inputmode])){grid-template-columns:auto 1fr}
 #p3wrap .p3hwQ{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;border:1px solid var(--bd);color:var(--mu);font-size:11px;cursor:help}
 #p3wrap .p3hwf>.p3hwh:first-child{margin-top:6px}
+/* Massiv oynasi */
+#p3wrap .p3arr{position:absolute;top:10px;right:10px;width:min(260px,calc(100% - 20px));z-index:32;background:var(--p);border:1px solid var(--bd);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.35)}
+#p3wrap .p3arr[hidden]{display:none}#p3wrap .p3arrB{padding:8px 10px}#p3wrap .p3it .p3grp{font-style:normal;color:var(--on)}

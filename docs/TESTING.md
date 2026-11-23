@@ -23,6 +23,9 @@
   1366×768 skrinshotda tekshirildi.
 - Qo'shimcha (izoh bo'yicha): Furnitura oynasi o'ng chetda tor ustun (330 px): tugmalar tepada, sozlamalar ostida, natija faqat
   bo'lsa ko'rinadi, izoh «?» da. `panel3d-hw-ui` (8), `modeling-cnc-price` (11), `npm test` o'tdi; 1366×768 skrinshotda tekshirildi.
+- Qo'shimcha (izoh bo'yicha): Modeling guruh/massiv/teng taqsimlash — `modeling-cnc-price` 12 (Ctrl+G, guruh a'zosini bosish — ikkalasi,
+  Ctrl+Shift+G; yuqori Object ▸ Array → polka 2 nusxa −150 mm, polkaderjatel 6; Teng taqsimlash Y → 184/360/536; Ctrl+Z). Modeling'da
+  Ctrl bilan bog'langan o'z buyruqlari endi ishlaydi (avval faqat Alt/F). Barcha suite va Electron sinovlari qayta o'tdi.
 - `tests/modeling-cnc-price.cjs` (yangi, web build, Chromium 1243, haqiqiy sichqoncha, 8): xossalarda ulagich tanlash → korpus qayta
   teshiladi; Narx paneli (jami = hisob, narx o'zgarganda yangilanadi, localStorage, detal narxi, smeta CSV); CNC'ga yuborish — 3 sahifa,
   detallar list ichida, teshiklar detal ichida, teksturali burilmagan; detal konturini bosish butun guruhni tanlaydi, Move bilan boshqa

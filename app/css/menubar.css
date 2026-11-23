@@ -23,4 +23,4 @@ body{padding-top:30px;box-sizing:border-box}
 #menuBar .mbSlot label{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text)}
 #menuBar .mbSlot select,#menuBar .mbSlot input{background:var(--panel-2);color:var(--text);border:1px solid var(--line);border-radius:4px;padding:3px 6px;font-size:12px}
 /* Modeling ochiq: 2D "Object" buyruqlari o'chirilgan ko'rinishda */
-body.p3On #mbObject .mbIt{opacity:.4;pointer-events:none}
+body.p3On #mbObject .mbIt:not([data-click="groupBtn"]):not([data-click="ungroupBtn"]):not([data-click="arrayBtn"]):not([data-click="distHBtn"]):not([data-click="distVBtn"]){opacity:.4;pointer-events:none}   /* Modeling: guruh, massiv, teng taqsimlash — panellarga */

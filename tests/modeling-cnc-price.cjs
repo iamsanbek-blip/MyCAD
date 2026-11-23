@@ -154,6 +154,22 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     await ev(()=>{drawnLines.length=0});await page.locator('#p3edNo').click();await page.waitForFunction(()=>Panel3D.isOpen());
     assert.equal(await ev(()=>Panel3D._state().panels.find(p=>p.id===8).pts),undefined);assert.equal(await ev(()=>documentPages.length),4);
     passed.push("Bekor qilish: panel o'zgarmaydi, vaqtinchalik sahifa o'chadi");
+    // 7. Guruh, massiv (yuqori Object menyusidan), teng taqsimlash — Modeling'da
+    await ev(()=>Panel3D._select([1,2]));await page.keyboard.press('Control+g');
+    assert.ok(await ev(()=>{const ps=Panel3D._state().panels;const a=ps.find(p=>p.id===1).grp;return !!a&&ps.find(p=>p.id===2).grp===a}));
+    await page.locator('#p3pl .p3it').nth(0).click();assert.equal(await ev(()=>document.querySelectorAll('#p3pl .p3it.s').length),2,'guruh a\'zosi bosilsa — ikkalasi');
+    await page.keyboard.press('Control+Shift+G');await page.locator('#p3pl .p3it').nth(0).click();assert.equal(await ev(()=>document.querySelectorAll('#p3pl .p3it.s').length),1);
+    await page.locator('#p3pl .p3it').nth(4).click();   // polka
+    await page.locator('#mbObject .mbBtn').click();await page.locator('#mbObject [data-click="arrayBtn"]').click();await page.waitForSelector('#p3arr:not([hidden])');
+    assert.equal(await ev(()=>activePage().name),'Sahifa 1');assert.ok(await ev(()=>Panel3D.isOpen()));
+    await page.fill('#p3arrN','2');await page.fill('#p3arrDx','0');await page.fill('#p3arrDy','-150');await page.locator('#p3arrGo').click();
+    const sh=await ev(()=>Panel3D._state().panels.filter(p=>/polka/.test(p.n)).map(p=>[p.id,p.y]));assert.deepEqual(sh.map(x=>x[1]),[480,330,180]);
+    assert.equal((await ev(()=>Panel3D._hw.ops(1))).filter(o=>o.t==='polka').length,6,'yangi polkalarga polkaderjatel o\'zi');
+    await ev(ids=>Panel3D._select(ids),[3,4,...sh.map(x=>x[0])]);await page.locator('.p3ddb',{hasText:'Object'}).click();await page.locator('#p3oDistY').click();
+    const ys=await ev(()=>Panel3D._state().panels.filter(p=>/polka/.test(p.n)).map(p=>p.y).sort((a,b)=>a-b));assert.deepEqual(ys,[184,360,536]);
+    await ev(()=>document.activeElement&&document.activeElement.blur());await page.keyboard.press('Control+z');
+    assert.deepEqual(await ev(()=>Panel3D._state().panels.filter(p=>/polka/.test(p.n)).map(p=>p.y).sort((a,b)=>a-b)),[180,330,480]);
+    passed.push("Modeling: Ctrl+G guruh (birini bosish — ikkalasi), Ctrl+Shift+G; yuqori Object ▸ Array → polka 2 nusxa (−150 mm), polkaderjatel o'zi 6; Teng taqsimlash Y — dno va krisha orasida 184/360/536; Ctrl+Z");
     assert.deepEqual(errors,[]);
   }finally{await browser.close();fs.rmSync(tmp,{recursive:true,force:true})}
   console.log(passed.map(s=>'PASS '+s).join('\n'));console.log(`modeling-cnc-price: ${passed.length} checks passed`);
