@@ -154,7 +154,7 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     assert.ok(gr.some(g=>{const xs=g.pts.map(q=>q[0]);return Math.min(...xs)===-2&&Math.max(...xs)===14}),'chap boka izi fasad chetida (u −2..14)');
     assert.ok(await ev(()=>texts.some(t=>t.text==='A. dno'&&t.layer==='YORDAMCHI')));
     const fOps=await ev(()=>{const s=documentPages[0].panel3d.panels.find(p=>p.id===8);return(s.ops||[]).filter(o=>o.k==='d').length});assert.equal(ed.c,fOps);
-    await ev(()=>{const c=drawnLines.find(l=>l.kind==='line');const pts=[{x:0,y:0},{x:596,y:0},{x:596,y:616},{x:496,y:716},{x:0,y:716}];c.points=pts;c.grips=pts.map(o=>({...o}));
+    await ev(()=>{const c=drawnLines.find(l=>l.kind==='line'&&!l.p3g);const pts=[{x:0,y:0},{x:596,y:0},{x:596,y:616},{x:496,y:716},{x:0,y:716}];c.points=pts;c.grips=pts.map(o=>({...o}));
       const ce={x:298,y:60};drawnLines.push({kind:'circle',center:ce,radius:4,closed:true,selected:false,layer:'DRILL_D8_Z12',points:genCirclePts(ce,4),grips:[]})});
     await page.locator('#p3edOk').click();await page.waitForFunction(()=>Panel3D.isOpen());
     const F=await ev(()=>{const p=Panel3D._state().panels.find(p=>p.id===8);return{pts:p.pts,w:p.w,h:p.h,x:p.x,y:p.y,z:p.z,eb:p.eb||null,man:(p.ops||[]).filter(o=>o.t==='man'),n:(p.ops||[]).filter(o=>o.k==='d').length,pages:documentPages.map(x=>x.name)}});
