@@ -111,7 +111,7 @@ function ebGroup(p){   // kromka (qirra lentasi): qirra yuzasida qalinliksiz ran
     const nx=dy/len*sg,ny=-dx/len*sg,o=.25,m=new THREE.Mesh(new THREE.PlaneGeometry(len,p.t),ebMat);   // qirra yuzasidan 0.25 mm tashqarida — z-fighting yo'q
     m.rotation.set(Math.PI/2,0,Math.atan2(dy,dx),'ZXY');   // avval X 90° (tasma qalinlik bo'ylab), keyin qirra yo'nalishiga
     m.position.set((a[0]+b[0])/2+nx*o,(a[1]+b[1])/2+ny*o,0);m.userData.pid=p.id;m.userData.eb=1;g.add(m);
-    for(const z of[p.t/2,-p.t/2])ln.push(a[0]+nx*o,a[1]+ny*o,z,b[0]+nx*o,b[1]+ny*o,z)}   // 2D ko'rinishda qirra chetma-chet ko'rinsa ham — rangli chiziq
+    ln.push(a[0]+nx*o,a[1]+ny*o,0,b[0]+nx*o,b[1]+ny*o,0)}   // qirra o'rtasida bitta chiziq — panel chegarasi (qizil qirralar) ochiq qoladi; 2D ko'rinishda ham ko'rinadi
   if(ln.length){const bg=new THREE.BufferGeometry();bg.setAttribute('position',new THREE.Float32BufferAttribute(ln,3));const ls=new THREE.LineSegments(bg,ebLine);ls.renderOrder=3;g.add(ls)}
   return g.children.length?g:null}
 function ebInfo(p){   // raspil/eksport uchun: Uz1/Uz2/En1/En2 (mm), qirra uzunligi (m), qalinlik bo'yicha metr
@@ -1893,7 +1893,7 @@ function ensure(){
   scene.add(new THREE.AmbientLight(0xffffff,.75));const dl=new THREE.DirectionalLight(0xffffff,.55);dl.position.set(1,2,1.4);scene.add(dl);
   P=new THREE.Group();scene.add(P);
   fillMat=new THREE.MeshLambertMaterial({polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1,transparent:false});
-  selMat=fillMat.clone();ebMat=new THREE.MeshBasicMaterial({color:0xffb454,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});ebLine=new THREE.LineBasicMaterial({color:0xffb454});grainMat=new THREE.LineBasicMaterial({color:0xc9a063,transparent:true,opacity:.75});opsMat=new THREE.LineBasicMaterial({color:0xff8a1f});opsMat2=new THREE.LineBasicMaterial({color:0xe04fd0});lineMat=new THREE.LineBasicMaterial();selLine=new THREE.LineBasicMaterial();dxfMat=new THREE.LineBasicMaterial();
+  selMat=fillMat.clone();ebMat=new THREE.MeshBasicMaterial({color:0xffb454,side:THREE.DoubleSide,transparent:true,opacity:.3,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});/* kromka tasmasi yarim shaffof — orqadagi panel chegarasi ko'rinadi */ebLine=new THREE.LineBasicMaterial({color:0xffb454});grainMat=new THREE.LineBasicMaterial({color:0xc9a063,transparent:true,opacity:.75});opsMat=new THREE.LineBasicMaterial({color:0xff8a1f});opsMat2=new THREE.LineBasicMaterial({color:0xe04fd0});lineMat=new THREE.LineBasicMaterial();selLine=new THREE.LineBasicMaterial();dxfMat=new THREE.LineBasicMaterial();
   cv.style.cssText='display:block;width:100%;height:100%;touch-action:none';
   cv.oncontextmenu=e=>e.preventDefault();cv.onpointerdown=onDown;cv.onpointermove=onMove;cv.onpointerup=onUp;
   cv.onwheel=e=>{e.preventDefault();R=Math.max(100,Math.min(30000,R*Math.exp(e.deltaY*.001)));upd()};

@@ -39,6 +39,8 @@
   ochilganda model panellari yuklab tashlanardi — izlar endi sahifa almashishidan oldin hisoblanadi; chiziqlar kontur ostida chiziladi.
 - Qo'shimcha (izoh bo'yicha): panel rangi — `modeling-cnc-price` 14 (avto neytral, qo'lda #336699, Avto, Materialga #aa7744, snapshot/load),
   `panel3d-hw` 17 (document-codec orqali `mc` saqlanadi). Barcha suite va Electron sinovlari o'tdi; skrinshotda to'q fonda aniq ko'rinadi.
+- Qo'shimcha (izoh bo'yicha): kromka tasmasi yarim shaffof (0.3), chiziq qirra o'rtasida — Front va Iso skrinshotda panel chegarasi ko'rinadi;
+  barcha suite o'tdi.
 - Qo'shimcha: kromka qalinliksiz — `modeling-cnc-price` 15 (2 mm kromkali boka ko'rinishda 720.5×500.5, Cutlist'da 2 mm, 2.44 m);
   Electron `modeling-smoke` (kromka bosqichi bilan) va qolgan suite'lar o'tdi.
 - `tests/modeling-cnc-price.cjs` (yangi, web build, Chromium 1243, haqiqiy sichqoncha, 8): xossalarda ulagich tanlash → korpus qayta
