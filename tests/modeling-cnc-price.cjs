@@ -204,6 +204,11 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     assert.deepEqual(await ev(()=>[1,2,3].map(i=>Panel3D._col(i))),['#aa7744','#aa7744','#bfc8d4']);
     const snap=await ev(()=>Panel3D.snapshot());assert.deepEqual(snap.mc,{'LDSP oq':'#aa7744'});await ev(s=>Panel3D.load(s),snap);assert.equal(await ev(()=>Panel3D._col(2)),'#aa7744');
     passed.push("Panel rangi: material bo'yicha avtomatik neytral (bir materialda bir xil, materialsiz — #bfc8d4), qo'lda tanlash, Avto, Materialga — loyihada saqlanadi");
+    // 10. Kromka viewportda qalinliksiz (2 mm kromka panel o'lchamini kattalashtirmaydi), Cutlist eksportida esa 2 mm belgilanadi
+    const kb=await ev(()=>{Panel3D.load({T:16,uid:10,panels:[{id:1,n:'boka',w:500,h:720,t:16,o:'side',x:8,y:360,z:0,eb:[2,2,2,2]}]});const p=Panel3D._state().panels[0],b=new THREE.Box3().setFromObject(p.g),d=Panel3D._clExport();
+      return{y:b.max.y-b.min.y,z:b.max.z-b.min.z,head:d.head,row:d.rows[0],eb:Panel3D._ebInfo(p)}});
+    assert.ok(kb.y<=720.6&&kb.z<=500.6,JSON.stringify(kb));assert.ok(kb.head.includes('L1')&&kb.row.includes('2'));assert.ok(Math.abs(kb.eb.len-2.44)<1e-6);
+    passed.push(`Kromka: viewportda qalinliksiz tasma (2 mm kromkali boka ${kb.y.toFixed(1)}×${kb.z.toFixed(1)} — o'lcham o'zgarmadi), Cutlist'da 2 mm va 2.44 m`);
     assert.deepEqual(errors,[]);
   }finally{await browser.close();fs.rmSync(tmp,{recursive:true,force:true})}
   console.log(passed.map(s=>'PASS '+s).join('\n'));console.log(`modeling-cnc-price: ${passed.length} checks passed`);

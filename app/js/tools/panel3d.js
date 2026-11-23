@@ -22,7 +22,7 @@ let pm=null,vname='iso',mag=true,snapMark=null,thick2d=true;   // snapMark — e
 let msel=[],tool='select',gz=null,gzR=null,gzS=null,planeMode='plan';
 let panels=[],uid=1,sel=null,T=16,lines=[],ortho=false,wire=false,grp=false,dr=null,act=null;
 let wrap=null,inited=false,isOpen=false,failed=false,dirtyR=true,asp=1,mode='model',clSel=new Set(),clSkip=false;
-let renderer,cv,scene,pcam,ocam,cam,P,grid,Dg,fillMat,selMat,lineMat,selLine,dxfMat,ebMat,eHov=null;
+let renderer,cv,scene,pcam,ocam,cam,P,grid,Dg,fillMat,selMat,lineMat,selLine,dxfMat,ebMat,ebLine,eHov=null;
 let az=.7,el=.5,R=2200;let tg=null;
 const q=s=>wrap.querySelector(s);
 const qa=s=>wrap.querySelectorAll(s);
@@ -103,13 +103,16 @@ function opsGroup(p){
   for(const[a,m]of[[v,opsMat],[v2,opsMat2]]){if(!a.length)continue;const bg=new THREE.BufferGeometry();bg.setAttribute('position',new THREE.Float32BufferAttribute(a,3));const ls=new THREE.LineSegments(bg,m);ls.renderOrder=2;g.add(ls)}
   return g}
 function toggleOps(){showOps=!showOps;panels.forEach(build);viewMenuSync()}
-function ebGroup(p){   // kromka (qirra lentasi) belgilangan qirralar: rangli yupqa tasma
+function ebGroup(p){   // kromka (qirra lentasi): qirra yuzasida qalinliksiz rangli tasma + qirra bo'ylab chiziqlar (o'lcham va magnitga ta'sir qilmaydi; qalinlik Cutlist/raspilda hisoblanadi)
   const pr=prof(p),n=pr.length;if(!p.eb||p.eb.length!==n)return null;
   const c=pr.map(a=>[a[0]-p.w/2,a[1]-p.h/2]);let area=0;for(let i=0;i<n;i++){const a=c[i],b=c[(i+1)%n];area+=a[0]*b[1]-b[0]*a[1]}
-  const sg=area>=0?1:-1,g=new THREE.Group();
+  const sg=area>=0?1:-1,g=new THREE.Group(),ln=[];
   for(let i=0;i<n;i++){const t=p.eb[i];if(!(t>0))continue;const a=c[i],b=c[(i+1)%n],dx=b[0]-a[0],dy=b[1]-a[1],len=Math.hypot(dx,dy);if(len<1e-6)continue;
-    const k=Math.max(t,1.5),nx=dy/len*sg,ny=-dx/len*sg,m=new THREE.Mesh(new THREE.BoxGeometry(len,k,p.t),ebMat);
-    m.rotation.z=Math.atan2(dy,dx);m.position.set((a[0]+b[0])/2+nx*k/2,(a[1]+b[1])/2+ny*k/2,0);m.userData.pid=p.id;g.add(m)}
+    const nx=dy/len*sg,ny=-dx/len*sg,o=.25,m=new THREE.Mesh(new THREE.PlaneGeometry(len,p.t),ebMat);   // qirra yuzasidan 0.25 mm tashqarida — z-fighting yo'q
+    m.rotation.set(Math.PI/2,0,Math.atan2(dy,dx),'ZXY');   // avval X 90° (tasma qalinlik bo'ylab), keyin qirra yo'nalishiga
+    m.position.set((a[0]+b[0])/2+nx*o,(a[1]+b[1])/2+ny*o,0);m.userData.pid=p.id;m.userData.eb=1;g.add(m);
+    for(const z of[p.t/2,-p.t/2])ln.push(a[0]+nx*o,a[1]+ny*o,z,b[0]+nx*o,b[1]+ny*o,z)}   // 2D ko'rinishda qirra chetma-chet ko'rinsa ham — rangli chiziq
+  if(ln.length){const bg=new THREE.BufferGeometry();bg.setAttribute('position',new THREE.Float32BufferAttribute(ln,3));const ls=new THREE.LineSegments(bg,ebLine);ls.renderOrder=3;g.add(ls)}
   return g.children.length?g:null}
 function ebInfo(p){   // raspil/eksport uchun: Uz1/Uz2/En1/En2 (mm), qirra uzunligi (m), qalinlik bo'yicha metr
   const pr=prof(p),n=pr.length;if(!p.eb||p.eb.length!==n||!p.eb.some(v=>v>0))return{txt:'-',len:0,byT:{}};
@@ -1890,7 +1893,7 @@ function ensure(){
   scene.add(new THREE.AmbientLight(0xffffff,.75));const dl=new THREE.DirectionalLight(0xffffff,.55);dl.position.set(1,2,1.4);scene.add(dl);
   P=new THREE.Group();scene.add(P);
   fillMat=new THREE.MeshLambertMaterial({polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1,transparent:false});
-  selMat=fillMat.clone();ebMat=new THREE.MeshBasicMaterial({color:0xffb454});grainMat=new THREE.LineBasicMaterial({color:0xc9a063,transparent:true,opacity:.75});opsMat=new THREE.LineBasicMaterial({color:0xff8a1f});opsMat2=new THREE.LineBasicMaterial({color:0xe04fd0});lineMat=new THREE.LineBasicMaterial();selLine=new THREE.LineBasicMaterial();dxfMat=new THREE.LineBasicMaterial();
+  selMat=fillMat.clone();ebMat=new THREE.MeshBasicMaterial({color:0xffb454,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});ebLine=new THREE.LineBasicMaterial({color:0xffb454});grainMat=new THREE.LineBasicMaterial({color:0xc9a063,transparent:true,opacity:.75});opsMat=new THREE.LineBasicMaterial({color:0xff8a1f});opsMat2=new THREE.LineBasicMaterial({color:0xe04fd0});lineMat=new THREE.LineBasicMaterial();selLine=new THREE.LineBasicMaterial();dxfMat=new THREE.LineBasicMaterial();
   cv.style.cssText='display:block;width:100%;height:100%;touch-action:none';
   cv.oncontextmenu=e=>e.preventDefault();cv.onpointerdown=onDown;cv.onpointermove=onMove;cv.onpointerup=onUp;
   cv.onwheel=e=>{e.preventDefault();R=Math.max(100,Math.min(30000,R*Math.exp(e.deltaY*.001)));upd()};

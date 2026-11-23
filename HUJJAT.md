@@ -1,5 +1,8 @@
 # Rugby 1.1.2 — CNC nesting, panelni Drawing'da tahrirlash, aralash ulagich, narx (2026-11-23)
 
+- **Kromka viewportda qalinliksiz.** Kromkali qirra endi qirra yuzasida rangli tasma (+ qirra bo'ylab chiziqlar) — panel tashqarisiga
+  chiqmaydi, magnit va o'lchamlarga xalaqit bermaydi. Qalinlik ma'lumoti saqlanadi: Cutlist (L1…/W1…), kromka metri, list hisobi, narx va
+  birkada avvalgidek.
 - **Panel rangi.** Panellar endi material bo'yicha avtomatik neytral tonda (bir materialdagi panellar bir xil; materialsiz — och
   kulrang-ko'k) — to'q va och fonda ko'rinadi. Panel xossalari ▸ **Rang**: o'zingiz tanlash (bir nechta panel tanlansa — hammasiga),
   **Avto** — qaytarish, **Materialga** — shu rang materialdagi hamma panelga (loyihada `mc` sifatida saqlanadi). Rang faqat ko'rinish uchun.
