@@ -1,5 +1,12 @@
 # Rugby 1.1.2 — CNC nesting, panelni Drawing'da tahrirlash, aralash ulagich, narx (2026-11-23)
 
+- **Ship-paz — metallsiz tishli birikma** (furnitura turi: Alt+F ▸ Turi, panel Ulagich yoki J asbobi ▸ «Ship-paz»). Chet paneli (B)
+  qirrasida tishlar ulanadigan panel (A) qalinligi bo'ylab chiqadi; A da ularga mos teshik (zazor bilan). Burchak birikmasida (tortma
+  qutisi) teshik A chetiga chiqadi — kontur kesigi bo'ladi (box joint); o'rtada (oraliq polka) — A ichida teshib o'tadigan to'rtburchak.
+  Ichki burchaklarda **dogbone** (freza Ø bo'yicha yarim aylana o'yiq) — CNC freza to'g'ri burchak qoldirmagani uchun detal o'tiradi.
+  Sozlamalar (Furnitura ▸ Ship-paz): tish eni 40, ulanish chetidan 25, zazor 0.2, freza Ø 6, dogbone yoq/o'chiq; tishlar soni uzunlikka
+  qarab. DXF'da kontur va teshiklar `CUT_Z…` qatlamida, yoylar haqiqiy (bulge); CNC sahifasida detal konturi tishlari bilan, teshiklar
+  guruh ichida. Cutlist/List hisobi o'lchami tishsiz (bu birikma CNC uchun).
 - **Ekssentrik o'yig'ini ikkinchi yuzaga o'tkazish.** Furnitura asbobi (J) ▸ **⇅ Ekss. tomoni** → ekssentrikli ulanish chizig'ini bosing:
   Ø15 o'yiq (va ishlov tomoni) panelning ikkinchi yuzasiga o'tadi, yana bosilsa qaytadi; Shift bilan bir nechtasi. Belgisi sariq.
   Standart — korpus ichiga qaragan yuza. Saqlanadi (`jf` — chet panelida, sherik id bo'yicha).

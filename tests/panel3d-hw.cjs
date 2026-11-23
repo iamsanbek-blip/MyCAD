@@ -162,4 +162,22 @@ const ops=(p,t)=>(p.ops||[]).filter(o=>!t||o.t===t);
   assert.equal(HW.jointLines(ps,{con:'ekss'}).find(l=>l.key==='4>1').flip,true);HW.setFlip(K,1,false);assert.equal(K.jf,undefined);
   ok("Ekssentrik o'yig'ini ikkinchi yuzaga o'tkazish: krisha–chap boka ulanishida Ø15 ustki yuzada (y=720), o'ng boka tomonida ichkarida qoldi; qaytarish")}
 
+// 16. Ship-paz (metallsiz): burchakda — tish/kesik (box joint), o'rtada — tish va teshik; ichki burchaklarda dogbone; DXF yoylari
+{const box=[{id:1,n:'yon chap',w:400,h:150,t:16,o:'side',x:8,y:75,z:0},{id:2,n:'old',w:368,h:150,t:16,o:'front',x:200,y:75,z:192},{id:3,n:"yon o'ng",w:400,h:150,t:16,o:'side',x:392,y:75,z:0}];
+  const r=HW.place(box,box,{con:'tab'});assert.deepEqual(r.cnt,{tab:8});assert.deepEqual(r.warn,[]);
+  const O=byId(box,2),Y=byId(box,1),tabs=ops(O).filter(o=>o.k==='t'),sl=ops(Y).filter(o=>o.k==='s');assert.equal(tabs.length,4);assert.equal(sl.length,2);
+  const wr=(p,o)=>{const a=W(p,o.u0,o.v0,0),b=W(p,o.u1,o.v1,0);return[0,1,2].map(k=>[Math.min(a[k],b[k]),Math.max(a[k],b[k])])};
+  for(const s2 of sl){const R=wr(Y,s2)[1],T=tabs.map(t=>wr(O,t)[1]).find(t=>t[0]>=R[0]-.01&&t[1]<=R[1]+.01&&Math.abs((R[0]+R[1])-(t[0]+t[1]))<.02);   // umumiy o'q — Y (balandlik)
+    assert.ok(T,'tish teshik ichida');assert.ok(Math.abs((R[1]-R[0])-(T[1]-T[0])-.2)<.01,'zazor 0.2')}
+  const oo=HW.outline(O),yo=HW.outline(Y);assert.equal(oo.filter(q=>q.b===-1).length,8);assert.equal(yo.filter(q=>q.b===-1).length,4);
+  assert.deepEqual([Math.min(...oo.map(q=>q.x)),Math.max(...oo.map(q=>q.x))],[-16,384]);assert.equal(Math.min(...yo.map(q=>q.x)),0);
+  const F=HW.flat(O,{});assert.equal(Math.round(F.w),400);assert.ok(F.contour.every(c=>c[0]>=-1e-9&&c[1]>=-1e-9));
+  const t=HW.dxf(box,{}).text;assert.equal((t.match(/\n42\n-1\n/g)||[]).length,8+4+4);
+  const mid=[{id:1,n:'boka',w:400,h:600,t:16,o:'side',x:8,y:300,z:0},{id:2,n:'boka2',w:400,h:600,t:16,o:'side',x:592,y:300,z:0},{id:3,n:'oraliq',w:568,h:400,t:16,o:'flat',x:300,y:300,z:0}];
+  HW.place(mid,mid,{con:'tab',tab:{w:40,e:25,cl:.2,d:6,bone:true}});const ins=ops(byId(mid,1)).filter(o=>o.k==='s');assert.equal(ins.length,4);
+  assert.equal(HW.outline(byId(mid,1)).length,4,'boka konturi o\'zgarmaydi');const lp=HW.slotLoop(ins[0]);assert.equal(lp.filter(q=>q.b===1).length,4);
+  const fl=HW.flat(byId(mid,1),{});assert.equal(fl.cuts.length,4);const md=HW.dxf(mid,{}).text;assert.equal((md.match(/\n42\n1\n/g)||[]).length,4*4*2);
+  HW.place(mid,mid,{con:'tab',tab:{w:40,e:25,cl:.2,d:6,bone:false}});assert.equal(HW.outline(byId(mid,3)).filter(q=>q.b).length,0,'dogbone o\'chiq');
+  ok("Ship-paz: tortma qutisi burchagida 4 tish + 2×2 kesik (box joint, zazor 0.2), 8+4+4 dogbone yoyi DXF'da; o'rtadagi polka — boka teshib o'tiladi (4 ichki teshik, har burchakda dogbone), CNC detali 400 mm; dogbone o'chirilsa — to'g'ri burchak")}
+
 console.log(passed.map(s=>'PASS '+s).join('\n'));console.log(`panel3d-hw: ${passed.length} checks passed`);

@@ -28,6 +28,9 @@
   Ctrl bilan bog'langan o'z buyruqlari endi ishlaydi (avval faqat Alt/F). Barcha suite va Electron sinovlari qayta o'tdi.
 - Qo'shimcha (izoh bo'yicha): ekssentrik o'yig'ini ikkinchi yuzaga — `panel3d-hw` 16 (krisha–chap boka: Ø15 y=704 → 720, o'ng tomoni
   joyida, qaytarish), `modeling-cnc-price` 12 (J ▸ ⇅, haqiqiy bosish: B → A yuza, yana bosish — B).
+- Qo'shimcha: Ship-paz (metallsiz) — `panel3d-hw` 17 (tortma qutisi: 4 tish + kesiklar, zazor 0.2, 8+4+4 dogbone yoyi DXF'da; o'rta polka:
+  4 ichki teshik × 4 dogbone; CNC detali 400 mm; dogbone o'chiq — to'g'ri burchak), `modeling-cnc-price` 12 (J ▸ Ship-paz haqiqiy bosish,
+  qaytarish). DXF ezdxf bilan ochildi (0 xato), rasmga chizilib ko'rildi: burchakda tish/kesik, o'rtada teshik — dogbone bilan.
 - `tests/modeling-cnc-price.cjs` (yangi, web build, Chromium 1243, haqiqiy sichqoncha, 8): xossalarda ulagich tanlash → korpus qayta
   teshiladi; Narx paneli (jami = hisob, narx o'zgarganda yangilanadi, localStorage, detal narxi, smeta CSV); CNC'ga yuborish — 3 sahifa,
   detallar list ichida, teshiklar detal ichida, teksturali burilmagan; detal konturini bosish butun guruhni tanlaydi, Move bilan boshqa

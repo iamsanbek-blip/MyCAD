@@ -65,8 +65,13 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     const camY=()=>ev(()=>Panel3D._hw.ops(4).filter(o=>o.t==='ekss'&&o.d===15&&o.u<100).map(o=>o.f));assert.deepEqual([...new Set(await camY())],['B']);
     await page.locator('#p3jb [data-jt="flip"]').click();sp=await ev(()=>Panel3D._jointScr('4>1'));await page.mouse.move(sp.x,sp.y);await page.mouse.click(sp.x,sp.y);
     assert.deepEqual([...new Set(await camY())],['A']);assert.equal((await jc('4>1')).flip,true);await page.mouse.click(sp.x,sp.y);assert.deepEqual([...new Set(await camY())],['B']);
+    // ship-paz (metallsiz) — dno–chap boka ulanishiga: dno qirrasida tishlar, bokada kesik/teshik; yana bosish — umumiy
+    await page.locator('#p3jb [data-jt="tab"]').click();sp=await ev(()=>Panel3D._jointScr('3>1'));await page.mouse.move(sp.x,sp.y);await page.mouse.click(sp.x,sp.y);
+    assert.equal((await jc('3>1')).cur,'tab');assert.ok((await ev(()=>Panel3D._hw.ops(3))).filter(o=>o.k==='t').length>=2);assert.ok((await ev(()=>Panel3D._hw.ops(1))).some(o=>o.k==='s'));
+    assert.ok(!(await ev(()=>Panel3D._hw.ops(3))).some(o=>o.k==='e'&&o.u===0),'dno chap qirrasida yevrovint yo\'q');
+    await page.mouse.click(sp.x,sp.y);assert.equal((await jc('3>1')).cur,'konf');assert.ok(!(await ev(()=>Panel3D._hw.ops(1))).some(o=>o.k==='s'));
     await page.keyboard.press('Escape');await page.keyboard.press('v');assert.ok(await page.locator('#p3jb').isHidden());
-    passed.push("Furnitura asbobi (J): dno–chap boka ulanishiga shkant (o'ng tomoni yevrovint qoldi), yana bosish — umumiy; Shift bilan 2 polka ulanishi → yevrovint (polkaderjatel o'rniga), Ctrl+Z; ⇅ — ekssentrik o'yig'i krishaning ikkinchi yuzasiga va qaytadi");
+    passed.push("Furnitura asbobi (J): dno–chap boka ulanishiga shkant (o'ng tomoni yevrovint qoldi), yana bosish — umumiy; Shift bilan 2 polka ulanishi → yevrovint (polkaderjatel o'rniga), Ctrl+Z; ⇅ — ekssentrik o'yig'i krishaning ikkinchi yuzasiga va qaytadi; Ship-paz — dno tishlari, bokada kesik, yana bosish — umumiy");
 
     // 2. Narx paneli: 3D oyna chetidagi tugma, jami = hisob; narx o'zgarsa jami yangilanadi; detal narxi xossalarda; CSV
     await ev(P=>Panel3D._price(P),PRICES);

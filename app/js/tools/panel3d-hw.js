@@ -29,6 +29,7 @@ const DEF={
   hinge:{on:true,d:35,z:13,k:4,e:100,pd:5,pz:12,pe:37,ps:32},
   handle:{s:128,off:40,d:5},
   groove:{on:true,maxT:10,cl:.5,z:8},
+  tab:{w:40,e:25,cl:.2,d:6,bone:true},   // ship-paz (metallsiz): tish eni, chetdan, zazor, freza Ø (dogbone), burchak o'yig'i
   dxf:{drills:'5,7,8,15,35',tol:.3,snap:true,dec:'_',cut:'CUT_Z{t}',drill:'DRILL_D{d}_Z{z}',thru:'DRILL_D{d}_THRU',groove:'GROOVE_W{w}_Z{z}',edge:'HDRILL_D{d}_Z{z}',gap:100,rowW:6000}
 };
 const clone=o=>JSON.parse(JSON.stringify(o));
@@ -42,8 +43,8 @@ function merge(base,o){const r=clone(base);if(!o||typeof o!=='object')return r;
 const R2=v=>Math.round(v*100)/100;
 const f2=v=>String(+(+v).toFixed(2));
 const KPRE=/^([A-Z]{1,3})\.\s+/;
-const CONS={konf:'Yevrovint (konfirmat)',ekss:'Ekssentrik (minifiks)',shkant:'Shkant','konf+shkant':'Yevrovint + shkant','ekss+shkant':'Ekssentrik + shkant',none:"Yo'q"};
-const T_NAME={konf:'Yevrovint',ekss:'Ekssentrik',shkant:'Shkant',polka:'Polkaderjatel',petlya:'Petlya',planka:'Petlya planka',ruchka:'Ruchka',paz:'Paz',man:"Qo'lda"};
+const CONS={tab:'Ship-paz (metallsiz, tishli)',konf:'Yevrovint (konfirmat)',ekss:'Ekssentrik (minifiks)',shkant:'Shkant','konf+shkant':'Yevrovint + shkant','ekss+shkant':'Ekssentrik + shkant',none:"Yo'q"};
+const T_NAME={tab:'Ship-paz',konf:'Yevrovint',ekss:'Ekssentrik',shkant:'Shkant',polka:'Polkaderjatel',petlya:'Petlya',planka:'Petlya planka',ruchka:'Ruchka',paz:'Paz',man:"Qo'lda"};
 
 function create(G){
   const {Mof,prof}=G;
@@ -122,6 +123,16 @@ function create(G){
       // ulagich turi: B (qirrasi tegadigan) panelniki → A panelniki → umumiy. Shunda bitta detalda turli ulagich bo'ladi
       const own=CONS[jo]?jo:CONS[j.B.con]?j.B.con:CONS[j.A.con]?j.A.con:'',cs=own||o.con,con=cs.replace('+shkant',''),dowel=cs.endsWith('+shkant')||(!own&&o.dowel);
       if(con==='none'||!CONS[cs])continue;
+      if(con==='tab'){   // ship-paz: B qirrasida tishlar A ni teshib o'tadi, A da ularga mos teshik (zazor bilan); ichki burchaklarda dogbone
+        const T=o.tab,L=j.c1-j.c0,far=j.a[j.ta][j.s>0?0:1],r=T.bone?T.d/2:0,n=Math.max(1,Math.round((L-2*T.e-T.w)/(3*T.w))+1),span=L-2*T.e-T.w;
+        if(L<T.w+2*T.e){warn.push(`${A.n} ↔ ${B.n}: ulanish ${f2(L)} mm — tish (${T.w}) uchun qisqa`);continue}
+        const cs=n===1?[(j.c0+j.c1)/2]:Array.from({length:n},(_,i)=>j.c0+T.e+T.w/2+span*i/(n-1));
+        const rectL=(P,a,b)=>{const p0=toLocal(P,a),p1=toLocal(P,b);return{u0:R2(Math.min(p0[0],p1[0])),v0:R2(Math.min(p0[1],p1[1])),u1:R2(Math.max(p0[0],p1[0])),v1:R2(Math.max(p0[1],p1[1]))}};
+        for(const cp of cs){
+          add(B,Object.assign({k:'t',r,len:A.t,t:'tab'},rectL(B,pt(j,j.bEdge,j.b[j.tb][0],cp-T.w/2),pt(j,far,j.b[j.tb][1],cp+T.w/2))));
+          const sa=rectL(A,pt(j,j.face,j.b[j.tb][0]-T.cl/2,cp-(T.w+T.cl)/2),pt(j,far,j.b[j.tb][1]+T.cl/2,cp+(T.w+T.cl)/2));
+          add(A,Object.assign({k:'s',f:'A',th:1,r,t:'tab'},sa))}
+        continue}
       const S=spots(j.c0,j.c1,o.e,o.step),bLen=j.b[j.ta][1]-j.b[j.ta][0];
       // ekssentrik o'yig'i odatda korpus ichiga qaragan yuzada; jf[A.id] — ikkinchi yuzaga (Furnitura asbobi ▸ ⇅ Tomon)
       const side=(Math.sign(A[['x','y','z'][j.tb]]-B[['x','y','z'][j.tb]])||-1)*(jfOf(j)?-1:1),bFace=side>0?j.b[j.tb][1]:j.b[j.tb][0];
@@ -183,16 +194,16 @@ function create(G){
 
   /* ---- panel o'zgarishlarida teshiklarni moslash ---- */
   function rot90(p,wOld){if(!p.ops)return;   // eni↔bo'yi: (u,v) → (v, w−u)
-    for(const o of p.ops){if(o.k==='g'){const a=[o.v0,wOld-o.u0],b=[o.v1,wOld-o.u1];o.u0=Math.min(a[0],b[0]);o.u1=Math.max(a[0],b[0]);o.v0=Math.min(a[1],b[1]);o.v1=Math.max(a[1],b[1]);continue}
+    for(const o of p.ops){if(o.k==='g'||o.k==='s'||o.k==='t'){const a=[o.v0,wOld-o.u0],b=[o.v1,wOld-o.u1];o.u0=Math.min(a[0],b[0]);o.u1=Math.max(a[0],b[0]);o.v0=Math.min(a[1],b[1]);o.v1=Math.max(a[1],b[1]);continue}
       [o.u,o.v]=[o.v,R2(wOld-o.u)];if(o.n)o.n=[o.n[1],-o.n[0]]}}
   function mirror(p,k){if(!p.ops)return;   // k: 'w' | 'h' | 't'
     for(const o of p.ops){
       if(k==='t'){if(o.f)o.f=o.f==='A'?'B':'A';if(o.k==='e')o.c=-o.c;continue}
       const i=k==='w'?0:1,W=k==='w'?p.w:p.h;
-      if(o.k==='g'){if(i===0)[o.u0,o.u1]=[R2(W-o.u1),R2(W-o.u0)];else[o.v0,o.v1]=[R2(W-o.v1),R2(W-o.v0)];continue}
+      if(o.k==='g'||o.k==='s'||o.k==='t'){if(i===0)[o.u0,o.u1]=[R2(W-o.u1),R2(W-o.u0)];else[o.v0,o.v1]=[R2(W-o.v1),R2(W-o.v0)];continue}
       if(i===0)o.u=R2(W-o.u);else o.v=R2(W-o.v);if(o.n)o.n[i]=-o.n[i]}}
   function sanitize(ops){if(!Array.isArray(ops))return undefined;
-    const ok=o=>o&&typeof o==='object'&&(o.k==='d'||o.k==='e'||o.k==='g')&&['u','v','d','z'].every(k=>o.k==='g'||Number.isFinite(+o[k]))&&(o.k!=='g'||['u0','v0','u1','v1','z'].every(k=>Number.isFinite(+o[k])));
+    const R=o=>o.k==='g'||o.k==='s'||o.k==='t',ok=o=>o&&typeof o==='object'&&(o.k==='d'||o.k==='e'||R(o))&&(R(o)||['u','v','d','z'].every(k=>Number.isFinite(+o[k])))&&(!R(o)||['u0','v0','u1','v1'].every(k=>Number.isFinite(+o[k]))&&(o.k!=='g'||Number.isFinite(+o.z)));
     const r=ops.filter(ok).map(o=>clone(o));return r.length?r:undefined}
 
   /* ---- sverloga yaxlitlash (masalan Ø5.2 → Ø5) ---- */
@@ -200,6 +211,40 @@ function create(G){
     return d=>{if(!o.snap||!list.length)return{d,m:false};let best=null;for(const x of list)if(Math.abs(x-d)<=o.tol+1e-9&&(best===null||Math.abs(x-d)<Math.abs(best-d)))best=x;
       return best===null?{d,m:false,none:true}:{d:best,m:best!==d}}}
 
+  /* ---- ship-paz konturi: profil + tishlar (k:'t'), tish ildizida dogbone; A dagi teshik (k:'s') — burchaklarida dogbone.
+     Natija: [{x,y,b}] — b: shu nuqtadan keyingisigacha yoy (DXF bulge; −1/+1 — yarim aylana). ---- */
+  const SQ2=Math.SQRT2;
+  function area2(P){let s=0;for(let i=0;i<P.length;i++){const a=P[i],b=P[(i+1)%P.length];s+=a[0]*b[1]-b[0]*a[1]}return s}
+  function outline(p){
+    let P=prof(p).map(q=>[q[0],q[1]]);if(area2(P)<0)P.reverse();
+    const tabs=(p.ops||[]).filter(o=>o.k==='t'||(o.k==='s'&&!slotInside(p,o)));if(!tabs.length)return P.map(q=>({x:q[0],y:q[1],b:0}));   // t — tish (tashqariga), chetga chiqqan s — kesik (ichkariga, burchak birikmasi)
+    const out=[];
+    for(let i=0;i<P.length;i++){const a=P[i],b=P[(i+1)%P.length],dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy);out.push({x:a[0],y:a[1],b:0});if(L<1e-6)continue;
+      const d=[dx/L,dy/L],n=[d[1],-d[0]],on=[];   // n — tashqi normal (CCW)
+      for(const t of tabs){const c=[[t.u0,t.v0],[t.u1,t.v0],[t.u1,t.v1],[t.u0,t.v1]],h=c.map(q=>(q[0]-a[0])*n[0]+(q[1]-a[1])*n[1]),s=c.map(q=>(q[0]-a[0])*d[0]+(q[1]-a[1])*d[1]);
+        const t0=Math.max(0,Math.min(...s)),t1=Math.min(L,Math.max(...s));if(t1-t0<1)continue;
+        if(t.k==='t'){if(Math.min(...h)<-.01||Math.min(...h)>.01||Math.max(...h)<1)continue;on.push({t0,t1,len:Math.max(...h),r:t.r||0})}
+        else{if(Math.max(...h)<-.01||Math.min(...h)>-1)continue;on.push({t0,t1,len:Math.min(...h),r:t.r||0})}}   // len<0 — kesik
+      on.sort((x,y)=>x.t0-y.t0);
+      for(const t of on){const S0=[a[0]+d[0]*t.t0,a[1]+d[1]*t.t0],S1=[a[0]+d[0]*t.t1,a[1]+d[1]*t.t1],O0=[S0[0]+n[0]*t.len,S0[1]+n[1]*t.len],O1=[S1[0]+n[0]*t.len,S1[1]+n[1]*t.len];
+        if(t.len>0){bone(out,S0,d,n,t.r);out.push({x:O0[0],y:O0[1],b:0});out.push({x:O1[0],y:O1[1],b:0});bone(out,S1,[-n[0],-n[1]],d,t.r)}   // tish: ildizida o'yiq
+        else{const m=[-n[0],-n[1]];out.push({x:S0[0],y:S0[1],b:0});bone(out,O0,m,d,t.r);bone(out,O1,d,n,t.r);out.push({x:S1[0],y:S1[1],b:0})}}}   // kesik: tagida o'yiq
+    return out}
+  function slotInside(p,o){const P=prof(p);let c=false;const ins=(x,y)=>{let k=false;for(let i=0,j=P.length-1;i<P.length;j=i++){const a=P[i],b=P[j];if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])k=!k}return k};
+    return[[o.u0,o.v0],[o.u1,o.v0],[o.u1,o.v1],[o.u0,o.v1]].every(q=>ins(q[0],q[1]))}
+  function bone(out,C,din,dout,r){   // CCW konturda botiq burchak: yarim aylana o'yiq (soat yo'nalishida)
+    if(!(r>0)){out.push({x:C[0],y:C[1],b:0});return}const k=r*SQ2;
+    out.push({x:C[0]-din[0]*k,y:C[1]-din[1]*k,b:-1});out.push({x:C[0]+dout[0]*k,y:C[1]+dout[1]*k,b:0})}
+  function slotLoop(o){   // teshik (CCW): har burchakda tashqariga yarim aylana
+    const c=[[o.u0,o.v0],[o.u1,o.v0],[o.u1,o.v1],[o.u0,o.v1]],r=o.r||0,out=[];if(!(r>0))return c.map(q=>({x:q[0],y:q[1],b:0}));const k=r*SQ2;
+    for(let i=0;i<4;i++){const C=c[i],A=c[(i+3)%4],B=c[(i+1)%4],din=[Math.sign(C[0]-A[0]),Math.sign(C[1]-A[1])],dout=[Math.sign(B[0]-C[0]),Math.sign(B[1]-C[1])];
+      out.push({x:C[0]-din[0]*k,y:C[1]-din[1]*k,b:1});out.push({x:C[0]+dout[0]*k,y:C[1]+dout[1]*k,b:0})}
+    return out}
+  function arcPts(loop,seg=10){   // bulge yoylarini nuqtalarga (Drawing/nesting uchun)
+    const r=[];for(let i=0;i<loop.length;i++){const a=loop[i],b=loop[(i+1)%loop.length];r.push([a.x,a.y]);if(!a.b)continue;
+      const th=4*Math.atan(a.b),cx=b.x-a.x,cy=b.y-a.y,cl=Math.hypot(cx,cy),rr=cl/(2*Math.sin(th/2)),hh=rr*Math.cos(th/2),pp=[-cy/cl,cx/cl],O=[(a.x+b.x)/2+pp[0]*hh,(a.y+b.y)/2+pp[1]*hh],a0=Math.atan2(a.y-O[1],a.x-O[0]),R=Math.abs(rr);
+      for(let k=1;k<seg;k++){const an=a0+th*k/seg;r.push([O[0]+R*Math.cos(an),O[1]+R*Math.sin(an)])}}
+    return r}
   /* ---- qatlam nomlari (DXF va CNC sahifasi uchun bir xil) ---- */
   function layerNames(opts){const o=merge(DEF,opts).dxf,num=v=>f2(v).replace('.',o.dec),
       ly=(tpl,x)=>tpl.replace(/\{(\w)\}/g,(_,k)=>x[k]!==undefined?num(x[k]):'').replace(/[^A-Za-z0-9_$-]/g,'_').slice(0,31)||'0';
@@ -217,8 +262,12 @@ function create(G){
         const c=T(x.u,x.v);circles.push({x:c[0],y:c[1],r:r.d/2,layer:x.th?N.thru(r.d,p.t):N.drill(r.d,x.z),none:!!r.none});continue}
       if(x.k==='g'){if(x.f!==side){other++;continue}const a=T(x.u0,x.v0),b=T(x.u1,x.v1),w=Math.min(x.u1-x.u0,x.v1-x.v0);
         rects.push({x0:Math.min(a[0],b[0]),y0:Math.min(a[1],b[1]),x1:Math.max(a[0],b[0]),y1:Math.max(a[1],b[1]),layer:N.groove(w,x.z)})}}
-    let contour=prof(p).map(q=>T(q[0],q[1]));if(side==='B')contour.reverse();
-    return{name:p.n||'Panel',id:p.id,side,rot,noRot:!!p.gr,w:rot?H:W,h:rot?W:H,contour,cut:N.cut(p.t),circles,rects,other,edge,mapped}}
+    let contour=arcPts(outline(p)).map(q=>T(q[0],q[1]));if(side==='B')contour.reverse();
+    const cuts=ops.filter(x=>x.k==='s'&&slotInside(p,x)).map(x=>arcPts(slotLoop(x)).map(q=>T(q[0],q[1])));   // ship-paz teshiklari — kesib o'tiladi (kontur qatlami)
+    const xs=contour.map(c=>c[0]),ys=contour.map(c=>c[1]),x0=Math.min(...xs),y0=Math.min(...ys);
+    if(x0<0||y0<0){const sh=c=>[c[0]-Math.min(0,x0),c[1]-Math.min(0,y0)];contour=contour.map(sh);for(const k of cuts.keys())cuts[k]=cuts[k].map(sh);
+      for(const c of circles){c.x-=Math.min(0,x0);c.y-=Math.min(0,y0)}for(const r of rects){r.x0-=Math.min(0,x0);r.x1-=Math.min(0,x0);r.y0-=Math.min(0,y0);r.y1-=Math.min(0,y0)}}
+    return{name:p.n||'Panel',id:p.id,side,rot,noRot:!!p.gr,w:Math.max(...contour.map(c=>c[0])),h:Math.max(...contour.map(c=>c[1])),contour,cuts,cut:N.cut(p.t),circles,rects,other,edge,mapped}}
 
   /* ---- DXF (AutoCAD R12): har panel — A tomoni (+ B tomoni, ko'zgu) ---- */
   function dxf(ps,opts){
@@ -226,7 +275,8 @@ function create(G){
       ly=(tpl,x)=>tpl.replace(/\{(\w)\}/g,(_,k)=>x[k]!==undefined?num(x[k]):'').replace(/[^A-Za-z0-9_$-]/g,'_').slice(0,31)||'0';
     const used=new Map(),E=[],note=new Map(),none=new Map();let cx=0,cy=0,rowH=0,nDr=0,nEd=0,nGr=0,sides=0;
     const L=(name,aci)=>{if(!used.has(name))used.set(name,aci);return name};
-    const poly=(pts,layer)=>{let s='0\nPOLYLINE\n8\n'+layer+'\n66\n1\n70\n1\n';for(const q of pts)s+='0\nVERTEX\n8\n'+layer+'\n10\n'+f2(q[0])+'\n20\n'+f2(q[1])+'\n30\n0\n';E.push(s+'0\nSEQEND\n8\n'+layer+'\n')};
+    const poly=(pts,layer)=>{let s='0\nPOLYLINE\n8\n'+layer+'\n66\n1\n70\n1\n';for(const q of pts)s+='0\nVERTEX\n8\n'+layer+'\n10\n'+f2(q[0])+'\n20\n'+f2(q[1])+'\n30\n0\n'+(q[2]?'42\n'+q[2]+'\n':'');E.push(s+'0\nSEQEND\n8\n'+layer+'\n')};   // q[2] — bulge (yoy)
+    const loopPts=(lp,X,Y,mir)=>lp.map(q=>[X(q.x),Y(q.y),(mir?-1:1)*(q.b||0)]);   // ko'zguda yoy yo'nalishi teskari
     const circ=(x,y,r,layer)=>E.push('0\nCIRCLE\n8\n'+layer+'\n10\n'+f2(x)+'\n20\n'+f2(y)+'\n30\n0\n40\n'+f2(r)+'\n');
     const line=(a,b,layer)=>E.push('0\nLINE\n8\n'+layer+'\n10\n'+f2(a[0])+'\n20\n'+f2(a[1])+'\n30\n0\n11\n'+f2(b[0])+'\n21\n'+f2(b[1])+'\n31\n0\n');
     const text=(x,y,h,s,layer)=>E.push('0\nTEXT\n8\n'+layer+'\n10\n'+f2(x)+'\n20\n'+f2(y)+'\n30\n0\n40\n'+h+'\n1\n'+String(s).replace(/[\r\n]+/g,' ')+'\n');
@@ -237,7 +287,8 @@ function create(G){
         const W=p.w,H=p.h,mx=side==='B'?(u=>W-u):(u=>u);
         if(cx>0&&cx+W>o.rowW){cx=0;cy-=rowH+o.gap+60;rowH=0}
         const X=u=>cx+mx(u),Y=v=>cy+v;
-        poly(P.map(q=>[X(q[0]),Y(q[1])]),L(ly(o.cut,{t:p.t}),7));
+        poly(loopPts(outline(p),X,Y,side==='B'),L(ly(o.cut,{t:p.t}),7));   // tishlar (ship-paz) bilan
+        for(const x of ops)if(x.k==='s'&&slotInside(p,x))poly(loopPts(slotLoop(x),X,Y,side==='B'),L(ly(o.cut,{t:p.t}),7));
         for(const x of ops){
           if(x.k==='d'){if(side==='A'?!(x.f==='A'||x.th):!(x.f==='B'&&!x.th))continue;const d=drill(x);nDr++;
             circ(X(x.u),Y(x.v),d/2,x.th?L(ly(o.thru,{d,z:p.t}),5):L(ly(o.drill,{d,z:x.z}),1))}
@@ -259,11 +310,12 @@ function create(G){
   /* ---- teshiklar ro'yxati (CSV) ---- */
   function csv(ps){const rows=[['Panel','Turi','Tomon','U','V','Diametr','Chuqurlik','Teshib o\'tadi','Yo\'nalish']],c=v=>String(v).replace(/[;\r\n]/g,' ');
     for(const p of ps)for(const o of p.ops||[]){
-      if(o.k==='g')rows.push([c(p.n||'Panel'),'Paz',o.f,`${f2(o.u0)}..${f2(o.u1)}`,`${f2(o.v0)}..${f2(o.v1)}`,f2(Math.min(o.u1-o.u0,o.v1-o.v0)),f2(o.z),'','']);
+      if(o.k==='s'||o.k==='t')rows.push([c(p.n||'Panel'),o.k==='t'?'Ship-paz tishi':'Ship-paz teshigi',o.k==='t'?'Chet':'Teshib',`${f2(o.u0)}..${f2(o.u1)}`,`${f2(o.v0)}..${f2(o.v1)}`,'',f2(o.k==='t'?o.len:p.t),o.k==='s'?1:'','']);
+      else if(o.k==='g')rows.push([c(p.n||'Panel'),'Paz',o.f,`${f2(o.u0)}..${f2(o.u1)}`,`${f2(o.v0)}..${f2(o.v1)}`,f2(Math.min(o.u1-o.u0,o.v1-o.v0)),f2(o.z),'','']);
       else rows.push([c(p.n||'Panel'),T_NAME[o.t]||o.t||'',o.k==='e'?'Chet':o.f,f2(o.u),f2(o.v),f2(o.d),f2(o.k==='d'&&o.th?p.t:o.z),o.th?1:'',o.k==='e'?`${o.n[0]},${o.n[1]}`:''])}
     return rows.map(r=>r.join(';')).join('\r\n')}
 
-  return{DEF,CONS,merge,jointLines,setJoint,setFlip,layerNames,flat,place,check,joints,rot90,mirror,sanitize,dxf,csv,drillMap,tAx,toLocal,T_NAME}}
+  return{DEF,CONS,merge,outline,slotLoop,arcPts,jointLines,setJoint,setFlip,layerNames,flat,place,check,joints,rot90,mirror,sanitize,dxf,csv,drillMap,tAx,toLocal,T_NAME}}
 const api={create,DEF};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.RugbyHW=api;

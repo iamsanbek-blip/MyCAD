@@ -46,7 +46,7 @@ function compute(panels,prices,H){
   // furnitura va ishlar (teshiklardan)
   const hwN={},hwPer=new Map();let holes=0,grooveM=0,cutM=0;
   for(const p of vis){const n=p.q||1,ops=p.ops||[],c={};
-    for(const o of ops){if(o.k==='g'){grooveM+=Math.max(o.u1-o.u0,o.v1-o.v0)/1000*n;continue}holes+=n;
+    for(const o of ops){if(o.k==='g'){grooveM+=Math.max(o.u1-o.u0,o.v1-o.v0)/1000*n;continue}if(o.k!=='d'&&o.k!=='e')continue;holes+=n;   // ship-paz (s, t) — CNC kesimi, teshik emas
       const t=o.t;if(t==='konf'&&o.k==='e')c.konf=(c.konf||0)+1;else if(t==='ekss'&&o.k==='e')c.ekss=(c.ekss||0)+1;else if(t==='shkant'&&o.k==='e')c.shkant=(c.shkant||0)+1;
       else if(t==='polka'&&(o.m||!ops.some(x=>x.t==='polka'&&x.m)))c.polka=(c.polka||0)+1;else if(t==='petlya')c.petlya=(c.petlya||0)+1;else if(t==='ruchka')c.ruchka=(c.ruchka||0)+.5}
     for(const k in c){hwN[k]=(hwN[k]||0)+c[k]*n}hwPer.set(p.id,c);
@@ -58,7 +58,7 @@ function compute(panels,prices,H){
   // ishlarni detalga bo'lish: raspil — perimetr, kromka — o'z metri, teshik/paz — o'z teshiklari, CNC — maydon ulushi
   const areaT=vis.reduce((a,p)=>a+per.get(p.id).area*(p.q||1),0);
   for(const p of vis){const x=per.get(p.id),ops=p.ops||[],e=H.ebInfo(p);
-    x.work=perim(H.prof(p))/1000*num(P.work.cut)+e.len*num(P.work.edge)+ops.filter(o=>o.k!=='g').length*num(P.work.drill)+
+    x.work=perim(H.prof(p))/1000*num(P.work.cut)+e.len*num(P.work.edge)+ops.filter(o=>o.k==='d'||o.k==='e').length*num(P.work.drill)+
       ops.filter(o=>o.k==='g').reduce((a,o)=>a+Math.max(o.u1-o.u0,o.v1-o.v0)/1000,0)*num(P.work.groove)+(areaT?sheetsT*num(P.work.cnc)*x.area/areaT:0);
     x.total=x.mat+x.edge+x.work+x.hw;x.sum=x.total*x.q}
   const ebT=ebRows.reduce((a,r)=>a+r.cost,0),hwT=hwRows.reduce((a,r)=>a+r.cost,0),workT=workRows.reduce((a,r)=>a+r.cost,0),exT=P.extra.reduce((a,e)=>a+e.v,0);

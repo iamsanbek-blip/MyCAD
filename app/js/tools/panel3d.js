@@ -94,7 +94,8 @@ function opsGroup(p){
   const ring=(cx,cy,z,r)=>{const N=r>8?32:16;for(let i=0;i<N;i++){const a=i/N*TAU,b=(i+1)/N*TAU;v.push(cx+r*Math.cos(a),cy+r*Math.sin(a),z,cx+r*Math.cos(b),cy+r*Math.sin(b),z)}};
   for(const o of p.ops){
     if(o.k==='d'){for(const z of o.th?[zA,-zA]:[o.f==='A'?zA:-zA])ring(o.u+ox,o.v+oy,z,o.d/2)}
-    else if(o.k==='g'){const z=o.f==='A'?zA:-zA,x0=o.u0+ox,y0=o.v0+oy,x1=o.u1+ox,y1=o.v1+oy;v.push(x0,y0,z,x1,y0,z,x1,y0,z,x1,y1,z,x1,y1,z,x0,y1,z,x0,y1,z,x0,y0,z)}
+    else if(o.k==='g'||o.k==='s'||o.k==='t'){const x0=o.u0+ox,y0=o.v0+oy,x1=o.u1+ox,y1=o.v1+oy;   // paz; ship-paz teshigi (s) va tishi (t) — ikkala yuzada
+      for(const z of o.k==='g'?[o.f==='A'?zA:-zA]:[zA,-zA])v.push(x0,y0,z,x1,y0,z,x1,y0,z,x1,y1,z,x1,y1,z,x0,y1,z,x0,y1,z,x0,y0,z)}
     else if(o.k==='e'){const n=o.n||[0,0],x=o.u+ox-n[0]*.4,y=o.v+oy-n[1]*.4,z=o.c||0,r=o.d/2,tx=-n[1],ty=n[0];
       for(let i=0;i<16;i++){const a=i/16*TAU,b=(i+1)/16*TAU;v2.push(x+tx*r*Math.cos(a),y+ty*r*Math.cos(a),z+r*Math.sin(a),x+tx*r*Math.cos(b),y+ty*r*Math.cos(b),z+r*Math.sin(b))}
       v2.push(o.u+ox,o.v+oy,z,o.u+ox+n[0]*o.z,o.v+oy+n[1]*o.z,z)}}
@@ -1044,7 +1045,7 @@ function edgeToggle(h){
   build(p);edgeClear();props();list();changed()}
 /* --- Furnitura asbobi (J) — Kromka kabi: ulanish chiziqlari ko'rinadi (rang — turi), chiziqni bosish — joriy tur shu ulanishga
    (yana bosilsa — umumiyga qaytadi), Shift + bosish — tanlash, keyin tur tugmasi — tanlanganlarning hammasiga. Korpus o'zi teshiladi. --- */
-const JT={konf:['Yevrovint',0xffb454,'Yevro'],ekss:['Ekssentrik',0x4ade80,'Ekss'],shkant:['Shkant',0x5ee1ff,'Shkant'],'konf+shkant':['Yevrovint + shkant',0xff7a1a,'Yevro+sh'],'ekss+shkant':['Ekssentrik + shkant',0x16a34a,'Ekss+sh'],
+const JT={tab:['Ship-paz (metallsiz, tishli)',0xf472b6,'Ship-paz'],konf:['Yevrovint',0xffb454,'Yevro'],ekss:['Ekssentrik',0x4ade80,'Ekss'],shkant:['Shkant',0x5ee1ff,'Shkant'],'konf+shkant':['Yevrovint + shkant',0xff7a1a,'Yevro+sh'],'ekss+shkant':['Ekssentrik + shkant',0x16a34a,'Ekss+sh'],
   polka:['Polkaderjatel',0xc084fc,'Polka'],none:["Yo'q",0x9aa4b2,"Yo'q"],'':['Umumiy',0xffffff,'Umumiy'],
   flip:["Ekssentrik o'yig'ini panelning ikkinchi yuzasiga o'tkazish (yana bosilsa — qaytadi)",0xfacc15,'⇅ Ekss. tomoni']};
 let jType='konf',jSel=new Set(),jGrp=null,jHov=null,jLines=[];
@@ -1300,6 +1301,7 @@ const HWF=[
   ['konf.fd','Yevrovint: yuza Ø (teshib o\'tadi)'],['konf.ed','Yevrovint: chet Ø'],['konf.ez','Yevrovint: chet chuqurligi'],
   ['ekss.d','Ekssentrik Ø'],['ekss.z','Ekssentrik chuqurligi'],['ekss.b','Ekssentrik: chetdan markazigacha'],['ekss.ed','Ekssentrik: chet Ø'],['ekss.ez','Ekssentrik: chet chuqurligi'],['ekss.bd','Shtok Ø'],['ekss.bz','Shtok chuqurligi'],
   ['shkant.d','Shkant Ø'],['shkant.fz','Shkant: yuza chuqurligi'],['shkant.ez','Shkant: chet chuqurligi'],
+  ['h','Ship-paz (metallsiz, tishli birikma)'],['tab.w','Tish eni'],['tab.e','Ulanish chetidan'],['tab.cl','Zazor (teshik kengroq)'],['tab.bone','Dogbone — ichki burchak o\'yig\'i','chk'],['tab.d','Freza Ø (dogbone)'],
   ['h','Polka (nomi «polka…»)'],['pin.on','Polkaderjatel (polka qotirilmaydi)','chk'],['pin.d','Polkaderjatel Ø'],['pin.z','Chuqurligi'],['pin.e','Oldi / orqa chetidan'],['pin.drop','Polka ostidan pastga'],['pin.row','Qo\'shimcha teshik (±, 32 mm qadam)'],
   ['h','Fasad (nomi «fasad…»)'],['hinge.on','Petlya (eshik — bo\'yi enidan katta)','chk'],['hinge.d','Chashka Ø'],['hinge.z','Chashka chuqurligi'],['hinge.k','Chashka chetdan (K)'],['hinge.e','Tepadan / pastdan'],
   ['hinge.pd','Planka teshigi Ø'],['hinge.pz','Planka teshigi chuqurligi'],['hinge.pe','Planka: boka oldidan'],['hinge.ps','Planka teshiklari oralig\'i'],
@@ -1351,7 +1353,7 @@ function hwExportCsv(){const ps=hwTargets();try{downloadFile(HW.csv(ps),'rugby-t
 let hwSecOpen=new Set();
 function hwVis(k){const c=hwOpts.con||'konf',sh=c==='shkant'||c.endsWith('+shkant');
   if(/^konf\./.test(k))return c.startsWith('konf');if(/^ekss\./.test(k))return c.startsWith('ekss');
-  if(/^shkant\./.test(k))return sh||(hwOpts.dowel&&c!=='none');if(k==='dowel')return c==='konf'||c==='ekss';if(k==='e'||k==='step')return c!=='none';return true}
+  if(/^shkant\./.test(k))return sh||(hwOpts.dowel&&c!=='none');if(k==='dowel')return c==='konf'||c==='ekss';if(k==='e'||k==='step')return c!=='none'&&c!=='tab';return true}
 function hwField([k,l,t,o]){const v=hwGet(k),id='p3hw_'+k.replace('.','_');
   if(t==='chk')return `<label class="p3hwc"><input type="checkbox" id="${id}" data-k="${k}"${v?' checked':''}> ${esc(l)}</label>`;
   if(t==='sel')return `<div class="p3hwr"><label for="${id}">${esc(l)}</label><select id="${id}" data-k="${k}">${Object.entries(o).map(([a,b])=>`<option value="${a}"${a===v?' selected':''}>${esc(b)}</option>`).join('')}</select></div>`;
@@ -1393,7 +1395,7 @@ function cncSend(){
   const ps=hwTargets();if(!ps.length){hwSay("Panel yo'q.");return null}
   const G=new Map();
   for(const p of ps){const t=+p.t.toFixed(2),k=matN(p)+'|'+t;if(!G.has(k))G.set(k,{m:matN(p),t,parts:[]});const f=HW.flat(p,hwOpts);
-    f.info={w:+p.w.toFixed(2),h:+p.h.toFixed(2),L:+LW(p)[0].toFixed(2),W:+LW(p)[1].toFixed(2),t,mat:matN(p),eb:ebInfo(p).txt,ebs:p.eb&&p.eb.length===4&&!p.pts&&(!p.shape||p.shape==='rect')&&!p.c?p.eb.slice():null,holes:(p.ops||[]).filter(o=>o.k!=='g').length,q:p.q||1};
+    f.info={w:+p.w.toFixed(2),h:+p.h.toFixed(2),L:+LW(p)[0].toFixed(2),W:+LW(p)[1].toFixed(2),t,mat:matN(p),eb:ebInfo(p).txt,ebs:p.eb&&p.eb.length===4&&!p.pts&&(!p.shape||p.shape==='rect')&&!p.c?p.eb.slice():null,holes:(p.ops||[]).filter(o=>o.k==='d'||o.k==='e').length,q:p.q||1};
     for(let i=0;i<(p.q||1);i++)G.get(k).parts.push(f)}
   for(const g of G.values())g.parts.sort((a,b)=>String(a.name).localeCompare(String(b.name),undefined,{numeric:true}));   // birka raqami — nom tartibida
   const SW=num(q('#p3shL').value)||2800,SH=num(q('#p3shW').value)||2070,MAR=Math.max(0,num(q('#p3shT').value)),srcPage=typeof activePageId!=='undefined'?activePageId:null;
@@ -1411,6 +1413,7 @@ function cncSend(){
       drawnLines.push(Object.assign({kind:'line',closed:true,selected:false,layer:f.cut,points:pts,grips:pts.map(o=>({x:o.x,y:o.y})),group:gid,p3:Object.assign({no:++no,n:f.name,id:f.id,side:f.side},f.info)},f.noRot?{nr:1}:{}));
       for(const c of f.circles){const ce=P(c.x,c.y),r=c.r;drawnLines.push({kind:'circle',center:ce,radius:r,closed:true,selected:false,layer:c.layer,points:genCirclePts(ce,r),
         grips:[{x:ce.x+r,y:ce.y},{x:ce.x-r,y:ce.y},{x:ce.x,y:ce.y+r},{x:ce.x,y:ce.y-r}],group:gid,p3op:1});if(c.none)none++}
+      for(const cpts of f.cuts||[]){const pp=cpts.map(c=>P(c[0],c[1]));drawnLines.push({kind:'line',closed:true,selected:false,layer:f.cut,points:pp,grips:pp.map(o=>({x:o.x,y:o.y})),group:gid,p3op:1})}   // ship-paz teshiklari
       for(const r of f.rects){const rp=genRectPts(P(r.x0,r.y0),P(r.x1,r.y1));drawnLines.push({kind:'rect',closed:true,selected:false,layer:r.layer,points:rp,grips:rp.map(o=>({x:o.x,y:o.y})),group:gid,p3op:1})}
       x+=f.w+60;other+=f.other;edge+=f.edge;mapped+=f.mapped.length}
     activeLayer=g.parts[0].cut;
@@ -1483,7 +1486,7 @@ function editApply(){
     const mz=/_Z(\d+(?:_\d+)?)/.exec(c.layer||''),th=/THRU/.test(c.layer||''),z=th?p.t:mz?+mz[1].replace('_','.'):10;
     nw.push({k:'d',f:/^B_/.test(c.layer||'')?'B':'A',u:+c.x.toFixed(2),v:+c.y.toFixed(2),d:+c.d.toFixed(2),z,...(th?{th:1}:{}),t:'man'});added++}
   const removed=old.filter((o,i)=>o.k==='d'&&!seen.has(i)).length;
-  const sh=o=>{if(o.k==='g'){o.u0-=x0;o.u1-=x0;o.v0-=y0;o.v1-=y0}else{o.u=+(o.u-x0).toFixed(2);o.v=+(o.v-y0).toFixed(2)}return o};
+  const sh=o=>{if(o.k==='g'||o.k==='s'||o.k==='t'){o.u0-=x0;o.u1-=x0;o.v0-=y0;o.v1-=y0}else{o.u=+(o.u-x0).toFixed(2);o.v=+(o.v-y0).toFixed(2)}return o};
   const ops=[...keep,...nw].map(sh);if(ops.length)p.ops=ops;else delete p.ops;
   const rect=r.pts.length===4&&r.pts.every(a=>(Math.abs(a[0]-x0)<.01||Math.abs(a[0]-x0-W)<.01)&&(Math.abs(a[1]-y0)<.01||Math.abs(a[1]-y0-H)<.01));
   const n0=prof(p).length;
@@ -1566,9 +1569,9 @@ function conWire(ps){const e=q('#p3opCon');if(!e)return;e.onchange=()=>{const v=
 /* panel xossalarida: teshiklar ro'yxati, o'chirish, qo'lda yuza teshigi qo'shish */
 let opsOpen=false;
 function opsProps(p){
-  const ops=p.ops||[],nd=ops.filter(o=>o.k!=='g').length,ng=ops.length-nd;
-  const row=(o,i)=>`<tr><td>${esc(HW?HW.T_NAME[o.t]||o.t||'':'')}</td><td>${o.k==='e'?'chet':o.f}</td><td>${f1(o.k==='g'?o.u0:o.u)}</td><td>${f1(o.k==='g'?o.v0:o.v)}</td><td>${o.k==='g'?f1(Math.min(o.u1-o.u0,o.v1-o.v0))+'×'+f1(Math.max(o.u1-o.u0,o.v1-o.v0)):'Ø'+f1(o.d)}</td><td>${o.k==='d'&&o.th?'teshib':f1(o.z)}</td><td><button class="p3opX" data-i="${i}" title="O'chirish">✕</button></td></tr>`;
-  return `<div class="p3ops">${conSel(p.con)}<div class="p3row" style="margin-top:8px"><button id="p3opT">${opsOpen?'▾':'▸'} Teshiklar: ${nd}${ng?` · paz ${ng}`:''}</button></div>${opsOpen?`
+  const ops=p.ops||[],nd=ops.filter(o=>o.k==='d'||o.k==='e').length,ng=ops.filter(o=>o.k==='g').length,nt=ops.filter(o=>o.k==='s'||o.k==='t').length;
+  const row=(o,i)=>`<tr><td>${esc(HW?HW.T_NAME[o.t]||o.t||'':'')}</td><td>${o.k==='e'?'chet':o.f}</td><td>${f1(o.u0!==undefined?o.u0:o.u)}</td><td>${f1(o.v0!==undefined?o.v0:o.v)}</td><td>${o.u0!==undefined?f1(Math.min(o.u1-o.u0,o.v1-o.v0))+'×'+f1(Math.max(o.u1-o.u0,o.v1-o.v0)):'Ø'+f1(o.d)}</td><td>${(o.k==='d'&&o.th)||o.k==='s'?'teshib':o.k==='t'?f1(o.len):f1(o.z)}</td><td><button class="p3opX" data-i="${i}" title="O'chirish">✕</button></td></tr>`;
+  return `<div class="p3ops">${conSel(p.con)}<div class="p3row" style="margin-top:8px"><button id="p3opT">${opsOpen?'▾':'▸'} Teshiklar: ${nd}${ng?` · paz ${ng}`:''}${nt?` · ship-paz ${nt}`:''}</button></div>${opsOpen?`
    ${ops.length?`<div class="p3opw"><table><tr><th>Turi</th><th title="Yuza: A, B yoki chet">Yz</th><th>U</th><th>V</th><th title="Diametr yoki paz eni×uzunligi">Ø</th><th title="Chuqurlik">Chuq</th><th></th></tr>${ops.map(row).join('')}</table></div>`:'<p class="p3mu">Teshik yo\'q. Object ▸ Furnitura (Alt+F) yoki pastda qo\'lda.</p>'}
    <div class="p3dh" style="padding:6px 0 2px">Qo'lda teshik (U, V — panel burchagidan, mm)</div>
    <div class="p3opadd"><select id="p3opF"><option value="A">A</option><option value="B">B</option></select><input id="p3opU" placeholder="U" inputmode="decimal"><input id="p3opV" placeholder="V" inputmode="decimal"><input id="p3opD" placeholder="Ø" inputmode="decimal" value="5"><input id="p3opZ" placeholder="chuq." inputmode="decimal" value="10"><label class="p3hwc"><input type="checkbox" id="p3opTh"> teshib</label><button id="p3opAdd">+</button></div>`:''}</div>`}
