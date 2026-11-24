@@ -211,6 +211,14 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     assert.deepEqual(await ev(()=>[1,2,3].map(i=>Panel3D._col(i))),['#aa7744','#aa7744','#bfc8d4']);
     const snap=await ev(()=>Panel3D.snapshot());assert.deepEqual(snap.mc,{'LDSP oq':'#aa7744'});await ev(s=>Panel3D.load(s),snap);assert.equal(await ev(()=>Panel3D._col(2)),'#aa7744');
     passed.push("Panel rangi: material bo'yicha avtomatik neytral (bir materialda bir xil, materialsiz — #bfc8d4), qo'lda tanlash, Avto, Materialga — loyihada saqlanadi");
+    // 9b. Panel tanlanganda materiali va o'lchami (L×W×T) avtomatik ko'rinadi; material maydoni xossalarda
+    await page.locator('#p3pl .p3it').nth(2).click();await page.waitForSelector('.p3psum');
+    assert.match(await page.locator('.p3psum').textContent(),/^\(materialsiz\) · 568 × 500 × 16 mm \(L×W×T\)/);assert.equal(await page.locator('#p3selMat').inputValue(),'|');
+    await page.locator('#p3pl .p3it').nth(0).click();assert.match(await page.locator('.p3psum').textContent(),/^LDSP oq · 720 × 500 × 16 mm/);assert.equal(await page.locator('#p3selMat').inputValue(),'LDSP oq|');
+    await page.fill('#p3f_mat','MDF');await page.press('#p3f_mat','Enter');
+    assert.equal(await ev(()=>Panel3D._state().panels[0].mat),'MDF');assert.equal(await page.locator('#p3selMat').inputValue(),'MDF|');assert.match(await page.locator('.p3psum').textContent(),/^MDF ·/);
+    passed.push("Panel tanlanganda: «LDSP oq · 720 × 500 × 16 mm (L×W×T)» va «Material bo'yicha» ro'yxatida o'z materiali; xossalarda Material maydoni");
+
     // 10. Kromka viewportda qalinliksiz (2 mm kromka panel o'lchamini kattalashtirmaydi), Cutlist eksportida esa 2 mm belgilanadi
     const kb=await ev(()=>{Panel3D.load({T:16,uid:10,panels:[{id:1,n:'boka',w:500,h:720,t:16,o:'side',x:8,y:360,z:0,eb:[2,2,2,2]}]});const p=Panel3D._state().panels[0],b=new THREE.Box3().setFromObject(p.g),d=Panel3D._clExport();
       return{y:b.max.y-b.min.y,z:b.max.z-b.min.z,head:d.head,row:d.rows[0],eb:Panel3D._ebInfo(p)}});

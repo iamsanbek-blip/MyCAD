@@ -184,8 +184,8 @@ function resize(){
   renderer.setSize(w,h,false);asp=w/h;pcam.aspect=asp;pcam.updateProjectionMatrix();upd()}
 
 /* ---------------- UI ---------------- */
-const PROPL={n:'Nomi',w:'Eni',h:"Bo'yi",t:'Qalinlik',q:'Soni',c:'Qirra kengligi',x:'X',y:'Y',z:'Z',s:'Shakl',o:'Orientatsiya',g:'Tekstura'};
-const PROPD=['n','w','h','t','q','g','c','x','y','z','s','o'];
+const PROPL={mat:'Material',n:'Nomi',w:'Eni',h:"Bo'yi",t:'Qalinlik',q:'Soni',c:'Qirra kengligi',x:'X',y:'Y',z:'Z',s:'Shakl',o:'Orientatsiya',g:'Tekstura'};
+const PROPD=['n','mat','w','h','t','q','g','c','x','y','z','s','o'];
 let propOrder=(()=>{try{const a=JSON.parse(localStorage.getItem('p3order')||'null');if(Array.isArray(a)&&a.length===PROPD.length&&PROPD.every(k=>a.includes(k)))return a}catch(e){}return PROPD.slice()})();
 function saveOrder(){try{localStorage.setItem('p3order',JSON.stringify(propOrder))}catch(e){}}
 function reorder(from,to,after){const a=propOrder.filter(k=>k!==from),i=a.indexOf(to);if(i<0)return;a.splice(i+(after?1:0),0,from);propOrder=a;saveOrder();props()}
@@ -229,14 +229,16 @@ function props(){
   if(!p){b.innerHTML='<p class="p3mu">Panel tanlang yoki shablondan qo\'shing.</p>';return}
   const so=Object.entries(p.pts?Object.assign({},SHP,{poly:'Chizilgan'}):SHP).map(([k,v])=>`<option value="${k}"${k===shapeOf(p)?' selected':''}>${v}</option>`).join('');
   const oo=Object.entries(ORI).map(([k,v])=>`<option value="${k}"${k===oriOf(p)?' selected':''}>${v}</option>`).join('');
-  const field=k=>k==='n'?`<input id="p3f_n" value="${esc(p.n)}">`:k==='s'?`<select id="p3f_s">${so}</select>`:k==='o'?`<select id="p3f_o">${oo}</select>`:k==='g'?`<select id="p3f_g" title="Tekstura (tola) yo'nalishi: 3D da chiziqlar bilan ko'rinadi, Cutlist'da L shu yo'nalishda chiqadi">${Object.entries(GRN).map(([v,t])=>`<option value="${v}"${(p.gr||'')===v?' selected':''}>${t}</option>`).join('')}</select>`
+  const field=k=>k==='n'?`<input id="p3f_n" value="${esc(p.n)}">`:k==='mat'?`<input id="p3f_mat" value="${esc(p.mat||'')}" placeholder="materialsiz" title="Material (LDSP oq, MDF, XDF …) — Cutlist, list hisobi, narx va CNC sahifasi shu bo'yicha guruhlanadi">`:k==='s'?`<select id="p3f_s">${so}</select>`:k==='o'?`<select id="p3f_o">${oo}</select>`:k==='g'?`<select id="p3f_g" title="Tekstura (tola) yo'nalishi: 3D da chiziqlar bilan ko'rinadi, Cutlist'da L shu yo'nalishda chiqadi">${Object.entries(GRN).map(([v,t])=>`<option value="${v}"${(p.gr||'')===v?' selected':''}>${t}</option>`).join('')}</select>`
     :`<input id="p3f_${k}" type="text" inputmode="decimal" value="${+(k==='q'?(p.q||1):p[k]).toFixed(2)}">`;
   const row=k=>`<div class="p3r" data-k="${k}"><span class="p3h" title="Sudrab joyini almashtiring">⠿</span><label>${PROPL[k]}</label>${field(k)}<span class="p3ar"><button class="p3u" title="Yuqoriga">↑</button><button class="p3d" title="Pastga">↓</button></span></div>`;
-  b.innerHTML=propOrder.filter(k=>k!=='c'||hasC(p)).map(row).join('')+`
+  const lw=LW(p);   // tanlangan panel: material va o'lcham (Cutlist formati: L × W × qalinlik)
+  b.innerHTML=`<p class="p3psum" title="L — uzunlik (tekstura bo'ylab yoki uzun tomon), W — eni, qalinlik — Cutlist bilan bir xil"><b>${esc(matLbl(matN(p)))}</b> · ${+lw[0].toFixed(2)} × ${+lw[1].toFixed(2)} × ${+p.t.toFixed(2)} mm <span class="p3mu">(L×W×T)</span>${hasGr(p)?' · tekstura':''}${(p.q||1)>1?' · ×'+p.q:''}</p>`+propOrder.filter(k=>k!=='c'||hasC(p)).map(row).join('')+`
   ${colRow(panelCol(p),!!p.col)}
   <p class="p3mu">X, Y, Z — panel markazi (mm). Eni/bo'yi o'zgarsa qalinlik o'zgarmaydi. Qatorlarni ⠿ dan sudrab yoki ↑↓ bilan tartiblang. Panelga 2 marta bosing — Drawing'da shaklini tahrirlash (Alt + 2 marta — 3D da tez chizish).</p>
   <div class="p3row"><button id="p3bRot">↻ 90°</button><button id="p3bDup">Nusxa</button><button id="p3bDel">O'chirish</button></div>`+opsProps(p)+prLine(p);
   q('#p3f_n').onchange=e=>{p.n=e.target.value;list();changed()};
+  q('#p3f_mat').onchange=e=>{const v=e.target.value.trim();if(v)p.mat=v;else delete p.mat;paint();props();list();changed()};
   for(const k of['w','h','t','c'])if(q('#p3f_'+k))q('#p3f_'+k).onchange=e=>{p[k]=Math.max(1,num(e.target.value)||1);build(p);props();list();changed()};
   q('#p3f_q').onchange=e=>{p.q=Math.max(1,Math.round(num(e.target.value))||1);props();changed()};
   for(const k of['x','y','z'])q('#p3f_'+k).onchange=e=>{p[k]=num(e.target.value);place(p);changed()};
@@ -270,7 +272,9 @@ function list(){
 }
 function selByMat(m,t){const v=panels.filter(p=>!p.hid&&matN(p)===m&&(t==null||+p.t.toFixed(2)===t));if(!v.length)return 0;msel=v.map(p=>p.id);sel=msel[msel.length-1];paint();props();list();pmFill();dirtyR=true;return v.length}
 function selMatOpts(){const el=q('#p3selMat');if(!el)return;const m=new Map();for(const p of panels){if(p.hid)continue;const a=matN(p),t=+p.t.toFixed(2);const r=m.get(a)||{n:0,ts:new Map()};r.n+=1;r.ts.set(t,(r.ts.get(t)||0)+1);m.set(a,r)}
-  el.innerHTML='<option value="">— tanlash —</option>'+[...m.keys()].sort().map(a=>{const r=m.get(a);return `<option value="${esc(a)}|">${esc(matLbl(a))} — ${r.n} ta</option>`+(r.ts.size>1?[...r.ts.keys()].sort((x,y)=>x-y).map(t=>`<option value="${esc(a)}|${t}">&nbsp;&nbsp;${esc(matLbl(a))} · ${t} mm — ${r.ts.get(t)} ta</option>`).join(''):'')}).join('');el.value=''}
+  el.innerHTML='<option value="">— tanlash —</option>'+[...m.keys()].sort().map(a=>{const r=m.get(a);return `<option value="${esc(a)}|">${esc(matLbl(a))} — ${r.n} ta</option>`+(r.ts.size>1?[...r.ts.keys()].sort((x,y)=>x-y).map(t=>`<option value="${esc(a)}|${t}">&nbsp;&nbsp;${esc(matLbl(a))} · ${t} mm — ${r.ts.get(t)} ta</option>`).join(''):'')}).join('');el.value='';
+  {const ps=selected();if(ps.length){const a=matN(ps[0]),t=+ps[0].t.toFixed(2),same=ps.every(p=>matN(p)===a),sameT=same&&ps.every(p=>+p.t.toFixed(2)===t);   // tanlangan panel materiali avtomatik ko'rinadi
+    if(same){const o2=[...el.options].find(o=>o.value===a+'|'+t);el.value=sameT&&o2?o2.value:a+'|'}}}}
 function clearSel(){msel=[];sel=null;paint();props();list();pmFill()}
 function selectAllP(){const v=panels.filter(p=>!p.hid);if(!v.length)return;msel=v.map(p=>p.id);sel=msel[msel.length-1];paint();props();list();pmFill();dirtyR=true}
 function frameSel(){const ps=selected().filter(p=>p.g&&!p.hid);if(!ps.length){frame();return}const b=new THREE.Box3();ps.forEach(p=>b.expandByObject(p.g));b.getCenter(tg);R=Math.max(b.getSize(new THREE.Vector3()).length()*1.5,300);upd()}

@@ -1,3 +1,13 @@
+# Panel materiali/o'lchami va smart ro'yxat barqarorligi — 2026-11-24 (Linux)
+
+- `modeling-cnc-price` 17: tanlangan panelda «(materialsiz) · 568 × 500 × 16 mm (L×W×T)», «LDSP oq · 720 × 500 × 16», Material maydoni
+  orqali MDF — «Material bo'yicha» ro'yxati MDF| ni ko'rsatadi.
+- Topilgan va tuzatilgan: `smart-autoname` 4 martadan 3 tasida yiqilayotgan edi (1.1.2-preview.2 kodida ham) — maydon bosilganda o'ng panel
+  siljiydi, `scroll` hodisasi smart ro'yxatni yopardi. Endi maydonning o'zi yoki uni o'z ichiga olgan panel siljisa ro'yxat qayta
+  joylashadi; tuzatishdan keyin 3/3 o'tdi. Qolgan suite va Electron sinovlari o'tdi.
+
+---
+
 # J asbobi: ramka bilan ulanishlarni tanlash — 2026-11-24 (Linux)
 
 - `modeling-cnc-price` (16): haqiqiy sichqoncha bilan o'ngdan chapga ramka — hamma ulagichli ulanish tanlandi, «Yo'q» → yevrovint/ekssentrik/

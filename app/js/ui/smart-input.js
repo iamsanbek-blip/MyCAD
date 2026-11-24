@@ -97,7 +97,12 @@ window.addEventListener('keydown',e=>{
 document.addEventListener('input',e=>{const el=e.target;if(catOf(el))show(el);else if(el===cur)hide()},true);
 document.addEventListener('change',e=>{const c=catOf(e.target);if(c&&cfg.on)remember(c,e.target.value)},true);
 document.addEventListener('focusout',e=>{if(e.target===cur)setTimeout(()=>{if(document.activeElement!==cur)hide()},0)},true);
-window.addEventListener('scroll',()=>{if(box&&!box.hidden)hide()},true);
+window.addEventListener('scroll',e=>{if(!box||box.hidden||e.target===box)return;   // maydonning o'z matni siljishi — e'tiborsiz
+  const t=e.target;if(t===cur)return;
+  if(cur&&document.activeElement===cur&&(t===document||(t.contains&&t.contains(cur)))){   // maydon joylashgan panel siljidi — ro'yxat maydon ostiga qayta qo'yiladi
+    const r=cur.getBoundingClientRect();if(r.bottom<0||r.top>innerHeight){hide();return}
+    box.style.left=Math.round(r.left)+'px';box.style.top=Math.round(r.bottom+2)+'px';if(!ghost.hidden){ghost.style.left=r.left+'px';ghost.style.top=r.top+'px'}return}
+  hide()},true);
 window.addEventListener('resize',hide);
 // Matn oynasi (askInput) Enter bilan yopiladi — change hodisasi bo'lmaydi: qiymat yuborilganda tarixga yoziladi
 document.addEventListener('keydown',e=>{const el=e.target;if(el&&el.id==='askInput'&&e.key==='Enter'&&!e.shiftKey&&cfg.on)remember('text',el.value)},true);

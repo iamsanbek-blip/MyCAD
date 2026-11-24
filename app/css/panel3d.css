@@ -184,3 +184,4 @@ body.lightTheme #p3wrap .p3seg button.on{color:#fff}
 #p3wrap .p3arr{position:absolute;top:10px;right:10px;width:min(260px,calc(100% - 20px));z-index:32;background:var(--p);border:1px solid var(--bd);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.35)}
 #p3wrap .p3arr[hidden]{display:none}#p3wrap .p3arrB{padding:8px 10px}#p3wrap .p3it .p3grp{font-style:normal;color:var(--on)}
 #p3wrap .p3colr span{display:flex;gap:4px;align-items:center}#p3wrap .p3colr input[type=color]{width:38px;height:26px;padding:1px;flex:none}#p3wrap .p3colr button{padding:3px 7px;font-size:11.5px}
+#p3wrap .p3psum{margin:0 0 6px;padding:5px 8px;border:1px solid var(--bd);border-radius:6px;font-size:12px}#p3wrap .p3psum b{color:var(--on)}
