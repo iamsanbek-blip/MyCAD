@@ -1,3 +1,13 @@
+# Reliz 1.1.2-preview.3 — 2026-11-24
+
+- EXE: GitHub Actions «Windows portable preview» run 45344797133 (Windows Server 2022, commit 056eaa3) — **muvaffaqiyatli**: `npm run check`,
+  `npm test`, manba va paketlangan dastur GUI sinovi (`test:electron`, pageErrors bo'sh), portable launcher ochilishi («Nomsiz loyiha — Rugby»).
+  Reliz `v1.1.2-preview.3`: `Rugby-Portable.exe` 65 824 280 bayt, SHA256
+  `99c57b737277cb17a6e0a63e212790a16cee6dd5db1ee01d5ba2d65ea035b2f0` (yuklab olingan fayl bilan Linux'da `sha256sum` mos keldi).
+  Windows 10/11 da qo'lda sinov, SmartScreen/SAC va haqiqiy fayl dialoglari hali tekshirilmagan.
+
+---
+
 # Material bo'yicha list o'lchami — 2026-11-24 (Linux)
 
 - `modeling-cnc-price` 17: xossalarda LMDF uchun 2750×1830 kiritildi → narx guruhida 2750×1830, LDSP oq — umumiy 2800×2070; snapshot `ms` va
