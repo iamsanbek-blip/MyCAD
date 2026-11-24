@@ -5,7 +5,7 @@ haqiqatda o'tkazilgan sinovlar: `docs/TESTING.md`; umumiy arxitektura: `docs/ARC
 
 ## Holat
 
-- Versiya: **1.1.2-preview.2** (branch `claude/vigilant-goodall-nvrvty`). EXE — GitHub Actions «Windows portable preview»
+- Versiya: **1.1.2-preview.3** (branch `claude/vigilant-goodall-nvrvty`). EXE — GitHub Actions «Windows portable preview»
   (`.github/workflows/windows-portable.yml`, workflow_dispatch) Windows Server 2022 da yig'adi, testlaydi va
   `v<versiya>` prerelease sifatida chiqaradi (`Rugby-Portable.exe`, `SHA256.txt`, `BUILD-REPORT.json`).
   Bir versiya ikki marta chiqarilmaydi — har yangi EXE uchun `package.json` va `package-lock.json` versiyasini oshiring.
@@ -31,6 +31,10 @@ haqiqatda o'tkazilgan sinovlar: `docs/TESTING.md`; umumiy arxitektura: `docs/ARC
 | Stretch strelkalari, ingichka gizmo, faol o'q | W | `startStretchG`, `gzTint` |
 | Panel rangi (avto neytral, qo'lda, materialga) | Panel xossalari ▸ Rang | `panelCol`, `colMat`, `matCol` (`mc`) |
 | Kromka qalinliksiz ko'rinish | — | `ebGroup()` |
+| J asbobida ramka bilan ulanishlarni tanlash | J ▸ bo'sh joydan sudrash | `finishJRect()` |
+| Material bo'yicha list o'lchami (narx, list hisobi, CNC) | Panel xossalari tepasi | `matSheet` (`ms`), `sheetFor()`, `setSheet()` |
+| Panel materiali maydoni, «Material bo'yicha» tanlovni ko'rsatadi | Panel xossalari | `PROPD` ('mat'), `selMatOpts()` |
+| Smart ro'yxat panel siljiganda yopilmaydi | — | `app/js/ui/smart-input.js` (scroll) |
 | CNC sahifasidan Modeling → model sahifasi | — | `modelHome()` |
 
 ## Ma'lumot modeli (loyiha faylida `page.panel3d`)
@@ -43,14 +47,14 @@ Panel (`panels[]`): `id, n, w, h, t, o, x, y, z, m?, ry?, shape?, pts?, bw?, bh?
   `t` — tur (konf, ekss, shkant, polka, petlya, planka, ruchka, paz, tab, man), `m:1` — polkaderjatel turadigan teshik.
 - `con` — panel ulagichi (`konf|ekss|shkant|konf+shkant|ekss+shkant|tab|none`), `jc{sherikId:tur}` — ulanishga tur
   (chet panelida), `jf{sherikId:1}` — ekssentrik o'yig'i ikkinchi yuzada, `hs` — petlya tomoni (L/R), `grp` — guruh, `col` — rang.
-- Model darajasida: `mc{material:'#rrggbb'}` — material rangi.
+- Model darajasida: `mc{material:'#rrggbb'}` — material rangi, `ms{material:{L,W}}` — material list o'lchami.
 - Ustuvorlik: `jc` → B panel `con` → A panel `con` → Furnitura oynasidagi umumiy tur.
 - Ulanish: B panel QIRRASI A panel YUZASIGA tegadi (oraliq ≤ 3 mm; penetratsiya A qalinligigacha) — `joint()`.
 
 CNC sahifasidagi Drawing shakllari: kontur `p3:{no,n,id,side,w,h,L,W,t,mat,eb,ebs,holes,q}`, `group`, `nr:1` (tekstura —
 burilmaydi); teshik/paz/ship-paz teshigi `p3op:1`; vaqtinchalik tahrir sahifasida yordamchi chiziqlar `p3g:1` (`YORDAMCHI` qatlami).
 
-Brauzer sozlamalari (localStorage): `rugby.hw.v1` (furnitura), `rugby.price.v1` (narxlar), `rugby.labels.v1` (birka).
+Brauzer sozlamalari (localStorage): `rugby.hw.v1` (furnitura), `rugby.price.v1` (narxlar), `rugby.labels.v1` (birka), `rugby.matsheet.v1` (material list o'lchami standarti).
 
 ## Testlar (hammasi Node bilan; brauzer testlari Playwright Chromium)
 
@@ -59,7 +63,7 @@ Brauzer sozlamalari (localStorage): `rugby.hw.v1` (furnitura), `rugby.price.v1` 
 | `npm run check` | sintaksis va asset (57 JS) |
 | `npm test` | 18 eski regressiya + workspace (24) + `tests/panel3d-hw.cjs` (17) |
 | `node tests/panel3d-hw-ui.cjs` | Furnitura oynasi, DXF/CSV (8) |
-| `node tests/modeling-cnc-price.cjs` | ulagich, J asbobi, ship-paz, narx, CNC, birka, Drawing tahrir, guruh/massiv, Stretch, rang, kromka, nusxa (16) |
+| `node tests/modeling-cnc-price.cjs` | ulagich, J asbobi (ramka bilan ham), ship-paz, narx, CNC, birka, Drawing tahrir, guruh/massiv, Stretch, rang, material list o'lchami, kromka, nusxa (17) |
 | `node tests/modeling-precision.cjs`, `node tests/smart-autoname.cjs` | magnit/gizmo, smart kiritish |
 | `npm run test:electron`, `xvfb-run -a node tests/modeling-smoke.cjs` va h.k. | haqiqiy Electron GUI |
 

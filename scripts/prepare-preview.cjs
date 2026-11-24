@@ -35,7 +35,8 @@ fs.writeFileSync('dist/RELEASE-NOTES.md', `Windows x64 uchun Rugby ${pkg.version
   '- Furnitura asbobi (J): ulanish chizig\'ini bosib tur berish; ekssentrik o\'yig\'ini ikkinchi yuzaga o\'tkazish; panel o\'zgarsa teshiklar avtomatik moslashadi.\n' +
   '- Teshikli DXF (R12, qatlam nomida Ø va chuqurlik), teshiklar CSV; CNC\'ga yuborish — nesting sahifasi, detal teshiklari bilan guruh.\n' +
   '- Detal raqami va A4 stiker birkalar (Cnc ▸ Birkalar); narx (smeta) paneli; guruh, massiv, teng taqsimlash.\n' +
-  '- Panelni 2 marta bosib Drawing\'da tahrirlash (qo\'shni panellar izi bilan); Stretch strelkalari; panel ranglari; kromka qalinliksiz ko\'rinish.\n\n' +
+  '- Panelni 2 marta bosib Drawing\'da tahrirlash (qo\'shni panellar izi bilan); Stretch strelkalari; panel ranglari; kromka qalinliksiz ko\'rinish.\n' +
+  '- J asbobida ulanishlarni ramka bilan tanlash («Yo\'q» — hammasini olib tashlash); material bo\'yicha list o\'lchami (narx, list hisobi, CNC); panel tanlanganda materiali; smart takliflar ro\'yxati panel siljiganda yopilmaydi.\n\n' +
   '**Imzosiz sinov versiyasi:** SmartScreen tugma ko‘rsatsa, More info → Run anyway. ' +
   'Smart App Control uni bloklashi mumkin; kod imzolash hali hal qilinmagan.\n\n' +
   'Windows Server 2022 muhitida kod testlari, manba va paketlangan dastur GUI sinovi, ' +
