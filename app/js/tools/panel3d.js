@@ -613,7 +613,7 @@ function movePlace(e){
   if(mag){hit=snapFind(e,pm.p?new Set([pm.p.id]):null);if(hit)c.add(conApply(hit.T.clone().sub(c.clone().sub(new THREE.Vector3(...ex).multiplyScalar(.5))),null))}
   if(!pm.p){pm.p=add({n:'Panel',w:TPL[0].w,h:TPL[0].h,o,x:c.x,y:c.y,z:c.z});paint()}else{pm.p.x=c.x;pm.p.y=c.y;pm.p.z=c.z;place(pm.p)}
   showSnap(hit);dirtyR=true}
-const TOOLH={joint:"Furnitura: ulanish chiziqlari rangli (to'q sariq — yevrovint, yashil — ekssentrik, moviy — shkant, binafsha — polkaderjatel, kulrang — fasad/paz). Yuqoridan turni tanlab chiziqni bosing; Shift — bir nechtasini tanlab, keyin tur tugmasi",edge:"Kromka: panel qirrasiga olib boring (moviy chiziq) va bosing — kromka qo'yiladi/olinadi. Qalinlik: Panel ▸ Kromka",stretch:"Stretch: burchak nuqtalarini ramka bilan (yoki bosib, Shift — qo'shish) belgilang, so'ng nuqtani sudrang yoki pastdagi X/Y/Z masofani kiriting. Panel tanlangan bo'lsa faqat shularning nuqtalari",ruler:"Lineyka: ikki nuqtani bosing (magnit uchlar/o'rta nuqta/markazga yopishadi). Esc — tozalash",guide:"Yordamchi chiziq: nuqtani bosing — ekrandagi gorizontal o'q bo'ylab chiziq (Shift — vertikal). Magnit shu chiziqqa yopishadi",select:"Tanlash: panelga bosing yoki bo'sh joyda ramka torting (chapdan o'ngga — to'liq ichida, o'ngdan chapga — tegib o'tgan). Shift — qo'shish",move:"Ko'chirish: strelka (o'q), rangli kvadrat (tekislik), oq markaz yoki panelni sudrang. Panelni uchidan ushlasangiz — shu uch nishonga aynan tushadi. Sudrayotganda: X/Y/Z — o'q, Shift+X/Y/Z — tekislik, raqam — aniq masofa, Enter — tasdiq, Esc / o'ng tugma — bekor",rotate:"Aylantirish: halqani sudrang (90° qadam) yoki panelga bosing — ko'rinish o'qi atrofida 90° (Shift — teskari)",scale:"Masshtab: o'q uchidagi kubni (bitta yo'nalish) yoki markaziy sariq kubni (hamma yo'nalish) sudrang. Qalinlik o'zgarmaydi"};
+const TOOLH={joint:"Furnitura: ulanish chiziqlari rangli (to'q sariq — yevrovint, yashil — ekssentrik, moviy — shkant, binafsha — polkaderjatel, kulrang — fasad/paz). Yuqoridan turni tanlab chiziqni bosing; ramka (bo'sh joydan sudrash) yoki Shift — bir nechtasini tanlab, keyin tur tugmasi (masalan «Yo'q»); Esc — tanlovni tozalash",edge:"Kromka: panel qirrasiga olib boring (moviy chiziq) va bosing — kromka qo'yiladi/olinadi. Qalinlik: Panel ▸ Kromka",stretch:"Stretch: burchak nuqtalarini ramka bilan (yoki bosib, Shift — qo'shish) belgilang, so'ng nuqtani sudrang yoki pastdagi X/Y/Z masofani kiriting. Panel tanlangan bo'lsa faqat shularning nuqtalari",ruler:"Lineyka: ikki nuqtani bosing (magnit uchlar/o'rta nuqta/markazga yopishadi). Esc — tozalash",guide:"Yordamchi chiziq: nuqtani bosing — ekrandagi gorizontal o'q bo'ylab chiziq (Shift — vertikal). Magnit shu chiziqqa yopishadi",select:"Tanlash: panelga bosing yoki bo'sh joyda ramka torting (chapdan o'ngga — to'liq ichida, o'ngdan chapga — tegib o'tgan). Shift — qo'shish",move:"Ko'chirish: strelka (o'q), rangli kvadrat (tekislik), oq markaz yoki panelni sudrang. Panelni uchidan ushlasangiz — shu uch nishonga aynan tushadi. Sudrayotganda: X/Y/Z — o'q, Shift+X/Y/Z — tekislik, raqam — aniq masofa, Enter — tasdiq, Esc / o'ng tugma — bekor",rotate:"Aylantirish: halqani sudrang (90° qadam) yoki panelga bosing — ko'rinish o'qi atrofida 90° (Shift — teskari)",scale:"Masshtab: o'q uchidagi kubni (bitta yo'nalish) yoki markaziy sariq kubni (hamma yo'nalish) sudrang. Qalinlik o'zgarmaydi"};
 function setTool(t){tool=t;hideSnap();[['Sel','select'],['Mov','move'],['Rot','rotate'],['Scl','scale'],['Str','stretch'],['Edg','edge'],['Jnt','joint']].forEach(([i,n])=>{const b=q('#p3t'+i);if(b)b.classList.toggle('on',n===t)});q('#p3mkRul').classList.toggle('on',t==='ruler');q('#p3mkGd').classList.toggle('on',t==='guide');if(t!=='ruler')clearRuler();if(t!=='edge')edgeClear();if(t==='joint')jointShow();else{jointClear();jSel.clear();jointBar()}if(!pm&&!dr)q('#p3hint').textContent=TOOLH[t];dirtyR=true}
 const viewAxis=()=>vname==='front'||vname==='back'?2:vname==='left'||vname==='right'?0:1;
 function screenBox(p){const r=cv.getBoundingClientRect();let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
@@ -624,6 +624,7 @@ function drawRect(){const a=act,vr=q('.p3view').getBoundingClientRect(),d=q('#p3
 function finishRect(){
   const a=act;q('#p3rect').hidden=true;
   if(a.v){finishVRect(a);return}
+  if(a.j){finishJRect(a);return}
   if(a.moved<4){if(!a.add)clearSel();return}
   const vr=q('.p3view').getBoundingClientRect(),X0=Math.min(a.x0,a.x)-vr.left,X1=Math.max(a.x0,a.x)-vr.left,Y0=Math.min(a.y0,a.y)-vr.top,Y1=Math.max(a.y0,a.y)-vr.top,crossing=a.x<a.x0,ids=[];
   for(const p of panels){if(p.hid)continue;const b=screenBox(p),inside=b[0]>=X0&&b[2]<=X1&&b[1]>=Y0&&b[3]<=Y1,hit=!(b[2]<X0||b[0]>X1||b[3]<Y0||b[1]>Y1);if(crossing?hit:inside)ids.push(p.id)}
@@ -1116,6 +1117,13 @@ function jointFlip(keys){   // ekssentrik o'yig'i (Ø15) — panelning ikkinchi 
     const B=panels.find(p=>p.id===l.b);if(!B)continue;HW.setFlip(B,l.a,!l.flip);ids.add(l.a);ids.add(l.b);n++}
   if(n){const tg=corpusClusters(panels.filter(p=>!p.hid)).filter(c=>c.some(p=>ids.has(p.id))).flat();HW.place(panels,tg,hwOpts);hwSigv=hwSig();tg.forEach(build);paint();props();changed()}
   jointShow();say(n?`Ekssentrik o'yig'i ikkinchi yuzaga o'tkazildi/qaytarildi: ${n} ta ulanish`+(skip?` · ${skip} tasi ekssentrik emas`:''):"Bu ulanish ekssentrik emas — avval «Ekss» turini bering");return n}
+function finishJRect(a){   // ramka: chapdan o'ngga — chiziq to'liq ichida, o'ngdan chapga — tegib o'tgan; Shift — qo'shish. Keyin tur tugmasi — hammasiga
+  if(a.moved<4){if(!a.add&&jSel.size){jSel.clear();jointShow()}return}
+  const r=cv.getBoundingClientRect(),X0=Math.min(a.x0,a.x)-r.left,X1=Math.max(a.x0,a.x)-r.left,Y0=Math.min(a.y0,a.y)-r.top,Y1=Math.max(a.y0,a.y)-r.top,cross=a.x<a.x0;
+  const inR=s=>s.x>=X0&&s.x<=X1&&s.y>=Y0&&s.y<=Y1,ls=jLines.length?jLines:HW.jointLines(panels,hwOpts);if(!a.add)jSel.clear();let n=0;
+  for(const l of ls){if(l.kind!=='con')continue;const A=scrOf(new THREE.Vector3(...l.p0)),B=scrOf(new THREE.Vector3(...l.p1)),M={x:(A.x+B.x)/2,y:(A.y+B.y)/2};
+    if(cross?(inR(A)||inR(B)||inR(M)):(inR(A)&&inR(B))){jSel.add(l.key);n++}}
+  jointShow();say(jSel.size?`Ramka: ${n} ta ulanish tanlandi (jami ${jSel.size}) — endi tur tugmasini bosing (masalan «Yo'q»)`:'Ramka ichida ulanish yo\'q')}
 function jointClick(l,shift){
   if(shift){jSel.has(l.key)?jSel.delete(l.key):jSel.add(l.key);jointShow();say(`Tanlangan ulanish: ${jSel.size} · tur tugmasini bosing`);return}
   if(jType==='flip'){jointFlip([l.key]);return}
@@ -1123,7 +1131,7 @@ function jointClick(l,shift){
 function jointBar(){let b=q('#p3jb');if(tool!=='joint'){if(b)b.hidden=true;return}
   if(!b){q('.p3view').insertAdjacentHTML('beforeend','<div class="p3jb" id="p3jb"></div>');b=q('#p3jb');
     b.addEventListener('click',e=>{const t=e.target.closest('[data-jt]');if(!t)return;jType=t.dataset.jt;if(jSel.size){const k=[...jSel];jSel.clear();jType==='flip'?jointFlip(k):jointSet(k,jType)}else jointBar()})}
-  b.hidden=false;b.innerHTML=`${Object.entries(JT).map(([k,[n,c,sh]])=>`<button data-jt="${k}" class="${k===jType?'on':''}" title="${k?esc(n)+' — chiziqni bosing (yana — umumiy); Shift bilan tanlanganlarga — shu tugma':'Ulanish tanlovini olib tashlash — panel/umumiy tur'}"><i style="background:#${c.toString(16).padStart(6,'0')}"></i>${esc(sh)}</button>`).join('')}${jSel.size?`<span class="p3jn" title="Shift bilan tanlangan ulanishlar — tur tugmasini bosing">${jSel.size} ✓</span>`:''}`}
+  b.hidden=false;b.innerHTML=`${Object.entries(JT).map(([k,[n,c,sh]])=>`<button data-jt="${k}" class="${k===jType?'on':''}" title="${k?esc(n)+' — chiziqni bosing (yana — umumiy); Shift bilan tanlanganlarga — shu tugma':'Ulanish tanlovini olib tashlash — panel/umumiy tur'}"><i style="background:#${c.toString(16).padStart(6,'0')}"></i>${esc(sh)}</button>`).join('')}${jSel.size?`<span class="p3jn" title="Tanlangan ulanishlar (ramka yoki Shift) — tur tugmasini bosing; Esc — tozalash">${jSel.size} ✓</span>`:''}`}
 /* ---------------- Guruh, massiv, teng taqsimlash (Modeling) ----------------
    Guruh (Ctrl+G): tanlangan panellar bitta guruh — birini bosish butun guruhni tanlaydi (ko'chirish, nusxa, massiv birga).
    Massiv: tanlangan panellar (guruh bo'lsa — guruh) N marta, qadam X/Y/Z bilan; «umumiy masofa» — qadam = masofa / N.
@@ -1182,7 +1190,8 @@ function onDown(e){
     const pid=pick(e);if(pid){select(pid,e.shiftKey||e.ctrlKey);dirtyR=true;return}
     act={k:'rect',v:true,x0:cx,y0:cy,x:cx,y:cy,add:e.shiftKey||e.ctrlKey,moved:0};return}
   if(tool==='edge'&&e.button===0){const h=edgePick(e);if(h)edgeToggle(h);return}
-  if(tool==='joint'&&e.button===0){const l=jointPick(e);if(l)jointClick(l,e.shiftKey);return}
+  if(tool==='joint'&&e.button===0){const l=jointPick(e);if(l){jointClick(l,e.shiftKey);return}   // bo'sh joydan sudrash — ramka bilan ulanishlarni tanlash
+    act={k:'rect',j:true,x0:cx,y0:cy,x:cx,y:cy,add:e.shiftKey||e.ctrlKey,moved:0};return}
   const AG=activeGizmo();
   if(e.button===0&&AG){AG.updateMatrixWorld(true);ndc(e);const gh=gizmoHits(AG,ray.intersectObject(AG,true))[0];
     if(gh){const ax=gh.object.userData.ax;
@@ -1296,7 +1305,7 @@ function onKey(e){
   if(mode==='cut')return;   // Cutlist: 3D buyruqlari yo'q
   if(dr){if(e.key==='Enter')finishDraw();else if(e.key==='Escape')endDraw();else if(e.key==='Backspace'){dr.pts.pop();drawShow()}e.preventDefault();return}
   if(pm&&e.key==='Escape'){cancelPlace();e.preventDefault();return}
-  if(e.key==='Escape'){clearRuler();vsel.clear();clearSel();dirtyR=true;return}
+  if(e.key==='Escape'){clearRuler();vsel.clear();if(jSel.size){jSel.clear();jointShow()}clearSel();dirtyR=true;return}
   const combo=p3combo(e),cmd=P3CMD.find(c=>p3Keys[c.id]&&p3Keys[c.id]===combo);
   if(cmd){e.preventDefault();if(!e.repeat)cmd.run();return}
   const ps=selected();if(!ps.length)return;

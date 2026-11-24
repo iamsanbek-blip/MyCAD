@@ -1,3 +1,11 @@
+# J asbobi: ramka bilan ulanishlarni tanlash — 2026-11-24 (Linux)
+
+- `modeling-cnc-price` (16): haqiqiy sichqoncha bilan o'ngdan chapga ramka — hamma ulagichli ulanish tanlandi, «Yo'q» → yevrovint/ekssentrik/
+  shkant/polkaderjatel teshiklari olib tashlandi, Ctrl+Z qaytardi. `npm test`, `panel3d-hw` (17), `panel3d-hw-ui` (8), `modeling-precision`,
+  Electron `modeling-smoke` o'tdi. EXE qayta yig'ilmagan (oxirgi — 1.1.2-preview.2).
+
+---
+
 # Reliz oldi tekshiruvi 1.1.2-preview.2 — 2026-11-23 (Linux)
 
 - Ko'rib chiqishda topilgan va tuzatilgan: nusxa (C), Mirror va massivda ulanish tanlovi (`jc`, `jf`) asl sheriklarga bog'liq qolardi —

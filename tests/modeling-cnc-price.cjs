@@ -70,8 +70,15 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     assert.equal((await jc('3>1')).cur,'tab');assert.ok((await ev(()=>Panel3D._hw.ops(3))).filter(o=>o.k==='t').length>=2);assert.ok((await ev(()=>Panel3D._hw.ops(1))).some(o=>o.k==='s'));
     assert.ok(!(await ev(()=>Panel3D._hw.ops(3))).some(o=>o.k==='e'&&o.u===0),'dno chap qirrasida yevrovint yo\'q');
     await page.mouse.click(sp.x,sp.y);assert.equal((await jc('3>1')).cur,'konf');assert.ok(!(await ev(()=>Panel3D._hw.ops(1))).some(o=>o.k==='s'));
+    // ramka bilan hamma ulanishni tanlab «Yo'q» — furnitura teshiklari olib tashlanadi (paz/petlya qoladi); Ctrl+Z
+    {const pts=await ev(()=>Panel3D._joints().filter(l=>l.kind==='con').map(l=>Panel3D._jointScr(l.key)));const xs=pts.map(q=>q.x),ys=pts.map(q=>q.y);
+      await page.mouse.move(Math.max(...xs)+40,Math.max(...ys)+40);await page.mouse.down();await page.mouse.move(Math.min(...xs)-40,Math.min(...ys)-40,{steps:6});await page.mouse.up();
+      assert.match(await page.locator('#p3jb .p3jn').textContent(),/^\d+ ✓/);await page.locator('#p3jb [data-jt="none"]').click();
+      const js=await ev(()=>Panel3D._joints().filter(l=>l.kind==='con'));assert.ok(js.length>0&&js.every(l=>l.cur==='none'),JSON.stringify(js.map(l=>l.cur)));
+      assert.ok(!(await ev(()=>[1,2,3,4,5].flatMap(i=>Panel3D._hw.ops(i)))).some(o=>/^(konf|ekss|shkant|polka)$/.test(o.t)),'ulanish teshiklari yo\'q');
+      await ev(()=>document.activeElement&&document.activeElement.blur());await page.keyboard.press('Control+z');assert.ok((await ev(()=>Panel3D._joints())).some(l=>l.kind==='con'&&l.cur!=='none'))}
     await page.keyboard.press('Escape');await page.keyboard.press('v');assert.ok(await page.locator('#p3jb').isHidden());
-    passed.push("Furnitura asbobi (J): dno–chap boka ulanishiga shkant (o'ng tomoni yevrovint qoldi), yana bosish — umumiy; Shift bilan 2 polka ulanishi → yevrovint (polkaderjatel o'rniga), Ctrl+Z; ⇅ — ekssentrik o'yig'i krishaning ikkinchi yuzasiga va qaytadi; Ship-paz — dno tishlari, bokada kesik, yana bosish — umumiy");
+    passed.push("Furnitura asbobi (J): dno–chap boka ulanishiga shkant (o'ng tomoni yevrovint qoldi), yana bosish — umumiy; Shift bilan 2 polka ulanishi → yevrovint (polkaderjatel o'rniga), Ctrl+Z; ⇅ — ekssentrik o'yig'i krishaning ikkinchi yuzasiga va qaytadi; Ship-paz — dno tishlari, bokada kesik, yana bosish — umumiy; ramka bilan hamma ulanish → «Yo'q», Ctrl+Z");
 
     // 2. Narx paneli: 3D oyna chetidagi tugma, jami = hisob; narx o'zgarsa jami yangilanadi; detal narxi xossalarda; CSV
     await ev(P=>Panel3D._price(P),PRICES);
