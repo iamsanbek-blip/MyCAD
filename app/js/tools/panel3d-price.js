@@ -34,10 +34,11 @@ function compute(panels,prices,H){
     for(let i=0;i<n;i++)g.items.push({w:lw[0],h:lw[1],rot:H.canRot(p)});groups.set(key,g)}
   let matT=0,sheetsT=0;
   const G=[...groups.values()].sort((a,b)=>a.m.localeCompare(b.m)||a.t-b.t).map(g=>{
-    const price=num(P.mat[g.key]),r=H.pack(g.items,SW,SH,S.K),sheets=r.sheets.length+r.unfit.length;
-    const cost=P.mode==='m2'?g.area*(1+P.waste/100)*price/SA:sheets*price;if(!price)missing.add('mat:'+g.key);
+    const gs=H.sheetFor?H.sheetFor(g.m):S,gSW=gs.L-2*gs.T,gSH=gs.W-2*gs.T,gSA=gs.L*gs.W/1e6;   // material o'z list o'lchami (LMDF 2750×1830, akril …)
+    const price=num(P.mat[g.key]),r=H.pack(g.items,gSW,gSH,gs.K),sheets=r.sheets.length+r.unfit.length;
+    const cost=P.mode==='m2'?g.area*(1+P.waste/100)*price/gSA:sheets*price;if(!price)missing.add('mat:'+g.key);
     for(const p of g.ps){const x=per.get(p.id);x.mat=g.area?cost*x.area/g.area:0}   // bitta detal (q=1) uchun
-    matT+=cost;sheetsT+=sheets;return{key:g.key,m:g.m,t:g.t,sheets,area:g.area,price,cost,unfit:r.unfit.length}});
+    matT+=cost;sheetsT+=sheets;return{key:g.key,m:g.m,t:g.t,sheets,area:g.area,price,cost,unfit:r.unfit.length,L:gs.L,W:gs.W}});
   // kromka
   const EB=new Map();let ebM=0;
   for(const p of vis){const e=H.ebInfo(p),n=p.q||1,x=per.get(p.id);

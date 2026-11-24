@@ -1,7 +1,9 @@
 # Rugby 1.1.2 — CNC nesting, panelni Drawing'da tahrirlash, aralash ulagich, narx (2026-11-23)
 
-- **Panel tanlanganda material va o'lcham.** Xossalar tepasida «LDSP oq · 720 × 500 × 16 mm (L×W×T)» (Cutlist formati: L — tekstura
-  bo'ylab yoki uzun tomon); «Material bo'yicha» ro'yxatida tanlangan panel materiali avtomatik ko'rinadi; xossalarda **Material** maydoni
+- **Panel tanlanganda material va uning list o'lchami.** Xossalar tepasida «LMDF · list [2750] × [1830] mm» — o'lcham shu yerda tahrirlanadi va
+  materialga bog'lanadi (loyihada `ms`; oxirgi kiritilgani shu kompyuterda yangi loyihalar uchun eslab qolinadi; kiritilmagan materialga
+  Cutlist «List hisobi» dagi umumiy o'lcham — «(umumiy)»). Narx, List hisobi va CNC'ga yuborish har material uchun o'z list o'lchamini
+  ishlatadi (masalan LDSP 2800×2070, LMDF 2750×1830, akril 3050×2050). Detal o'lchami pastdagi Eni/Bo'yi maydonlarida; «Material bo'yicha» ro'yxatida tanlangan panel materiali avtomatik ko'rinadi; xossalarda **Material** maydoni
   (smart taklif bilan). Smart kiritish ro'yxati panel siljiganda yo'qolib qolmaydi (maydon ostiga qayta joylashadi).
 - **Kromka viewportda qalinliksiz.** Kromkali qirra endi qirra yuzasida yarim shaffof rangli tasma va qirra o'rtasida bitta chiziq (panel chegara
   chiziqlari ochiq qoladi) — panel tashqarisiga

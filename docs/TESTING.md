@@ -1,3 +1,11 @@
+# Material bo'yicha list o'lchami — 2026-11-24 (Linux)
+
+- `modeling-cnc-price` 17: xossalarda LMDF uchun 2750×1830 kiritildi → narx guruhida 2750×1830, LDSP oq — umumiy 2800×2070; snapshot `ms` va
+  qayta ochish. `panel3d-hw` 17: narx hisobi material o'z list o'lchami bilan (XDF 1220×610 — 1 list). `npm test`, `panel3d-hw-ui`,
+  `smart-autoname`, `modeling-precision`, Electron `modeling-smoke`, `electron-smoke` o'tdi.
+
+---
+
 # Panel materiali/o'lchami va smart ro'yxat barqarorligi — 2026-11-24 (Linux)
 
 - `modeling-cnc-price` 17: tanlangan panelda «(materialsiz) · 568 × 500 × 16 mm (L×W×T)», «LDSP oq · 720 × 500 × 16», Material maydoni

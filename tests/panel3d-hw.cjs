@@ -141,6 +141,8 @@ const ops=(p,t)=>(p.ops||[]).filter(o=>!t||o.t===t);
   assert.equal(r.eb[0].m,0.72);assert.equal(r.eb[0].cost,1440);
   const per=r.perPanel.reduce((a,x)=>a+x.sum,0);assert.ok(Math.abs(per-(r.matT+r.ebT+r.hwT+r.workT))<1e-6,'detallar yig\'indisi');
   assert.ok(Math.abs(r.total-(r.sub*1.1))<1e-6);assert.equal(r.sub,r.matT+r.ebT+r.hwT+r.workT+50000);
+  {const r2=PR.compute(ps,P,Object.assign({},H,{sheetFor:m=>m==='XDF'?{L:1220,W:610,K:4,T:10}:H.sheet}));const x=r2.groups.find(g=>g.m==='XDF');   // material o'z list o'lchami
+    assert.deepEqual([x.L,x.W],[1220,610]);assert.equal(x.sheets,1,'584×704 XDF 1220×610 (ishchi 1200×590) listga burib sig\'adi');assert.equal(r2.groups.find(g=>g.m==='LDSP').L,2800)}
   const m2=PR.compute(ps,Object.assign({},P,{mode:'m2',waste:20}),H);assert.ok(Math.abs(m2.groups[0].cost-m2.groups[0].area*1.2*500000/(2.8*2.07))<1e-6);
   assert.deepEqual(PR.compute(ps,{},H).missing.slice(0,2),['mat:LDSP|16','mat:XDF|4']);assert.deepEqual(PR.merge({mat:{a:-5,b:'x'},extra:[{n:'q',v:-1}]}).extra,[{n:'q',v:0}]);
   ok("Narx: list soni × narx (m² + chiqit rejimi ham), kromka metri, furnitura (yevrovint 8, polkaderjatel 4 — bokadagi teshiklardan, polka soni 2 bo'lsa ham), ishlar; detallar yig'indisi = jami, ustama 10%")}

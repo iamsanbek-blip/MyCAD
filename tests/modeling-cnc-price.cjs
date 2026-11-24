@@ -211,13 +211,17 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     assert.deepEqual(await ev(()=>[1,2,3].map(i=>Panel3D._col(i))),['#aa7744','#aa7744','#bfc8d4']);
     const snap=await ev(()=>Panel3D.snapshot());assert.deepEqual(snap.mc,{'LDSP oq':'#aa7744'});await ev(s=>Panel3D.load(s),snap);assert.equal(await ev(()=>Panel3D._col(2)),'#aa7744');
     passed.push("Panel rangi: material bo'yicha avtomatik neytral (bir materialda bir xil, materialsiz — #bfc8d4), qo'lda tanlash, Avto, Materialga — loyihada saqlanadi");
-    // 9b. Panel tanlanganda materiali va o'lchami (L×W×T) avtomatik ko'rinadi; material maydoni xossalarda
+    // 9b. Panel tanlanganda: materiali va shu material LIST o'lchami (tahrirlanadi, materialga bog'lanadi); narx va list hisobi shu o'lcham bilan
     await page.locator('#p3pl .p3it').nth(2).click();await page.waitForSelector('.p3psum');
-    assert.match(await page.locator('.p3psum').textContent(),/^\(materialsiz\) · 568 × 500 × 16 mm \(L×W×T\)/);assert.equal(await page.locator('#p3selMat').inputValue(),'|');
-    await page.locator('#p3pl .p3it').nth(0).click();assert.match(await page.locator('.p3psum').textContent(),/^LDSP oq · 720 × 500 × 16 mm/);assert.equal(await page.locator('#p3selMat').inputValue(),'LDSP oq|');
-    await page.fill('#p3f_mat','MDF');await page.press('#p3f_mat','Enter');
-    assert.equal(await ev(()=>Panel3D._state().panels[0].mat),'MDF');assert.equal(await page.locator('#p3selMat').inputValue(),'MDF|');assert.match(await page.locator('.p3psum').textContent(),/^MDF ·/);
-    passed.push("Panel tanlanganda: «LDSP oq · 720 × 500 × 16 mm (L×W×T)» va «Material bo'yicha» ro'yxatida o'z materiali; xossalarda Material maydoni");
+    assert.match(await page.locator('.p3psum').textContent(),/^\(materialsiz\) · list/);assert.deepEqual([await page.locator('#p3msL').inputValue(),await page.locator('#p3msW').inputValue()],['2800','2070']);
+    assert.equal(await page.locator('#p3selMat').inputValue(),'|');
+    await page.locator('#p3pl .p3it').nth(0).click();assert.equal(await page.locator('#p3selMat').inputValue(),'LDSP oq|');
+    await page.fill('#p3f_mat','LMDF');await page.press('#p3f_mat','Enter');assert.equal(await ev(()=>Panel3D._state().panels[0].mat),'LMDF');assert.equal(await page.locator('#p3selMat').inputValue(),'LMDF|');
+    await page.fill('#p3msL','2750');await page.press('#p3msL','Tab');await page.fill('#p3msW','1830');await page.press('#p3msW','Enter');
+    const g2=await ev(()=>Panel3D._price().groups.find(g=>g.m==='LMDF'));assert.deepEqual([g2.L,g2.W],[2750,1830]);
+    assert.ok(await ev(()=>Panel3D._price().groups.some(g=>g.m==='LDSP oq'&&g.L===2800&&g.W===2070)),'boshqa material umumiy o\'lchamda');
+    const sn=await ev(()=>Panel3D.snapshot());assert.deepEqual(sn.ms,{LMDF:{L:2750,W:1830}});await ev(s=>Panel3D.load(s),sn);assert.deepEqual(await ev(()=>{const g=Panel3D._price().groups.find(g=>g.m==='LMDF');return[g.L,g.W]}),[2750,1830]);
+    passed.push("Panel tanlanganda: materiali va list o'lchami (LMDF — 2750×1830, LDSP oq — 2800×2070 umumiy), narx shu o'lcham bilan, loyihada saqlanadi; «Material bo'yicha» ro'yxatida o'z materiali");
 
     // 10. Kromka viewportda qalinliksiz (2 mm kromka panel o'lchamini kattalashtirmaydi), Cutlist eksportida esa 2 mm belgilanadi
     const kb=await ev(()=>{Panel3D.load({T:16,uid:10,panels:[{id:1,n:'boka',w:500,h:720,t:16,o:'side',x:8,y:360,z:0,eb:[2,2,2,2]}]});const p=Panel3D._state().panels[0],b=new THREE.Box3().setFromObject(p.g),d=Panel3D._clExport();

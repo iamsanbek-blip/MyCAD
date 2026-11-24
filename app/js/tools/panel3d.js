@@ -126,6 +126,13 @@ function ebInfo(p){   // raspil/eksport uchun: Uz1/Uz2/En1/En2 (mm), qirra uzunl
    Materialsiz — och kulrang-ko'k. Hammasi to'q va och fonda ham ko'rinadigan neytral tonlar. */
 const NEUTRAL=['#d8d0bf','#c8ad86','#b5bec9','#cfc4b0','#a8977f','#c2cbbb','#dccbb4','#9ea9b6','#e3ddd2','#b9a48a'],NOMAT='#bfc8d4';
 let matCol={},colMats=new Map();
+/* Material list o'lchami: material bo'yicha (loyihada `ms`, oxirgi kiritilgani shu kompyuterda — yangi loyihalar uchun standart).
+   Bo'lmasa — Cutlist «List hisobi» dagi umumiy o'lcham. Narx, list hisobi va CNC sahifasi shundan foydalanadi. */
+let matSheet={};const MS_STORE='rugby.matsheet.v1';
+const msLocal=()=>{try{return JSON.parse(localStorage.getItem(MS_STORE)||'{}')||{}}catch(e){return{}}};
+function sheetFor(m){const g=id=>wrap&&q(id)?num(q(id).value):0,d={L:g('#p3shL')||2800,W:g('#p3shW')||2070},o=matSheet[m]||msLocal()[m];
+  return{L:o&&o.L>0?o.L:d.L,W:o&&o.W>0?o.W:d.W,K:Math.max(0,g('#p3shK')),T:Math.max(0,g('#p3shT')),own:!!o}}
+function setSheet(m,L,W){if(L>0&&W>0){matSheet[m]={L,W};const x=msLocal();x[m]={L,W};try{localStorage.setItem(MS_STORE,JSON.stringify(x))}catch(e){}}else delete matSheet[m]}
 function autoCol(m){if(!m)return NOMAT;let h=0;for(const c of m)h=(h*31+c.charCodeAt(0))>>>0;return NEUTRAL[h%NEUTRAL.length]}
 const panelCol=p=>p.col||matCol[matN(p)]||autoCol(matN(p));
 function colMat(hex){let m=colMats.get(hex);if(!m){m=fillMat.clone();m.color.set(hex);m.opacity=fillMat.opacity;m.transparent=fillMat.transparent;m.depthWrite=fillMat.depthWrite;colMats.set(hex,m)}return m}
@@ -232,12 +239,13 @@ function props(){
   const field=k=>k==='n'?`<input id="p3f_n" value="${esc(p.n)}">`:k==='mat'?`<input id="p3f_mat" value="${esc(p.mat||'')}" placeholder="materialsiz" title="Material (LDSP oq, MDF, XDF …) — Cutlist, list hisobi, narx va CNC sahifasi shu bo'yicha guruhlanadi">`:k==='s'?`<select id="p3f_s">${so}</select>`:k==='o'?`<select id="p3f_o">${oo}</select>`:k==='g'?`<select id="p3f_g" title="Tekstura (tola) yo'nalishi: 3D da chiziqlar bilan ko'rinadi, Cutlist'da L shu yo'nalishda chiqadi">${Object.entries(GRN).map(([v,t])=>`<option value="${v}"${(p.gr||'')===v?' selected':''}>${t}</option>`).join('')}</select>`
     :`<input id="p3f_${k}" type="text" inputmode="decimal" value="${+(k==='q'?(p.q||1):p[k]).toFixed(2)}">`;
   const row=k=>`<div class="p3r" data-k="${k}"><span class="p3h" title="Sudrab joyini almashtiring">⠿</span><label>${PROPL[k]}</label>${field(k)}<span class="p3ar"><button class="p3u" title="Yuqoriga">↑</button><button class="p3d" title="Pastga">↓</button></span></div>`;
-  const lw=LW(p);   // tanlangan panel: material va o'lcham (Cutlist formati: L × W × qalinlik)
-  b.innerHTML=`<p class="p3psum" title="L — uzunlik (tekstura bo'ylab yoki uzun tomon), W — eni, qalinlik — Cutlist bilan bir xil"><b>${esc(matLbl(matN(p)))}</b> · ${+lw[0].toFixed(2)} × ${+lw[1].toFixed(2)} × ${+p.t.toFixed(2)} mm <span class="p3mu">(L×W×T)</span>${hasGr(p)?' · tekstura':''}${(p.q||1)>1?' · ×'+p.q:''}</p>`+propOrder.filter(k=>k!=='c'||hasC(p)).map(row).join('')+`
+  const sz=sheetFor(matN(p));   // tanlangan panel: materiali va shu materialning LIST o'lchami (detal o'lchami pastdagi maydonlarda)
+  b.innerHTML=`<div class="p3psum" title="Shu material listining o'lchami — narx, list hisobi va CNC joylash shu bo'yicha (materialga bog'lanadi, loyihada saqlanadi)"><b>${esc(matLbl(matN(p)))}</b> · list <input id="p3msL" inputmode="decimal" value="${sz.L}"> × <input id="p3msW" inputmode="decimal" value="${sz.W}"> mm${sz.own?'':' <span class="p3mu">(umumiy)</span>'}</div>`+propOrder.filter(k=>k!=='c'||hasC(p)).map(row).join('')+`
   ${colRow(panelCol(p),!!p.col)}
   <p class="p3mu">X, Y, Z — panel markazi (mm). Eni/bo'yi o'zgarsa qalinlik o'zgarmaydi. Qatorlarni ⠿ dan sudrab yoki ↑↓ bilan tartiblang. Panelga 2 marta bosing — Drawing'da shaklini tahrirlash (Alt + 2 marta — 3D da tez chizish).</p>
   <div class="p3row"><button id="p3bRot">↻ 90°</button><button id="p3bDup">Nusxa</button><button id="p3bDel">O'chirish</button></div>`+opsProps(p)+prLine(p);
   q('#p3f_n').onchange=e=>{p.n=e.target.value;list();changed()};
+  {const f=()=>{setSheet(matN(p),num(q('#p3msL').value),num(q('#p3msW').value));props();prRefresh();if(mode==='cut')clRender();markDirty()};q('#p3msL').onchange=f;q('#p3msW').onchange=f}
   q('#p3f_mat').onchange=e=>{const v=e.target.value.trim();if(v)p.mat=v;else delete p.mat;paint();props();list();changed()};
   for(const k of['w','h','t','c'])if(q('#p3f_'+k))q('#p3f_'+k).onchange=e=>{p[k]=Math.max(1,num(e.target.value)||1);build(p);props();list();changed()};
   q('#p3f_q').onchange=e=>{p.q=Math.max(1,Math.round(num(e.target.value))||1);props();changed()};
@@ -397,12 +405,12 @@ function clSheet(){
   let tot=0,rows='',bad=0,TA=0,TS=0;const TE={};
   const ebS=eb=>{const ks=Object.keys(eb).sort((a,b)=>a-b);return ks.length?ks.map(k=>`${eb[k].toFixed(2)} m <span class="p3mu">(${k} mm)</span>`).join('<br>'):'—'};
   const keys=Object.keys(groups).sort((a,b)=>groups[a].m.localeCompare(groups[b].m)||groups[a].t-groups[b].t);
-  for(const k of keys){const g=groups[k],items=g.items,r=packSheets(items,SW,SH,K),n=r.sheets.length,used=r.sheets.reduce((a,s)=>a+s.area,0),SA=n*L*W/1e6;
+  for(const k of keys){const g=groups[k],sz=sheetFor(g.m),L=sz.L,W=sz.W,SW=L-2*Tr,SH=W-2*Tr,items=g.items,r=packSheets(items,SW,SH,K),n=r.sheets.length,used=r.sheets.reduce((a,s)=>a+s.area,0),SA=n*L*W/1e6;   // material o'z list o'lchami bilan
     tot+=n;bad+=r.unfit.length;TA+=g.A;TS+=SA;for(const t in g.eb)TE[t]=(TE[t]||0)+g.eb[t];
-    rows+=`<tr><td><b>${esc(matLbl(g.m))}</b></td><td>${g.t} mm</td><td>${items.length}</td><td>${g.A.toFixed(2)} m²</td><td>${ebS(g.eb)}</td><td><b>${n}</b> <span class="p3mu">(${SA.toFixed(2)} m²)</span></td><td>${n?(used/(n*L*W)*100).toFixed(0)+'%':'—'}<br><span class="p3mu">${r.sheets.map(h=>(h.area/(L*W)*100).toFixed(0)+'%').join(' · ')}</span></td><td>${r.unfit.length||''}</td></tr>`}
+    rows+=`<tr><td><b>${esc(matLbl(g.m))}</b><br><span class="p3mu">list ${L}×${W}</span></td><td>${g.t} mm</td><td>${items.length}</td><td>${g.A.toFixed(2)} m²</td><td>${ebS(g.eb)}</td><td><b>${n}</b> <span class="p3mu">(${SA.toFixed(2)} m²)</span></td><td>${n?(used/(n*L*W)*100).toFixed(0)+'%':'—'}<br><span class="p3mu">${r.sheets.map(h=>(h.area/(L*W)*100).toFixed(0)+'%').join(' · ')}</span></td><td>${r.unfit.length||''}</td></tr>`}
   const flt=[o.tf?o.tf+' mm':'',o.mf&&o.mf!=='*'?matLbl(o.mf):''].filter(Boolean).join(' · ');
   if(rows&&keys.length>1)rows+=`<tr class="tot"><td colspan="2"><b>Jami</b></td><td>${keys.reduce((a,k)=>a+groups[k].items.length,0)}</td><td><b>${TA.toFixed(2)} m²</b></td><td>${ebS(TE)}</td><td><b>${tot}</b> <span class="p3mu">(${TS.toFixed(2)} m²)</span></td><td></td><td>${bad||''}</td></tr>`;
-  q('#p3clSheetOut').innerHTML=rows?`<div class="p3clwh"><b>List hisobi</b>${flt?` <span class="p3flt">Filtr: ${esc(flt)}</span>`:' <span class="p3mu">— hamma material</span>'}<span style="flex:1"></span><button id="p3clSheetX" title="Yopish">✕</button></div><table><tr><th>Material</th><th>Qalinlik</th><th>Panel (dona)</th><th>Panellar maydoni</th><th>Kromka</th><th>List</th><th>Foydalanish (o'rtacha / har list)</th><th>Sig'mas</th></tr>${rows}</table><p class="p3mu"><b>Jami: ${tot} list</b> (${L}×${W} mm${bad?`; ${bad} ta panel listga sig'maydi`:''}). Foydalanish = panellar maydoni / listlar maydoni; qolgani chiqit. Taxminiy hisob: MaxRects; teksturali panellar L o'lchami list uzunligi bo'ylab joylanadi va aylantirilmaydi; «Aylantirish» o'chirilganlar ham aylantirilmaydi.</p>`:`<p class="p3mu">${flt?'Filtr ('+esc(flt)+') bo\'yicha panel yo\'q.':'Panel yo\'q.'}</p>`;
+  q('#p3clSheetOut').innerHTML=rows?`<div class="p3clwh"><b>List hisobi</b>${flt?` <span class="p3flt">Filtr: ${esc(flt)}</span>`:' <span class="p3mu">— hamma material</span>'}<span style="flex:1"></span><button id="p3clSheetX" title="Yopish">✕</button></div><table><tr><th>Material</th><th>Qalinlik</th><th>Panel (dona)</th><th>Panellar maydoni</th><th>Kromka</th><th>List</th><th>Foydalanish (o'rtacha / har list)</th><th>Sig'mas</th></tr>${rows}</table><p class="p3mu"><b>Jami: ${tot} list</b> (list o'lchami — material bo'yicha, umumiy ${L}×${W} mm${bad?`; ${bad} ta panel listga sig'maydi`:''}). Foydalanish = panellar maydoni / listlar maydoni; qolgani chiqit. Taxminiy hisob: MaxRects; teksturali panellar L o'lchami list uzunligi bo'ylab joylanadi va aylantirilmaydi; «Aylantirish» o'chirilganlar ham aylantirilmaydi.</p>`:`<p class="p3mu">${flt?'Filtr ('+esc(flt)+') bo\'yicha panel yo\'q.':'Panel yo\'q.'}</p>`;
   const x=q('#p3clSheetX');if(x)x.onclick=()=>{q('#p3clSheetOut').innerHTML=''}}
 function clWire(){
   const tab=q('#p3clTab');
@@ -1454,6 +1462,7 @@ function cncSend(){
   const out=[];let other=0,edge=0,mapped=0,none=0;
   if(isOpen)close();
   for(const g of [...G.values()].sort((a,b)=>a.m.localeCompare(b.m)||b.t-a.t)){   // material nomi, keyin qalinlik
+    const msz=sheetFor(g.m),SW=msz.L,SH=msz.W;   // material o'z list o'lchami
     if(addPage()===false)break;
     const pg=activePage(),base=`CNC · ${matLbl(g.m)} ${g.t} mm`;let nm=base,i=2;while(documentPages.some(x=>x!==pg&&x.name===nm))nm=base+' ('+(i++)+')';pg.name=nm;
     const set=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v};set('nestSheetW',SW);set('nestSheetH',SH);set('nestMargin',MAR);
@@ -1572,7 +1581,7 @@ const PR_STORE='rugby.price.v1',PRC=typeof RugbyPrice!=='undefined'?RugbyPrice:n
 let prices=(()=>{try{return PRC?PRC.merge(JSON.parse(localStorage.getItem(PR_STORE)||'null')):null}catch(e){return PRC?PRC.merge(null):null}})(),prOpen=false,prLast=null;
 function prSave(){try{localStorage.setItem(PR_STORE,JSON.stringify(prices))}catch(e){}}
 function prSheet(){const g=id=>wrap&&q(id)?num(q(id).value):0;return{L:g('#p3shL')||2800,W:g('#p3shW')||2070,K:Math.max(0,g('#p3shK')),T:Math.max(0,g('#p3shT'))}}
-function prCalc(){if(!PRC)return null;prLast=PRC.compute(panels,prices,{prof,matN,LW,canRot,ebInfo,pack:packSheets,sheet:prSheet()});return prLast}
+function prCalc(){if(!PRC)return null;prLast=PRC.compute(panels,prices,{prof,matN,LW,canRot,ebInfo,pack:packSheets,sheet:prSheet(),sheetFor});return prLast}
 const prM=v=>PRC?PRC.money(v,''):String(Math.round(v));
 function prRefresh(){if(!wrap||!PRC)return;const r=prCalc(),t=q('#p3prTab');
   if(t)t.innerHTML=`<b>Narx</b><span>${panels.some(p=>!p.hid)?esc(prM(r.total)):'—'}</span>${r.missing.length?'<i title="Ba\'zi narxlar kiritilmagan">!</i>':''}`;
@@ -1585,8 +1594,8 @@ function prRender(r){
     <p>Material ${S(r.matT)} · Kromka ${S(r.ebT)} · Furnitura ${S(r.hwT)} · Ishlar ${S(r.workT)}${r.exT?' · Qo\'shimcha '+S(r.exT):''}${r.markup?' · Ustama '+S(r.markup):''}</p>
     ${r.missing.length?`<p class="p3prW">Narxi kiritilmagan: ${r.missing.length} ta (sariq maydonlar)</p>`:''}</div>
    <div class="p3prOpt"><label>Valyuta <input id="p3prCur" value="${cur}"></label><label>Material <select id="p3prMode"><option value="sheet"${r.mode==='sheet'?' selected':''}>list soni bo'yicha</option><option value="m2"${r.mode==='m2'?' selected':''}>m² + chiqit</option></select></label>${r.mode==='m2'?`<label>Chiqit % <input id="p3prWaste" inputmode="decimal" value="${prices.waste}"></label>`:''}</div>
-   <h5>Material (1 list narxi · list ${prSheet().L}×${prSheet().W})</h5>
-   <table><tr><th>Material</th><th>List</th><th>m²</th><th>1 list</th><th>Summa</th></tr>${r.groups.map(g=>row([`${esc(matLbl(g.m))} ${g.t}`,g.sheets+(g.unfit?` <span class="p3prW" title="Listga sig'maydi">(${g.unfit}!)</span>`:''),g.area.toFixed(2),inp('mat.'+g.key,g.price),S(g.cost)])).join('')||row(['<span class="p3mu">Panel yo\'q</span>','','','',''])}</table>
+   <h5>Material (1 list narxi; list o'lchami — panel xossalarida, material bo'yicha)</h5>
+   <table><tr><th>Material</th><th>List</th><th>m²</th><th>1 list</th><th>Summa</th></tr>${r.groups.map(g=>row([`${esc(matLbl(g.m))} ${g.t}<br><span class="p3mu">${g.L}×${g.W}</span>`,g.sheets+(g.unfit?` <span class="p3prW" title="Listga sig'maydi">(${g.unfit}!)</span>`:''),g.area.toFixed(2),inp('mat.'+g.key,g.price),S(g.cost)])).join('')||row(['<span class="p3mu">Panel yo\'q</span>','','','',''])}</table>
    <h5>Kromka (1 metr)</h5>
    <table><tr><th>Qalinlik</th><th>Metr</th><th>1 m</th><th>Summa</th></tr>${r.eb.map(e=>row([e.t+' mm',e.m.toFixed(2),inp('eb.'+e.t,e.price),S(e.cost)])).join('')||row(['<span class="p3mu">Kromka belgilanmagan</span>','','',''])}</table>
    <h5>Furnitura (dona) — teshiklardan</h5>
@@ -1662,11 +1671,11 @@ function opsWire(p){
 /* ---------------- saqlash (loyiha fayli bilan) ---------------- */
 function snapshot(){
   const big=lines.reduce((s,l)=>s+l.p.length,0)>60000;
-  return{v:1,T,uid,guides,pl:planeMode,mc:Object.keys(matCol).length?{...matCol}:undefined,dp:q&&wrap&&q('#p3dxD')?q('#p3dxD').value:'500',panels:panels.map(({g,...r})=>JSON.parse(JSON.stringify(r))),lines:big?[]:lines}}
+  return{v:1,T,uid,guides,pl:planeMode,mc:Object.keys(matCol).length?{...matCol}:undefined,ms:Object.keys(matSheet).length?JSON.parse(JSON.stringify(matSheet)):undefined,dp:q&&wrap&&q('#p3dxD')?q('#p3dxD').value:'500',panels:panels.map(({g,...r})=>JSON.parse(JSON.stringify(r))),lines:big?[]:lines}}
 function load(d){
   if(act&&act.k==='xf')xfStop();act=null;   // faol sudrash eski panellarga bog'lanib qolmasin
   if(inited){for(const p of panels)if(p.g)P.remove(p.g)}
-  panels=[];sel=null;msel=[];lines=[];guides=[];dr=null;matCol={};vsel.clear();if(d&&d.mc&&typeof d.mc==='object')for(const k in d.mc)if(/^#[0-9a-f]{6}$/i.test(d.mc[k]))matCol[k]=d.mc[k];
+  panels=[];sel=null;msel=[];lines=[];guides=[];dr=null;matCol={};matSheet={};if(d&&d.ms&&typeof d.ms==='object')for(const k in d.ms){const o=d.ms[k];if(o&&+o.L>0&&+o.W>0)matSheet[k]={L:+o.L,W:+o.W}}vsel.clear();if(d&&d.mc&&typeof d.mc==='object')for(const k in d.mc)if(/^#[0-9a-f]{6}$/i.test(d.mc[k]))matCol[k]=d.mc[k];
   if(d&&Array.isArray(d.panels)){T=d.T>0?d.T:16;uid=d.uid||1;
     panels=d.panels.filter(p=>p&&p.o&&p.w>0&&p.h>0&&p.t>0).map(p=>{const c=Object.assign({},p);if(HW){const o=HW.sanitize(p.ops);if(o)c.ops=o;else delete c.ops}return c});
     uid=Math.max(uid,...panels.map(p=>p.id+1),1);
