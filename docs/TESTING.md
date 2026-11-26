@@ -1,3 +1,11 @@
+# Butun korpus ▸ Ko'chirish / burish tanlovga ishlaydi — 2026-11-26 (Linux)
+
+- `modeling-cnc-price` 18: polka tanlanganda «Ko'chirish» Y+100 faqat polkani ko'chirdi, ↻ 90° faqat polkani burdi (boka joyida);
+  tanlov olib tashlanganda sarlavha «butun korpus», ko'chirish ikkala panelga. `npm run check` (57), `npm test`, `panel3d-hw-ui` (8),
+  `modeling-precision`, `smart-autoname`, Electron `modeling-smoke` o'tdi. EXE qayta yig'ilmagan (oxirgi — 1.1.2-preview.3).
+
+---
+
 # Reliz 1.1.2-preview.3 — 2026-11-24
 
 - EXE: GitHub Actions «Windows portable preview» run 45344797133 (Windows Server 2022, commit 056eaa3) — **muvaffaqiyatli**: `npm run check`,

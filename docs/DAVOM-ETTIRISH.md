@@ -36,6 +36,7 @@ haqiqatda o'tkazilgan sinovlar: `docs/TESTING.md`; umumiy arxitektura: `docs/ARC
 | Panel materiali maydoni, «Material bo'yicha» tanlovni ko'rsatadi | Panel xossalari | `PROPD` ('mat'), `selMatOpts()` |
 | Smart ro'yxat panel siljiganda yopilmaydi | — | `app/js/ui/smart-input.js` (scroll) |
 | CNC sahifasidan Modeling → model sahifasi | — | `modelHome()` |
+| Ko'chirish / ↺↻ 90° — tanlov bo'lsa faqat tanlov, aks holda butun korpus | Butun korpus | `kzTargets()`, `moveK()`, `rotK()` |
 
 ## Ma'lumot modeli (loyiha faylida `page.panel3d`)
 
@@ -63,7 +64,7 @@ Brauzer sozlamalari (localStorage): `rugby.hw.v1` (furnitura), `rugby.price.v1` 
 | `npm run check` | sintaksis va asset (57 JS) |
 | `npm test` | 18 eski regressiya + workspace (24) + `tests/panel3d-hw.cjs` (17) |
 | `node tests/panel3d-hw-ui.cjs` | Furnitura oynasi, DXF/CSV (8) |
-| `node tests/modeling-cnc-price.cjs` | ulagich, J asbobi (ramka bilan ham), ship-paz, narx, CNC, birka, Drawing tahrir, guruh/massiv, Stretch, rang, material list o'lchami, kromka, nusxa (17) |
+| `node tests/modeling-cnc-price.cjs` | ulagich, J asbobi (ramka bilan ham), ship-paz, narx, CNC, birka, Drawing tahrir, guruh/massiv, Stretch, rang, material list o'lchami, kromka, nusxa, tanlovni ko'chirish (18) |
 | `node tests/modeling-precision.cjs`, `node tests/smart-autoname.cjs` | magnit/gizmo, smart kiritish |
 | `npm run test:electron`, `xvfb-run -a node tests/modeling-smoke.cjs` va h.k. | haqiqiy Electron GUI |
 

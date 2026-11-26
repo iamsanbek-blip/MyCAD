@@ -1283,7 +1283,7 @@ const P3CMD=[
   ['obj.grain','Obyekt: tekstura yo\'nalishi (yo\'q → bo\'yi → eni)','Alt+T',()=>{const ps=selected();if(!ps.length)return;ps.forEach(p=>{grCycle(p);build(p)});props();list();changed()}],
   ['view.hide','Ko\'rinish: Hide selection','H',()=>hideSel()],['view.isolate','Ko\'rinish: Isolate selection','I',()=>isolateSel()],['view.unhide','Ko\'rinish: Unhide all','Shift+H',()=>unhideAll()],
   // Butun korpus (standart tugmasiz — kerak bo'lsa tayinlang)
-  ['body.rotL','Korpus: 90° chapga burish','',()=>rotK(-1)],['body.rotR','Korpus: 90° o\'ngga burish','',()=>rotK(1)],
+  ['body.rotL','Korpus/tanlov: 90° chapga burish','',()=>rotK(-1)],['body.rotR','Korpus/tanlov: 90° o\'ngga burish','',()=>rotK(1)],
   ['scene.demo','Sahna: namuna korpus','',()=>q('#p3bDemo').click()]
 ].map(([id,label,key,run])=>({id,label,key,run}));
 const P3_STORE='rugby.shortcuts.p3.v1';
@@ -1333,9 +1333,13 @@ function kzSync(){
   const sl=selected().filter(p=>!p.hid),vis=panels.filter(p=>!p.hid),ps=sl.length?sl:vis;
   q('#p3dimT').textContent=sl.length?`Tanlangan ${sl.length} ta panel — umumiy o'lcham`:`Butun korpus — umumiy o'lcham${vis.length?` (${vis.length} panel)`:''}`;
   q('#p3dim').classList.toggle('sel',!!sl.length);
+  const all=selected().length;if(q('#p3mvT'))q('#p3mvT').textContent=all?`Ko'chirish / burish — tanlangan ${all} ta panel (X, Y, Z mm)`:"Ko'chirish / burish — butun korpus (X, Y, Z mm)";
   if(!ps.length){['dx','dy','dz'].forEach(id=>q('#p3'+id).textContent='—');return}
   const[mn,mx]=bboxOf(ps);['dx','dy','dz'].forEach((id,a)=>q('#p3'+id).textContent=+(mx[a]-mn[a]).toFixed(1))}
-function rotK(dir){if(!panels.length)return;rotateSel(panels,1,dir);frame()}
+// «Butun korpus» tugmalari: tanlov bo'lsa — faqat tanlangan panellar (guruh bilan), bo'lmasa — butun korpus
+const kzTargets=()=>{const sl=selected();return sl.length?sl:panels};
+function rotK(dir){if(!panels.length)return;const sl=selected().length;rotateSel(kzTargets(),1,dir);if(!sl)frame()}
+function moveK(d){const ps=kzTargets();if(!ps.length||!d.some(v=>v))return;for(const p of ps){p.x+=d[0];p.y+=d[1];p.z+=d[2];place(p)}props();changed()}
 /* ---------------- namuna ---------------- */
 function demo(){
   for(const p of panels)if(p.g&&P)P.remove(p.g);panels=[];sel=null;msel=[];
@@ -1784,7 +1788,7 @@ const HTML=`
   <div class="p3row"><button id="p3bDemo">Namuna korpus</button><button id="p3bClear">Tozalash</button></div>
   <h4>Butun korpus</h4>
   <div id="p3kz">
-   <p class="p3mu" style="margin-top:0">Ko'chirish X, Y, Z (mm)</p>
+   <p class="p3mu" style="margin-top:0" id="p3mvT">Ko'chirish X, Y, Z (mm)</p>
    <div class="p3g3"><input id="p3mx" type="text" inputmode="decimal" value="0"><input id="p3my" type="text" inputmode="decimal" value="0"><input id="p3mz" type="text" inputmode="decimal" value="0"></div>
    <div class="p3row"><button id="p3bMove">Ko'chirish</button><button id="p3bRL">↺ 90°</button><button id="p3bRR">↻ 90°</button></div>
    <p class="p3mu" id="p3dimT">Umumiy o'lcham (gabarit)</p>
@@ -1889,7 +1893,7 @@ function initUI(){
   q('#p3selMat').onchange=e=>{const v=e.target.value;if(!v)return;const i=v.lastIndexOf('|'),t=v.slice(i+1);selByMat(v.slice(0,i),t===''?null:+t)};
   q('#p3bDemo').onclick=()=>{ensure();demo()};
   q('#p3bClear').onclick=()=>{for(const p of panels)if(p.g)P.remove(p.g);panels=[];sel=null;msel=[];props();list();changed()};
-  q('#p3bMove').onclick=()=>{const d=['mx','my','mz'].map(i=>num(q('#p3'+i).value));for(const p of panels){p.x+=d[0];p.y+=d[1];p.z+=d[2];place(p)}props();changed()};
+  q('#p3bMove').onclick=()=>moveK(['mx','my','mz'].map(i=>num(q('#p3'+i).value)));
   q('#p3bRL').onclick=()=>rotK(-1);q('#p3bRR').onclick=()=>rotK(1);
   q('#p3bDraw').onclick=()=>{ensure();fromDrawing()};
   q('#p3bFile').onclick=()=>q('#p3file').click();

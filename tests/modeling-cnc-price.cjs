@@ -238,6 +238,15 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     const kc=cop.find(c=>c.jc);assert.deepEqual(Object.keys(kc.jc).map(Number),[cop.find(c=>!c.jc&&c.id!==kc.id&&c.id===Math.min(...cop.map(x=>x.id))).id]);assert.deepEqual(Object.keys(kc.jf).map(Number),Object.keys(kc.jc).map(Number));
     assert.deepEqual(orig.find(o=>o.id===4).jc,{1:'ekss'});
     passed.push("Nusxa (C): krishaning ulanish tanlovi (ekss, ⇅) nusxa bokasiga bog'landi, nusxalar alohida yangi guruhda");
+    // 12. «Butun korpus ▸ Ko'chirish»: tanlov bo'lsa — faqat tanlangan panel, bo'lmasa — hammasi
+    await ev(()=>{Panel3D.load({T:16,uid:10,panels:[{id:1,n:'boka',w:500,h:720,t:16,o:'side',x:8,y:360,z:0},{id:2,n:'polka',w:568,h:480,t:16,o:'flat',x:300,y:360,z:0}]});Panel3D._select([2])});
+    assert.match(await page.locator('#p3mvT').textContent(),/tanlangan 1 ta panel/);
+    await page.fill('#p3mx','0');await page.fill('#p3my','100');await page.fill('#p3mz','0');await page.locator('#p3bMove').click();
+    let xy=await ev(()=>Panel3D._state().panels.map(p=>[p.id,p.y]));assert.deepEqual(xy,[[1,360],[2,460]]);
+    await page.locator('#p3bRR').click();xy=await ev(()=>Panel3D._state().panels.map(p=>[p.id,p.x,p.y,p.z]));assert.deepEqual(xy[0],[1,8,360,0],'tanlanmagan boka burilmadi');
+    await ev(()=>Panel3D._select([]));assert.match(await page.locator('#p3mvT').textContent(),/butun korpus/);
+    await page.locator('#p3bMove').click();xy=await ev(()=>Panel3D._state().panels.map(p=>p.y));assert.deepEqual(xy,[460,560]);
+    passed.push("Ko'chirish / burish: tanlangan polka 100 mm ko'chdi va burildi, boka joyida; tanlovsiz — butun korpus ko'chdi");
     assert.deepEqual(errors,[]);
   }finally{await browser.close();fs.rmSync(tmp,{recursive:true,force:true})}
   console.log(passed.map(s=>'PASS '+s).join('\n'));console.log(`modeling-cnc-price: ${passed.length} checks passed`);

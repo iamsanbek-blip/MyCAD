@@ -1,5 +1,8 @@
 # Rugby 1.1.2 — CNC nesting, panelni Drawing'da tahrirlash, aralash ulagich, narx (2026-11-23)
 
+- **«Butun korpus ▸ Ko'chirish» va ↺/↻ 90° tanlovga ishlaydi.** Biror panel (yoki guruh) tanlangan bo'lsa, X/Y/Z masofaga faqat tanlangan
+  panellar ko'chadi va buriladi; hech narsa tanlanmagan bo'lsa — butun korpus. Maydon ustidagi yozuv kim ko'chishini ko'rsatadi
+  («tanlangan 2 ta panel» yoki «butun korpus»).
 - **Panel tanlanganda material va uning list o'lchami.** Xossalar tepasida «LMDF · list [2750] × [1830] mm» — o'lcham shu yerda tahrirlanadi va
   materialga bog'lanadi (loyihada `ms`; oxirgi kiritilgani shu kompyuterda yangi loyihalar uchun eslab qolinadi; kiritilmagan materialga
   Cutlist «List hisobi» dagi umumiy o'lcham — «(umumiy)»). Narx, List hisobi va CNC'ga yuborish har material uchun o'z list o'lchamini
