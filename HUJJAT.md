@@ -1,5 +1,9 @@
 # Rugby 1.1.2 — CNC nesting, panelni Drawing'da tahrirlash, aralash ulagich, narx (2026-11-23)
 
+- **O'yiq — haqiqiy chuqurcha, qiya qo'shni panel izi.** Modeling'da o'yiq panelda chuqurligi bilan ko'rinadi (tubi va devorlari),
+  tekstura chiziqlari kesik va o'yiq ustidan o'tmaydi (avval «noma'lum chiziq» bo'lib ko'rinardi), OBJ eksportida ham kesik/o'yiq bor.
+  Panelni Drawing'da tahrirlaganda qiya (erkin burchakli) qo'shni panel izi haqiqiy qiya shaklda chiqadi (panel qalinligidagi kesimi),
+  qiya qirralari butun panel bo'ylab davom etadi — andoza olish va magnit bilan aniq chizish mumkin.
 - **Magnit ichki shakllarni ham topadi, zoom yaqinroq.** Modeling'da panel olib borilganda kesik burchaklari va qirralari (ikkala yuzada va
   devorida), o'yiq yuzasi va tubi, teshik markazlari magnit nuqtasi bo'ladi. Sichqoncha g'ildiragi kursor ostidagi nuqtaga qarab
   yaqinlashadi (o'sha nuqta ekranda joyida qoladi), eng yaqin masofa 100 mm emas, 2 mm; «Tanlanganga moslash» ham mayda detalga yaqinroq.

@@ -76,23 +76,41 @@ function place(p){if(!p.g)return;const g=p.g;g.scale.set(1,1,flatV()?.001:1);g.p
 function build(p){
   if(!inited)return;
   if(p.g){P.remove(p.g);p.g.traverse(o=>o.geometry&&o.geometry.dispose())}
-  const sh=new THREE.Shape(prof(p).map(a=>new THREE.Vector2(a[0]-p.w/2,a[1]-p.h/2)));
-  for(const o of p.ops||[])if(o.k==='c'&&o.th)sh.holes.push(new THREE.Path(o.pts.map(a=>new THREE.Vector2(a[0]-p.w/2,a[1]-p.h/2))));   // Drawing'da chizilgan ichki kesik — haqiqiy teshik
-  const geo=new THREE.ExtrudeGeometry(sh,{depth:p.t,bevelEnabled:false});geo.translate(0,0,-p.t/2);
-  const m=new THREE.Mesh(geo,fillMat);m.userData.pid=p.id;
-  const e=new THREE.LineSegments(new THREE.EdgesGeometry(geo,1),lineMat);
+  const PG=panelGeo(p),geo=PG.geo;
+  const m=new THREE.Mesh(geo,fillMat);m.userData.pid=p.id;m.userData.cuts=PG.cuts;m.userData.pockets=PG.pockets;
+  const e=new THREE.LineSegments(PG.edges,lineMat);
   p.g=new THREE.Group();p.g.add(m,e);{const eg=ebGroup(p);if(eg)p.g.add(eg)}{const gg=grainLines(p);if(gg)p.g.add(gg)}{const og=opsGroup(p);if(og)p.g.add(og)}P.add(p.g);place(p);p.g.visible=!p.hid;paint();
 }
+/* Panel jismi: kesik (k:'c', th) — haqiqiy teshik; o'yiq (k:'c', z) — haqiqiy chuqurcha: panel chuqurlik darajalari bo'yicha qatlamlarga
+   bo'linadi, har qatlamda shu qatlamni kesib o'tgan o'yiqlar teshik bo'ladi. Qirralar: o'yiqsiz jism qirralari + o'yiq konturi (yuzada, tubida,
+   burchak devorlari) — qatlamlar tutashgan joyda ortiqcha chiziq chiqmaydi. */
+function panelGeo(p){
+  const off=a=>new THREE.Vector2(a[0]-p.w/2,a[1]-p.h/2),ops=p.ops||[],cuts=ops.filter(o=>o.k==='c'&&o.th),pk=ops.filter(o=>o.k==='c'&&!o.th&&o.z>0&&o.z<p.t),t2=p.t/2;
+  const mk=(hs,z0,z1)=>{const sh=new THREE.Shape(prof(p).map(off));for(const o of hs)sh.holes.push(new THREE.Path(o.pts.map(off)));const g=new THREE.ExtrudeGeometry(sh,{depth:z1-z0,bevelEnabled:false});g.translate(0,0,z0);return g};
+  const base=mk(cuts,-t2,t2),edges=new THREE.EdgesGeometry(base,1);
+  if(!pk.length)return{geo:base,edges,cuts:cuts.length,pockets:0};
+  const zs=[...new Set([-t2,t2,...pk.map(o=>o.f==='B'?-t2+o.z:t2-o.z)].map(z=>+z.toFixed(4)))].sort((a,b)=>a-b),parts=[];
+  for(let i=0;i+1<zs.length;i++){const z0=zs[i],z1=zs[i+1],zm=(z0+z1)/2;parts.push(mk([...cuts,...pk.filter(o=>o.f==='B'?zm<-t2+o.z:zm>t2-o.z)],z0,z1))}
+  const geo=new THREE.BufferGeometry();for(const k of['position','normal','uv']){const arrs=parts.map(g=>g.attributes[k].array),n=arrs.reduce((a,b)=>a+b.length,0),out=new Float32Array(n);let o=0;for(const a of arrs){out.set(a,o);o+=a.length}geo.setAttribute(k,new THREE.BufferAttribute(out,k==='uv'?2:3))}
+  parts.forEach(g=>g.dispose());base.dispose();geo.computeBoundingSphere();
+  const ev=Array.from(edges.attributes.position.array);
+  for(const o of pk){const P=o.pts,n=P.length,sg=o.f==='B'?-1:1,zt=sg*t2,zb=sg*(t2-o.z),X=a=>a[0]-p.w/2,Y=a=>a[1]-p.h/2;
+    for(let i=0;i<n;i++){const a=P[i],b=P[(i+1)%n],c=P[(i+n-1)%n];for(const z of[zt,zb])ev.push(X(a),Y(a),z,X(b),Y(b),z);
+      const d1=[a[0]-c[0],a[1]-c[1]],d2=[b[0]-a[0],b[1]-a[1]],cr=Math.abs(d1[0]*d2[1]-d1[1]*d2[0])/((Math.hypot(...d1)*Math.hypot(...d2))||1);
+      if(cr>.17)ev.push(X(a),Y(a),zt,X(a),Y(a),zb)}}   // burchak devori (silliq yoyda emas)
+  const eg=new THREE.BufferGeometry();eg.setAttribute('position',new THREE.Float32BufferAttribute(ev,3));edges.dispose();
+  return{geo,edges:eg,cuts:cuts.length,pockets:pk.length}}
 let showGrain=true,grainMat=null;
 function grainLines(p){   // tekstura: panel ikki yuzasida yo'nalish bo'ylab ingichka chiziqlar (shakl ichida kesiladi)
   if(!hasGr(p)||!showGrain)return null;
-  const pr=prof(p).map(a=>[a[0]-p.w/2,a[1]-p.h/2]),n=pr.length,alongX=p.gr==='w',across=alongX?p.h:p.w,cnt=Math.max(4,Math.min(40,Math.round(across/35))),v=[];
-  for(let k=1;k<cnt;k++){const c=-across/2+across*k/cnt,xs=[];
-    for(let i=0;i<n;i++){const a=pr[i],b=pr[(i+1)%n],a1=alongX?a[1]:a[0],b1=alongX?b[1]:b[0];
-      if((a1<=c&&b1>c)||(b1<=c&&a1>c)){const t=(c-a1)/(b1-a1);xs.push(alongX?a[0]+t*(b[0]-a[0]):a[1]+t*(b[1]-a[1]))}}
-    xs.sort((u,w)=>u-w);
-    for(let j=0;j+1<xs.length;j+=2){const u0=xs[j]+3,u1=xs[j+1]-3;if(u1<=u0)continue;
-      for(const z of[p.t/2+.3,-p.t/2-.3])alongX?v.push(u0,c,z,u1,c,z):v.push(c,u0,z,c,u1,z)}}
+  const off=a=>[a[0]-p.w/2,a[1]-p.h/2],pr=prof(p).map(off),alongX=p.gr==='w',across=alongX?p.h:p.w,cnt=Math.max(4,Math.min(40,Math.round(across/35))),v=[];
+  const inner=(p.ops||[]).filter(o=>o.k==='c').map(o=>({pts:o.pts.map(off),s:o.th?0:(o.f==='B'?-1:1)}));   // kesik — ikkala yuzada, o'yiq — o'z yuzasida chiziq uziladi
+  for(const sg of[1,-1]){const loops=[pr,...inner.filter(h=>!h.s||h.s===sg).map(h=>h.pts)],z=sg*(p.t/2+.3);
+    for(let k=1;k<cnt;k++){const c=-across/2+across*k/cnt,xs=[];
+      for(const L of loops){const n=L.length;for(let i=0;i<n;i++){const a=L[i],b=L[(i+1)%n],a1=alongX?a[1]:a[0],b1=alongX?b[1]:b[0];
+        if((a1<=c&&b1>c)||(b1<=c&&a1>c)){const t=(c-a1)/(b1-a1);xs.push(alongX?a[0]+t*(b[0]-a[0]):a[1]+t*(b[1]-a[1]))}}}
+      xs.sort((u,w)=>u-w);
+      for(let j=0;j+1<xs.length;j+=2){const u0=xs[j]+3,u1=xs[j+1]-3;if(u1<=u0)continue;alongX?v.push(u0,c,z,u1,c,z):v.push(c,u0,z,c,u1,z)}}}
   if(!v.length)return null;
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(v,3));
   const ls=new THREE.LineSegments(g,grainMat);ls.userData.grain=1;return ls}
@@ -107,7 +125,8 @@ function opsGroup(p){
     if(o.k==='d'){for(const z of o.th?[zA,-zA]:[o.f==='A'?zA:-zA])ring(o.u+ox,o.v+oy,z,o.d/2)}
     else if(o.k==='g'||o.k==='s'||o.k==='t'){const x0=o.u0+ox,y0=o.v0+oy,x1=o.u1+ox,y1=o.v1+oy;   // paz; ship-paz teshigi (s) va tishi (t) — ikkala yuzada
       for(const z of o.k==='g'?[o.f==='A'?zA:-zA]:[zA,-zA])v.push(x0,y0,z,x1,y0,z,x1,y0,z,x1,y1,z,x1,y1,z,x0,y1,z,x0,y1,z,x0,y0,z)}
-    else if(o.k==='c'){const P=o.pts,n=P.length;for(const z of o.th?[zA,-zA]:[o.f==='A'?zA:-zA])for(let i=0;i<n;i++){const a=P[i],b=P[(i+1)%n];v.push(a[0]+ox,a[1]+oy,z,b[0]+ox,b[1]+oy,z)}}   // kesik / o'yiq konturi
+    else if(o.k==='c'){const P=o.pts,n=P.length,sg=o.f==='B'?-1:1;   // kesik — ikkala yuzada, o'yiq — o'z yuzasida (chuqurligi jismda ko'rinadi)
+      for(const z of o.th?[zA,-zA]:[sg*zA])for(let i=0;i<n;i++){const a=P[i],b=P[(i+1)%n];v.push(a[0]+ox,a[1]+oy,z,b[0]+ox,b[1]+oy,z)}}
     else if(o.k==='e'){const n=o.n||[0,0],x=o.u+ox-n[0]*.4,y=o.v+oy-n[1]*.4,z=o.c||0,r=o.d/2,tx=-n[1],ty=n[0];
       for(let i=0;i<16;i++){const a=i/16*TAU,b=(i+1)/16*TAU;v2.push(x+tx*r*Math.cos(a),y+ty*r*Math.cos(a),z+r*Math.sin(a),x+tx*r*Math.cos(b),y+ty*r*Math.cos(b),z+r*Math.sin(b))}
       v2.push(o.u+ox,o.v+oy,z,o.u+ox+n[0]*o.z,o.v+oy+n[1]*o.z,z)}}
@@ -1045,8 +1064,8 @@ function objText(unit){   // unit: 0.001 = metr (Blender standarti), 1 = mm. Y �
   const out=['# Rugby 1.1.2 — Panel 3D eksport','# birlik: '+(unit===1?'mm':'metr')+'; o\'qlar: Y yuqoriga'];let base=0;
   for(const p of panels){
     if(p.hid)continue;
-    const sh=new THREE.Shape(prof(p).map(a=>new THREE.Vector2(a[0]-p.w/2,a[1]-p.h/2))),geo=new THREE.ExtrudeGeometry(sh,{depth:p.t,bevelEnabled:false});
-    geo.translate(0,0,-p.t/2);const m=Wof(p);geo.applyMatrix4(new THREE.Matrix4().set(m[0],m[1],m[2],p.x,m[3],m[4],m[5],p.y,m[6],m[7],m[8],p.z,0,0,0,1));
+    const PG=panelGeo(p),geo=PG.geo;PG.edges.dispose();   // kesik va o'yiq bilan
+    const m=Wof(p);geo.applyMatrix4(new THREE.Matrix4().set(m[0],m[1],m[2],p.x,m[3],m[4],m[5],p.y,m[6],m[7],m[8],p.z,0,0,0,1));
     const pos=geo.attributes.position,idx=new Map(),verts=[],faces=[];
     for(let i=0;i<pos.count;i+=3){const f=[];
       for(let k=0;k<3;k++){const x=pos.getX(i+k)*unit,y=pos.getY(i+k)*unit,z=pos.getZ(i+k)*unit,key=x.toFixed(6)+','+y.toFixed(6)+','+z.toFixed(6);
@@ -1546,21 +1565,39 @@ let p3edit=null;
    qirralaridan butun panel bo'ylab davom etuvchi chiziqlar, panel o'rta chiziqlari. Magnit ularga yopishadi; «Modeling'ga qaytarish» ularni
    hisobga olmaydi (faqat chizish uchun). Qo'shni = panel qalinligi qatlamiga ±3 mm yaqin. */
 function guideData(p){   // sahifa almashishidan OLDIN (model panellari hali yuklangan) hisoblanadi
-  if(!HW)return null;const tol=3,W=p.w,H=p.h,us=new Set([0,W,W/2]),vs=new Set([0,H,H/2]),rects=[];
-  for(const q of panels){if(q===p||q.hid)continue;const b=boxOf(q),cs=[];
-    for(const x of b[0])for(const y of b[1])for(const z of b[2])cs.push(HW.toLocal(p,[x,y,z]));
-    const zr=[Math.min(...cs.map(c=>c[2])),Math.max(...cs.map(c=>c[2]))];if(zr[1]<-p.t/2-tol||zr[0]>p.t/2+tol)continue;
-    const u0=+Math.min(...cs.map(c=>c[0])).toFixed(2),u1=+Math.max(...cs.map(c=>c[0])).toFixed(2),v0=+Math.min(...cs.map(c=>c[1])).toFixed(2),v1=+Math.max(...cs.map(c=>c[1])).toFixed(2);
-    if(u1<-tol||u0>W+tol||v1<-tol||v0>H+tol)continue;rects.push({u0,u1,v0,v1,n:String(q.n||'Panel')});
-    [u0,u1].forEach(u=>{if(u>-tol&&u<W+tol)us.add(u)});[v0,v1].forEach(v=>{if(v>-tol&&v<H+tol)vs.add(v)})}
-  return{W,H,rects,us:[...us],vs:[...vs]}}
+  if(!HW)return null;const tol=3,W=p.w,H=p.h,us=new Set([0,W,W/2]),vs=new Set([0,H,H/2]),rects=[],polys=[],slant=[];
+  const zl=-p.t/2-tol,zh=p.t/2+tol;
+  for(const q of panels){if(q===p||q.hid)continue;
+    // q jismi (haqiqiy yo'nalish — qiya ham) p koordinatasida; p qalinligi qatlami (±tol) bilan kesimi → tekislikka proyeksiya → qavariq qobiq
+    const m=Wof(q),pr=prof(q).map(a=>[a[0]-q.w/2,a[1]-q.h/2]),L=(a,z)=>HW.toLocal(p,[q.x+m[0]*a[0]+m[1]*a[1]+m[2]*z,q.y+m[3]*a[0]+m[4]*a[1]+m[5]*z,q.z+m[6]*a[0]+m[7]*a[1]+m[8]*z]);
+    const top=pr.map(a=>L(a,q.t/2)),bot=pr.map(a=>L(a,-q.t/2)),n=pr.length,E=[];for(let i=0;i<n;i++){const j=(i+1)%n;E.push([top[i],top[j]],[bot[i],bot[j]],[top[i],bot[i]])}
+    const pts=[...top,...bot].filter(c=>c[2]>=zl&&c[2]<=zh).map(c=>[c[0],c[1]]);
+    for(const[a,b]of E)for(const zc of[zl,zh])if((a[2]-zc)*(b[2]-zc)<0){const t=(zc-a[2])/(b[2]-a[2]);pts.push([a[0]+t*(b[0]-a[0]),a[1]+t*(b[1]-a[1])])}
+    if(pts.length<3)continue;const hull=hull2(pts).map(c=>[+c[0].toFixed(2),+c[1].toFixed(2)]);if(hull.length<3)continue;
+    const xs=hull.map(c=>c[0]),ys=hull.map(c=>c[1]),u0=Math.min(...xs),u1=Math.max(...xs),v0=Math.min(...ys),v1=Math.max(...ys);
+    if(u1<-tol||u0>W+tol||v1<-tol||v0>H+tol)continue;
+    const box=hull.length===4&&hull.every(c=>(Math.abs(c[0]-u0)<.01||Math.abs(c[0]-u1)<.01)&&(Math.abs(c[1]-v0)<.01||Math.abs(c[1]-v1)<.01));
+    if(box){rects.push({u0,u1,v0,v1,n:String(q.n||'Panel')});[u0,u1].forEach(u=>{if(u>-tol&&u<W+tol)us.add(u)});[v0,v1].forEach(v=>{if(v>-tol&&v<H+tol)vs.add(v)})}
+    else{polys.push({pts:hull,n:String(q.n||'Panel')});   // qiya iz: haqiqiy shakl + qiya qirralari butun panel bo'ylab davom etadi
+      for(let i=0;i<hull.length;i++){const a=hull[i],b=hull[(i+1)%hull.length],dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy);if(l<1)continue;
+        if(Math.abs(dx)<.01){if(a[0]>-tol&&a[0]<W+tol)us.add(a[0]);continue}if(Math.abs(dy)<.01){if(a[1]>-tol&&a[1]<H+tol)vs.add(a[1]);continue}slant.push([a,[dx/l,dy/l]])}}}
+  return{W,H,rects,polys,slant,us:[...us],vs:[...vs]}}
+function hull2(P){const p=P.map(a=>[+a[0].toFixed(3),+a[1].toFixed(3)]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]),cr=(o,a,b)=>(a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]),lo=[],up=[];
+  for(const q of p){while(lo.length>=2&&cr(lo[lo.length-2],lo[lo.length-1],q)<=1e-9)lo.pop();lo.push(q)}
+  for(let i=p.length-1;i>=0;i--){const q=p[i];while(up.length>=2&&cr(up[up.length-2],up[up.length-1],q)<=1e-9)up.pop();up.push(q)}
+  up.pop();lo.pop();return lo.concat(up)}
 function editGuides(gd,L){
   if(!gd)return 0;const G=L('YORDAMCHI',8),M=120,ly=layers.find(l=>l.id===G);if(ly){ly.color='#5f7088';ly.aci=8;ly.locked=true}   // qulf: tanlanmaydi/o'zgarmaydi, magnit — snap.js (p3g)
   const push=(pts,closed,kind,col)=>drawnLines.unshift({kind:kind||'line',closed:!!closed,selected:false,layer:G,color:col||'#46546a',points:pts,grips:pts.map(o=>({x:o.x,y:o.y})),p3g:1});   // kulrang: iz — ochroq, davom chiziqlari — xira
   gd.rects.forEach((r,k)=>{push(genRectPts({x:r.u0,y:r.v0},{x:r.u1,y:r.v1}),true,'rect','#7f93ad');const h=Math.max(12,Math.min(40,Math.min(r.u1-r.u0,r.v1-r.v0,200)/3));
     if(typeof texts!=='undefined')texts.push({id:typeof newTextId==='function'?newTextId():'tg'+k,x:(r.u0+r.u1)/2-r.n.length*h*.28,y:(r.v0+r.v1)/2-h/2,text:r.n,size:h,rot:0,color:'#8fa3bf',layer:G,selected:false})});
+  for(const r of gd.polys||[]){const pp=r.pts.map(c=>({x:c[0],y:c[1]}));push(pp,true,'line','#7f93ad');const cx=pp.reduce((s,o)=>s+o.x,0)/pp.length,cy=pp.reduce((s,o)=>s+o.y,0)/pp.length,h=24;
+    if(typeof texts!=='undefined')texts.push({id:typeof newTextId==='function'?newTextId():'tgp',x:cx-r.n.length*h*.28,y:cy-h/2,text:r.n,size:h,rot:0,color:'#8fa3bf',layer:G,selected:false})}
+  for(const[a,d]of gd.slant||[]){   // qiya qirraning davomi — panel to'rtburchagi (+M) ichida
+    const ts=[];for(const[k,lim]of[[0,-M],[0,gd.W+M],[1,-M],[1,gd.H+M]]){if(Math.abs(d[k])<1e-9)continue;const t=(lim-a[k])/d[k],o=a[1-k]+t*d[1-k];if(o>=(k?-M:-M)-1e-6&&o<=(k?gd.W+M:gd.H+M)+1e-6)ts.push(t)}
+    if(ts.length>=2){const t0=Math.min(...ts),t1=Math.max(...ts);push([{x:a[0]+d[0]*t0,y:a[1]+d[1]*t0},{x:a[0]+d[0]*t1,y:a[1]+d[1]*t1}])}}
   for(const u of gd.us)push([{x:u,y:-M},{x:u,y:gd.H+M}]);for(const v of gd.vs)push([{x:-M,y:v},{x:gd.W+M,y:v}]);
-  return gd.rects.length}
+  return gd.rects.length+(gd.polys||[]).length}
 function editInDrawing(p){
   if(typeof addPage!=='function'||typeof documentPages==='undefined'){startDraw(p);return false}
   if(p3edit)editCancel();

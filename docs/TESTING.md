@@ -1,3 +1,16 @@
+# O'yiq haqiqiy chuqurcha, tekstura kesikda uziladi, qiya qo'shni panel izi — 2026-11-26 (Linux)
+
+- `modeling-cnc-price` 22: o'yiq geometriyasida tubi (z = 8−6) bor, panel chetida o'yiq chuqurligida qirra chizig'i yo'q; teksturali
+  panelda tekstura chizig'i kesik ustidan o'tmaydi; 10° (X o'qi atrofida) qiya polka — bokani Drawing'da tahrirlaganda izi qiya
+  ko'pburchak (balandligi 16 mm dan katta, nomi bilan) va qiya qirra davom chizig'i. Skrinshotda ko'rildi (Chromium, SwiftShader):
+  o'yiq chuqurcha bo'lib ko'rinadi, kesik — teshik, qiya iz — parallelogramm.
+- Sabab topildi: tekstura chiziqlari faqat tashqi kontur bilan kesilardi — kesik/o'yiq ustidan o'tib «ortiqcha chiziq» bo'lib
+  ko'rinardi; o'yiq faqat yuzadagi chiziq edi. OBJ eksportida ham endi kesik va o'yiq bor.
+- O'tdi: `npm run check`, `npm test`, `panel3d-hw`, `panel3d-hw-ui`, `modeling-precision`, `smart-autoname`, `panel3d`, `panel3d-export`,
+  Electron `modeling-smoke`, `electron-smoke`, `panel-types-smoke`, `stretch-select`. EXE qayta yig'ilmagan.
+
+---
+
 # Magnit ichki shakllarga, g'ildirak kursorga qarab yaqinlashadi — 2026-11-26 (Linux)
 
 - `modeling-cnc-price` 21: kesik burchagi (u=100, v=200) ikkala yuzada, o'yiq yuzasi va 6 mm tubi magnit nuqtalarida; Right ko'rinishda

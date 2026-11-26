@@ -272,8 +272,12 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     await page.fill('#p3edZ','6');await page.press('#p3edZ','Enter');await page.locator('#p3edPk').click();assert.equal(await ev(()=>activeLayer),'POCKET_Z6');
     await ev(()=>{const r=genRectPts({x:150,y:500},{x:350,y:600});drawnLines.push({kind:'rect',closed:true,selected:false,layer:activeLayer,points:r,grips:r.map(o=>({...o}))})});
     await page.locator('#p3edOk').click();await page.waitForFunction(()=>Panel3D.isOpen());
-    const C=await ev(()=>{const p=Panel3D._state().panels[0],cs=(p.ops||[]).filter(o=>o.k==='c'),g=p.g.children[0].geometry;return{cs,holes:g.parameters.shapes.holes.length,dxf:Panel3D._hw.dxf().text}});
+    const C=await ev(()=>{const p=Panel3D._state().panels[0],cs=(p.ops||[]).filter(o=>o.k==='c'),m=p.g.children[0],gp=m.geometry.attributes.position.array,ep=p.g.children[1].geometry.attributes.position.array;let floor=0,extra=0;
+      for(let i=0;i<gp.length;i+=3)if(Math.abs(gp[i+2]-2)<1e-3&&gp[i]>-100.01&&gp[i]<99.99&&gp[i+1]>139.99&&gp[i+1]<240.01)floor++;   // o'yiq tubi: z=8−6, u 150..350 → x −100..100
+      for(let i=0;i<ep.length;i+=6)if(Math.abs(ep[i+2]-2)<1e-3&&Math.abs(ep[i+5]-2)<1e-3&&(Math.abs(Math.abs(ep[i])-250)<1e-3&&Math.abs(Math.abs(ep[i+3])-250)<1e-3||Math.abs(Math.abs(ep[i+1])-360)<1e-3&&Math.abs(Math.abs(ep[i+4])-360)<1e-3))extra++;
+      return{cs,holes:m.userData.cuts,pk:m.userData.pockets,floor,extra,dxf:Panel3D._hw.dxf().text}});
     assert.equal(C.cs.length,2);assert.ok(C.cs.some(o=>o.th&&o.pts.length===4));assert.ok(C.cs.some(o=>!o.th&&o.z===6&&o.f==='A'));assert.equal(C.holes,1,'3D: kesik — haqiqiy teshik');
+    assert.equal(C.pk,1);assert.ok(C.floor>0,"3D: o'yiq tubi 6 mm chuqurlikda");assert.equal(C.extra,0,"panel chetida o'yiq chuqurligida ortiqcha chiziq yo'q");
     assert.match(C.dxf,/POCKET_Z6/);
     await ev(()=>Panel3D._edit(1));await page.waitForFunction(()=>Panel3D._editing());assert.deepEqual(await ev(()=>drawnLines.filter(l=>l.p3op&&l.kind==='line').map(l=>l.layer).sort()),['CUT_Z16','POCKET_Z6']);
     await page.locator('#p3edOk').click();await page.waitForFunction(()=>Panel3D.isOpen());assert.equal(await ev(()=>Panel3D._state().panels[0].ops.filter(o=>o.k==='c').length),2,'qayta ochib-yopilganda saqlanadi');
@@ -286,6 +290,19 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     passed.push(`Magnit: kesik va o'yiq burchaklari topiladi; g'ildirak kursor ostidagi panel nuqtasiga yaqinlashdi (masofa ${zc.R.toFixed(0)} mm, nuqta joyida)`);
     await ev(()=>Panel3D._cnc());const cn=await ev(()=>({pk:drawnLines.filter(l=>l.layer==='POCKET_Z6'&&l.p3op).length,cut:drawnLines.filter(l=>l.layer==='CUT_Z16'&&l.p3op).length}));
     assert.deepEqual(cn,{pk:1,cut:1},'CNC sahifasida o\'yiq va kesik detal guruhida');
+    // tekstura chiziqlari kesik ichidan o'tmaydi; qiya qo'shni panel izi Drawing'da haqiqiy (qiya) shaklda
+    const gx=await ev(()=>{Panel3D.load({T:16,uid:10,panels:[{id:1,n:'boka',w:500,h:720,t:16,o:'front',x:0,y:360,z:0,gr:'h',ops:[{k:'c',th:1,pts:[[100,200],[300,200],[300,400],[100,400]],t:'man'}]}]});
+      const p=Panel3D._state().panels[0],g=p.g.children.find(c=>c.userData&&c.userData.grain).geometry.attributes.position.array;let bad=0;
+      for(let i=0;i<g.length;i+=6){const x=(g[i]+g[i+3])/2,y0=Math.min(g[i+1],g[i+4]),y1=Math.max(g[i+1],g[i+4]);if(x>-150&&x<50&&y0<40&&y1>-160)bad++}return bad});
+    assert.equal(gx,0,'tekstura chizig\'i kesik ustidan o\'tmaydi');
+    await ev(()=>{const s=Math.sin(Math.PI/36),c=Math.cos(Math.PI/36);Panel3D.load({T:16,uid:10,panels:[{id:1,n:'boka',w:500,h:720,t:16,o:'side',x:8,y:360,z:0},{id:2,n:'qiya polka',w:600,h:400,t:16,o:'flat',x:300,y:400,z:0,rt:[s,0,0,c]}]});Panel3D._edit(1)});
+    await page.waitForFunction(()=>Panel3D._editing());
+    const qg=await ev(()=>({g:Panel3D._guides(),t:texts.some(t=>t.text==='qiya polka'&&t.layer==='YORDAMCHI')}));
+    const poly=qg.g.find(g=>g.k==='line'&&g.pts.length>=4);assert.ok(poly&&qg.t,JSON.stringify(qg.g.slice(0,3)));
+    const vs=poly.pts.map(q=>q[1]),us=poly.pts.map(q=>q[0]);assert.ok(Math.max(...vs)-Math.min(...vs)>16.5,'qiya iz — 16 mm dan baland (to\'rtburchak emas)');assert.ok(Math.max(...us)-Math.min(...us)>390,'chuqurligi bo\'yicha ~400');
+    assert.ok(qg.g.some(g=>g.k==='line'&&g.pts.length===2&&Math.abs(g.pts[0][1]-g.pts[1][1])>1&&Math.abs(g.pts[0][0]-g.pts[1][0])>1),'qiya qirra davom chizig\'i');
+    await page.locator('#p3edNo').click();await page.waitForFunction(()=>Panel3D.isOpen());
+    passed.push("O'yiq 3D da haqiqiy chuqurcha (tubi 6 mm), panel chetida ortiqcha chiziq yo'q; tekstura chiziqlari kesik ustidan o'tmaydi; 10° qiya polka izi Drawing'da qiya ko'pburchak (nomi bilan)");
     passed.push("Drawing tahriri: yordamchi chiziqlar qulflangan (Ctrl+A tanlamaydi, magnit yopishadi); ichki to'rtburchak — kesik (3D teshik), «O'yiq 6 mm» — POCKET_Z6 (DXF'da), qayta ochilganda o'z qatlamida; CNC sahifasida detal guruhida");
     assert.deepEqual(errors,[]);
   }finally{await browser.close();fs.rmSync(tmp,{recursive:true,force:true})}
