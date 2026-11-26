@@ -30,7 +30,7 @@ const DEF={
   handle:{s:128,off:40,d:5},
   groove:{on:true,maxT:10,cl:.5,z:8},
   tab:{w:40,e:25,cl:.2,d:6,bone:true},   // ship-paz (metallsiz): tish eni, chetdan, zazor, freza Ø (dogbone), burchak o'yig'i
-  dxf:{drills:'5,7,8,15,35',tol:.3,snap:true,dec:'_',cut:'CUT_Z{t}',drill:'DRILL_D{d}_Z{z}',thru:'DRILL_D{d}_THRU',groove:'GROOVE_W{w}_Z{z}',edge:'HDRILL_D{d}_Z{z}',gap:100,rowW:6000}
+  dxf:{drills:'5,7,8,15,35',tol:.3,snap:true,dec:'_',cut:'CUT_Z{t}',drill:'DRILL_D{d}_Z{z}',thru:'DRILL_D{d}_THRU',groove:'GROOVE_W{w}_Z{z}',pocket:'POCKET_Z{z}',edge:'HDRILL_D{d}_Z{z}',gap:100,rowW:6000}
 };
 const clone=o=>JSON.parse(JSON.stringify(o));
 function merge(base,o){const r=clone(base);if(!o||typeof o!=='object')return r;
@@ -65,7 +65,7 @@ function create(G){
     return Object.assign({k:'e',u:R2(l[0]),v:R2(l[1]),c:R2(l[2]),n:[Math.round(n[0]),Math.round(n[1])]},o)}
 
   /* ---- ulanishlarni topish ---- */
-  function joint(A,B,tol){const loose=role(A)==='door';   // fasad yon bokani to'liq yopmasligi mumkin (2 mm zazor)
+  function joint(A,B,tol){if(A.rt||B.rt)return null;const loose=role(A)==='door';   // erkin burchakka burilgan (qiya) panel — avtomatik ulanish yo'q   // fasad yon bokani to'liq yopmasligi mumkin (2 mm zazor)
     const ta=tAx(A),tb=tAx(B);if(ta===tb)return null;
     const a=box(A),b=box(B),gp=b[ta][0]-a[ta][1],gm=a[ta][0]-b[ta][1];
     const s=Math.abs(gp)<=Math.abs(gm)?1:-1,gap=s>0?gp:gm;
@@ -190,20 +190,24 @@ function create(G){
       if(o.d>p.t-2)out.push(`${nm}: chet teshigi Ø${f2(o.d)} qalinlik ${f2(p.t)} mm ga sig'maydi`);
       if(dEdge(P,o.u,o.v)>1)out.push(`${nm}: chet teshigi (${f2(o.u)}; ${f2(o.v)}) qirrada emas — o'lcham o'zgargan bo'lsa «Furniturala»ni qayta bosing`)}
     for(const o of ops.filter(o=>o.k==='g'))if(!inPoly(P,(o.u0+o.u1)/2,(o.v0+o.v1)/2))out.push(`${nm}: paz panel tashqarisida`);
+    for(const o of ops.filter(o=>o.k==='c')){if(!o.pts.every(q=>inPoly(P,q[0],q[1])))out.push(`${nm}: ${o.th?'kesik':"o'yiq"} panel chetidan chiqib ketgan`);
+      if(!o.th&&o.z>=p.t)out.push(`${nm}: o'yiq chuqurligi ${f2(o.z)} — qalinlik ${f2(p.t)} dan kam bo'lishi kerak`)}
     return out}
 
   /* ---- panel o'zgarishlarida teshiklarni moslash ---- */
   function rot90(p,wOld){if(!p.ops)return;   // eni↔bo'yi: (u,v) → (v, w−u)
-    for(const o of p.ops){if(o.k==='g'||o.k==='s'||o.k==='t'){const a=[o.v0,wOld-o.u0],b=[o.v1,wOld-o.u1];o.u0=Math.min(a[0],b[0]);o.u1=Math.max(a[0],b[0]);o.v0=Math.min(a[1],b[1]);o.v1=Math.max(a[1],b[1]);continue}
+    for(const o of p.ops){if(o.k==='c'){o.pts=o.pts.map(q=>[q[1],R2(wOld-q[0])]);continue}if(o.k==='g'||o.k==='s'||o.k==='t'){const a=[o.v0,wOld-o.u0],b=[o.v1,wOld-o.u1];o.u0=Math.min(a[0],b[0]);o.u1=Math.max(a[0],b[0]);o.v0=Math.min(a[1],b[1]);o.v1=Math.max(a[1],b[1]);continue}
       [o.u,o.v]=[o.v,R2(wOld-o.u)];if(o.n)o.n=[o.n[1],-o.n[0]]}}
   function mirror(p,k){if(!p.ops)return;   // k: 'w' | 'h' | 't'
     for(const o of p.ops){
       if(k==='t'){if(o.f)o.f=o.f==='A'?'B':'A';if(o.k==='e')o.c=-o.c;continue}
       const i=k==='w'?0:1,W=k==='w'?p.w:p.h;
+      if(o.k==='c'){o.pts=o.pts.map(q=>i===0?[R2(W-q[0]),q[1]]:[q[0],R2(W-q[1])]);continue}
       if(o.k==='g'||o.k==='s'||o.k==='t'){if(i===0)[o.u0,o.u1]=[R2(W-o.u1),R2(W-o.u0)];else[o.v0,o.v1]=[R2(W-o.v1),R2(W-o.v0)];continue}
       if(i===0)o.u=R2(W-o.u);else o.v=R2(W-o.v);if(o.n)o.n[i]=-o.n[i]}}
   function sanitize(ops){if(!Array.isArray(ops))return undefined;
-    const R=o=>o.k==='g'||o.k==='s'||o.k==='t',ok=o=>o&&typeof o==='object'&&(o.k==='d'||o.k==='e'||R(o))&&(R(o)||['u','v','d','z'].every(k=>Number.isFinite(+o[k])))&&(!R(o)||['u0','v0','u1','v1'].every(k=>Number.isFinite(+o[k]))&&(o.k!=='g'||Number.isFinite(+o.z)));
+    const C=o=>o&&o.k==='c'&&Array.isArray(o.pts)&&o.pts.length>=3&&o.pts.every(q=>Array.isArray(q)&&Number.isFinite(+q[0])&&Number.isFinite(+q[1]))&&(o.th||+o.z>0);
+    const R=o=>o.k==='g'||o.k==='s'||o.k==='t',ok=o=>C(o)||o&&typeof o==='object'&&(o.k==='d'||o.k==='e'||R(o))&&(R(o)||['u','v','d','z'].every(k=>Number.isFinite(+o[k])))&&(!R(o)||['u0','v0','u1','v1'].every(k=>Number.isFinite(+o[k]))&&(o.k!=='g'||Number.isFinite(+o.z)));
     const r=ops.filter(ok).map(o=>clone(o));return r.length?r:undefined}
 
   /* ---- sverloga yaxlitlash (masalan Ø5.2 → Ø5) ---- */
@@ -248,15 +252,16 @@ function create(G){
   /* ---- qatlam nomlari (DXF va CNC sahifasi uchun bir xil) ---- */
   function layerNames(opts){const o=merge(DEF,opts).dxf,num=v=>f2(v).replace('.',o.dec),
       ly=(tpl,x)=>tpl.replace(/\{(\w)\}/g,(_,k)=>x[k]!==undefined?num(x[k]):'').replace(/[^A-Za-z0-9_$-]/g,'_').slice(0,31)||'0';
-    return{cut:t=>ly(o.cut,{t}),drill:(d,z)=>ly(o.drill,{d,z}),thru:(d,t)=>ly(o.thru,{d,z:t}),groove:(w,z)=>ly(o.groove,{w,z}),edge:(d,z)=>ly(o.edge,{d,z})}}
+    return{cut:t=>ly(o.cut,{t}),drill:(d,z)=>ly(o.drill,{d,z}),thru:(d,t)=>ly(o.thru,{d,z:t}),groove:(w,z)=>ly(o.groove,{w,z}),pocket:z=>ly(o.pocket,{z}),edge:(d,z)=>ly(o.edge,{d,z})}}
   /* ---- CNC nesting uchun tekis detal: bitta ishlov tomoni (ko'r teshik/pazi ko'p tomon, B bo'lsa — ko'zgu), teksturali panel
      tekstura X (list uzunligi) bo'ylab yotqiziladi va burilmaydi. Ikkinchi tomondagi ko'r teshik va chet teshiklari — faqat sanaladi. ---- */
   function flat(p,opts){const O=merge(DEF,opts),map=drillMap(O.dxf),N=layerNames(O),ops=p.ops||[];
-    const cnt=f=>ops.filter(x=>(x.k==='d'&&!x.th&&x.f===f)||(x.k==='g'&&x.f===f)).length,side=cnt('B')>cnt('A')?'B':'A';
+    const cnt=f=>ops.filter(x=>(x.k==='d'&&!x.th&&x.f===f)||((x.k==='g'||x.k==='c'&&!x.th)&&x.f===f)).length,side=cnt('B')>cnt('A')?'B':'A';
     const W=p.w,H=p.h,rot=p.gr==='h';   // tekstura bo'yi bo'ylab → 90° (X ga)
     const T=(u,v)=>{const x=side==='B'?W-u:u;return rot?[v,W-x]:[x,v]};
-    const circles=[],rects=[],mapped=[];let other=0,edge=0;
+    const circles=[],rects=[],polys=[],mapped=[];let other=0,edge=0;
     for(const x of ops){
+      if(x.k==='c'){if(x.th)continue;if(x.f!==side){other++;continue}polys.push({pts:x.pts.map(q=>T(q[0],q[1])),layer:N.pocket(x.z)});continue}   // o'yiq (kontur bo'yicha chuqurlik)
       if(x.k==='e'){edge++;continue}
       if(x.k==='d'){if(!x.th&&x.f!==side){other++;continue}const r=map(x.d);if(r.m)mapped.push(f2(x.d)+'→'+f2(r.d));
         const c=T(x.u,x.v);circles.push({x:c[0],y:c[1],r:r.d/2,layer:x.th?N.thru(r.d,p.t):N.drill(r.d,x.z),none:!!r.none});continue}
@@ -264,10 +269,11 @@ function create(G){
         rects.push({x0:Math.min(a[0],b[0]),y0:Math.min(a[1],b[1]),x1:Math.max(a[0],b[0]),y1:Math.max(a[1],b[1]),layer:N.groove(w,x.z)})}}
     let contour=arcPts(outline(p)).map(q=>T(q[0],q[1]));if(side==='B')contour.reverse();
     const cuts=ops.filter(x=>x.k==='s'&&slotInside(p,x)).map(x=>arcPts(slotLoop(x)).map(q=>T(q[0],q[1])));   // ship-paz teshiklari — kesib o'tiladi (kontur qatlami)
+    for(const x of ops)if(x.k==='c'&&x.th)cuts.push(x.pts.map(q=>T(q[0],q[1])));   // Drawing'da chizilgan ichki kesik (teshik)
     const xs=contour.map(c=>c[0]),ys=contour.map(c=>c[1]),x0=Math.min(...xs),y0=Math.min(...ys);
     if(x0<0||y0<0){const sh=c=>[c[0]-Math.min(0,x0),c[1]-Math.min(0,y0)];contour=contour.map(sh);for(const k of cuts.keys())cuts[k]=cuts[k].map(sh);
-      for(const c of circles){c.x-=Math.min(0,x0);c.y-=Math.min(0,y0)}for(const r of rects){r.x0-=Math.min(0,x0);r.x1-=Math.min(0,x0);r.y0-=Math.min(0,y0);r.y1-=Math.min(0,y0)}}
-    return{name:p.n||'Panel',id:p.id,side,rot,noRot:!!p.gr,w:Math.max(...contour.map(c=>c[0])),h:Math.max(...contour.map(c=>c[1])),contour,cuts,cut:N.cut(p.t),circles,rects,other,edge,mapped}}
+      for(const c of circles){c.x-=Math.min(0,x0);c.y-=Math.min(0,y0)}for(const pl of polys)pl.pts=pl.pts.map(sh);for(const r of rects){r.x0-=Math.min(0,x0);r.x1-=Math.min(0,x0);r.y0-=Math.min(0,y0);r.y1-=Math.min(0,y0)}}
+    return{name:p.n||'Panel',id:p.id,side,rot,noRot:!!p.gr,w:Math.max(...contour.map(c=>c[0])),h:Math.max(...contour.map(c=>c[1])),contour,cuts,cut:N.cut(p.t),circles,rects,polys,other,edge,mapped}}
 
   /* ---- DXF (AutoCAD R12): har panel — A tomoni (+ B tomoni, ko'zgu) ---- */
   function dxf(ps,opts){
@@ -282,13 +288,14 @@ function create(G){
     const text=(x,y,h,s,layer)=>E.push('0\nTEXT\n8\n'+layer+'\n10\n'+f2(x)+'\n20\n'+f2(y)+'\n30\n0\n40\n'+h+'\n1\n'+String(s).replace(/[\r\n]+/g,' ')+'\n');
     const drill=o2=>{const r=map(o2.d);if(r.m){const k=f2(o2.d)+'→'+f2(r.d);note.set(k,(note.get(k)||0)+1)}if(r.none)none.set(f2(o2.d),(none.get(f2(o2.d))||0)+1);return r.d};
     for(const p of ps){
-      const ops=p.ops||[],P=prof(p),hasB=ops.some(x=>(x.k==='d'&&x.f==='B'&&!x.th)||(x.k==='g'&&x.f==='B'));
+      const ops=p.ops||[],P=prof(p),hasB=ops.some(x=>(x.k==='d'&&x.f==='B'&&!x.th)||((x.k==='g'||x.k==='c'&&!x.th)&&x.f==='B'));
       for(const side of hasB?['A','B']:['A']){
         const W=p.w,H=p.h,mx=side==='B'?(u=>W-u):(u=>u);
         if(cx>0&&cx+W>o.rowW){cx=0;cy-=rowH+o.gap+60;rowH=0}
         const X=u=>cx+mx(u),Y=v=>cy+v;
         poly(loopPts(outline(p),X,Y,side==='B'),L(ly(o.cut,{t:p.t}),7));   // tishlar (ship-paz) bilan
         for(const x of ops)if(x.k==='s'&&slotInside(p,x))poly(loopPts(slotLoop(x),X,Y,side==='B'),L(ly(o.cut,{t:p.t}),7));
+        for(const x of ops)if(x.k==='c'&&(x.th||x.f===side)){if(!x.th)nGr++;poly(x.pts.map(q=>[X(q[0]),Y(q[1])]),x.th?L(ly(o.cut,{t:p.t}),7):L(ly(o.pocket,{z:x.z}),4))}   // ichki kesik — kontur qatlamida; o'yiq — POCKET_Z
         for(const x of ops){
           if(x.k==='d'){if(side==='A'?!(x.f==='A'||x.th):!(x.f==='B'&&!x.th))continue;const d=drill(x);nDr++;
             circ(X(x.u),Y(x.v),d/2,x.th?L(ly(o.thru,{d,z:p.t}),5):L(ly(o.drill,{d,z:x.z}),1))}
@@ -311,6 +318,7 @@ function create(G){
   function csv(ps){const rows=[['Panel','Turi','Tomon','U','V','Diametr','Chuqurlik','Teshib o\'tadi','Yo\'nalish']],c=v=>String(v).replace(/[;\r\n]/g,' ');
     for(const p of ps)for(const o of p.ops||[]){
       if(o.k==='s'||o.k==='t')rows.push([c(p.n||'Panel'),o.k==='t'?'Ship-paz tishi':'Ship-paz teshigi',o.k==='t'?'Chet':'Teshib',`${f2(o.u0)}..${f2(o.u1)}`,`${f2(o.v0)}..${f2(o.v1)}`,'',f2(o.k==='t'?o.len:p.t),o.k==='s'?1:'','']);
+      else if(o.k==='c'){const us=o.pts.map(q=>q[0]),vs=o.pts.map(q=>q[1]);rows.push([c(p.n||'Panel'),o.th?'Kesik (teshik)':"O'yiq",o.th?'Teshib':o.f,`${f2(Math.min(...us))}..${f2(Math.max(...us))}`,`${f2(Math.min(...vs))}..${f2(Math.max(...vs))}`,'',f2(o.th?p.t:o.z),o.th?1:'',''])}
       else if(o.k==='g')rows.push([c(p.n||'Panel'),'Paz',o.f,`${f2(o.u0)}..${f2(o.u1)}`,`${f2(o.v0)}..${f2(o.v1)}`,f2(Math.min(o.u1-o.u0,o.v1-o.v0)),f2(o.z),'','']);
       else rows.push([c(p.n||'Panel'),T_NAME[o.t]||o.t||'',o.k==='e'?'Chet':o.f,f2(o.u),f2(o.v),f2(o.d),f2(o.k==='d'&&o.th?p.t:o.z),o.th?1:'',o.k==='e'?`${o.n[0]},${o.n[1]}`:''])}
     return rows.map(r=>r.join(';')).join('\r\n')}

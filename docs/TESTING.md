@@ -1,3 +1,17 @@
+# Erkin aylantirish, Drawing tahririda kesik/o'yiq, yordamchi chiziqlar qulfi — 2026-11-26 (Linux)
+
+- `modeling-cnc-price` 20: Rotate halqasini sudrash (haqiqiy `startRotG`/`rotgMove` yo'li) — Free: 37.4°, Ctrl bilan −13° (butun gradus),
+  qiya krisha gabariti cos/sin bo'yicha, qiya panelga ulanish chizig'i yo'q, snapshot/load saqlaydi, «To'g'rilash»; 90° — butun yo'nalish
+  (`rt` o'chadi); Ortho: 30° — burilmaydi, 80° — 90° qadam. Drawing tahriri: `YORDAMCHI` qatlami qulflangan — Ctrl+A tanlamaydi,
+  `snapSkipShape` yordamchi chiziqni o'tkazib yubormaydi (magnit ishlaydi); ichki to'rtburchak (kontur qatlami) → kesik, 3D geometriyada
+  1 ta teshik; «O'yiq 6 mm» → `POCKET_Z6` (DXF'da); qayta ochilganda o'z qatlamida; CNC sahifasida detal guruhida.
+- `panel3d-hw` 18: `k:'c'` — flat (cuts/polys), DXF qatlamlari, CSV, ko'zgu A→B, 90° burish, tekshiruv, sanitize; qiya panelga avtomatik teshik yo'q.
+- O'tdi: `npm run check` (57), `npm test`, `panel3d-hw-ui`, `modeling-precision`, `smart-autoname`, `panel3d`, `panel3d-export`; Electron (xvfb)
+  `modeling-smoke`, `electron-smoke`, `panel-types-smoke`, `stretch-select`. EXE qayta yig'ilmagan (oxirgi — 1.1.2-preview.3).
+- Qo'lda (sichqoncha bilan halqani sudrash, ekranda ko'rish) Windows'da tekshirilmagan.
+
+---
+
 # Butun korpus ▸ Ko'chirish / burish tanlovga ishlaydi — 2026-11-26 (Linux)
 
 - `modeling-cnc-price` 18: polka tanlanganda «Ko'chirish» Y+100 faqat polkani ko'chirdi, ↻ 90° faqat polkani burdi (boka joyida);

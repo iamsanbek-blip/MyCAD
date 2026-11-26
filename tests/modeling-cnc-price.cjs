@@ -247,6 +247,39 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     await ev(()=>Panel3D._select([]));assert.match(await page.locator('#p3mvT').textContent(),/butun korpus/);
     await page.locator('#p3bMove').click();xy=await ev(()=>Panel3D._state().panels.map(p=>p.y));assert.deepEqual(xy,[460,560]);
     passed.push("Ko'chirish / burish: tanlangan polka 100 mm ko'chdi va burildi, boka joyida; tanlovsiz — butun korpus ko'chdi");
+    // 13. Rotate: Free — erkin burchak (Ctrl — butun gradus), Ortho — 90° qadam; 90° karrali bo'lsa butun yo'nalishga qaytadi; qiya panelga furnitura yo'q
+    await ev(()=>{Panel3D.load({T:16,uid:10,panels:[{id:1,n:'boka',w:500,h:720,t:16,o:'side',x:8,y:360,z:0},{id:2,n:'krisha',w:568,h:500,t:16,o:'flat',x:300,y:712,z:0},{id:3,n:"o'ng boka",w:500,h:720,t:16,o:'side',x:592,y:360,z:0}]});Panel3D._setTool('rotate');Panel3D._select([2])});
+    await ev(()=>document.getElementById('p3bFree').click());
+    let rd=await ev(()=>Panel3D._rotDrag(2,37.36,false));assert.equal(rd,37.4);assert.equal(await ev(()=>Panel3D._rtDeg(2)),37.4);
+    const ex=await ev(()=>Panel3D._ext(2));assert.ok(Math.abs(ex[0]-(568*Math.cos(37.4*Math.PI/180)+16*Math.sin(37.4*Math.PI/180)))<.05,JSON.stringify(ex));
+    assert.ok(!(await ev(()=>Panel3D._joints())).some(l=>l.a===2||l.b===2||String(l.key).split('>').includes('2')),'qiya krisha — ulanish yo\'q');
+    await ev(()=>Panel3D._select([2]));rd=await ev(()=>Panel3D._rotDrag(2,-12.6,true));assert.equal(rd,-13);assert.equal(await ev(()=>Panel3D._rtDeg(2)),24.4);
+    const sn2=await ev(()=>Panel3D.snapshot());await ev(s=>Panel3D.load(s),sn2);assert.equal(await ev(()=>Panel3D._rtDeg(2)),24.4,'loyihada saqlanadi');
+    await ev(()=>Panel3D._select([2]));await page.waitForSelector('#p3bRt0');await page.locator('#p3bRt0').click();assert.equal(await ev(()=>Panel3D._state().panels[1].rt),undefined);
+    await ev(()=>Panel3D._select([2]));rd=await ev(()=>Panel3D._rotDrag(1,90,true));const k90=await ev(()=>({rt:Panel3D._state().panels[1].rt,m:Panel3D._state().panels[1].m}));
+    assert.equal(k90.rt,undefined,'90° — butun yo\'nalish');assert.ok(Array.isArray(k90.m)&&k90.m.every(v=>Number.isInteger(v)),JSON.stringify(k90));
+    await ev(()=>document.getElementById('p3bOrtho').click());await ev(()=>Panel3D._select([1]));await ev(()=>Panel3D._rotDrag(1,30,false));assert.equal(await ev(()=>Panel3D._state().panels[0].rt),undefined,'Ortho: 30° — burilmaydi');
+    await ev(()=>Panel3D._select([1]));await ev(()=>Panel3D._rotDrag(1,80,false));
+    assert.equal(await ev(()=>Panel3D._state().panels[0].rt),undefined);assert.deepEqual(await ev(()=>Panel3D._ext(1)),[500,720,16],'Ortho: 80° sudrash — 90° qadam');
+    await ev(()=>document.getElementById('p3bFree').click());await ev(()=>Panel3D._setTool('select'));
+    passed.push("Rotate: Free — 37.4° erkin, Ctrl — butun gradus (−13°), gabarit qiya bo'yicha, qiya panelga avtomatik ulanish yo'q, loyihada saqlanadi, «To'g'rilash»; 90° — butun yo'nalishga qaytdi; Ortho — 90° qadam");
+    // 14. Drawing'da tahrir: yordamchi chiziqlar tanlanmaydi (faqat magnit); ichki to'rtburchak — kesik (3D da haqiqiy teshik), «O'yiq» — POCKET_Z8
+    await ev(()=>{Panel3D.load({T:16,uid:10,panels:[{id:1,n:'boka',w:500,h:720,t:16,o:'side',x:8,y:360,z:0},{id:2,n:'polka',w:568,h:480,t:16,o:'flat',x:300,y:360,z:10}]});Panel3D._edit(1)});
+    await page.waitForFunction(()=>Panel3D._editing());
+    const gl=await ev(()=>{const g=drawnLines.filter(l=>l.p3g);const n=selectAllObjects();return{n:g.length,lock:layerOf(g[0]).locked,sel:g.some(l=>l.selected),snap:g.every(l=>!snapSkipShape(l)),tx:texts.filter(t=>t.layer==='YORDAMCHI').some(t=>t.selected)}});
+    assert.ok(gl.n>0&&gl.lock&&!gl.sel&&!gl.tx&&gl.snap,JSON.stringify(gl));await ev(()=>deselectAllObjects());
+    await ev(()=>{const r=genRectPts({x:100,y:200},{x:300,y:400});drawnLines.push({kind:'rect',closed:true,selected:false,layer:activeLayer,points:r,grips:r.map(o=>({...o}))})});
+    await page.fill('#p3edZ','6');await page.press('#p3edZ','Enter');await page.locator('#p3edPk').click();assert.equal(await ev(()=>activeLayer),'POCKET_Z6');
+    await ev(()=>{const r=genRectPts({x:150,y:500},{x:350,y:600});drawnLines.push({kind:'rect',closed:true,selected:false,layer:activeLayer,points:r,grips:r.map(o=>({...o}))})});
+    await page.locator('#p3edOk').click();await page.waitForFunction(()=>Panel3D.isOpen());
+    const C=await ev(()=>{const p=Panel3D._state().panels[0],cs=(p.ops||[]).filter(o=>o.k==='c'),g=p.g.children[0].geometry;return{cs,holes:g.parameters.shapes.holes.length,dxf:Panel3D._hw.dxf().text}});
+    assert.equal(C.cs.length,2);assert.ok(C.cs.some(o=>o.th&&o.pts.length===4));assert.ok(C.cs.some(o=>!o.th&&o.z===6&&o.f==='A'));assert.equal(C.holes,1,'3D: kesik — haqiqiy teshik');
+    assert.match(C.dxf,/POCKET_Z6/);
+    await ev(()=>Panel3D._edit(1));await page.waitForFunction(()=>Panel3D._editing());assert.deepEqual(await ev(()=>drawnLines.filter(l=>l.p3op&&l.kind==='line').map(l=>l.layer).sort()),['CUT_Z16','POCKET_Z6']);
+    await page.locator('#p3edOk').click();await page.waitForFunction(()=>Panel3D.isOpen());assert.equal(await ev(()=>Panel3D._state().panels[0].ops.filter(o=>o.k==='c').length),2,'qayta ochib-yopilganda saqlanadi');
+    await ev(()=>Panel3D._cnc());const cn=await ev(()=>({pk:drawnLines.filter(l=>l.layer==='POCKET_Z6'&&l.p3op).length,cut:drawnLines.filter(l=>l.layer==='CUT_Z16'&&l.p3op).length}));
+    assert.deepEqual(cn,{pk:1,cut:1},'CNC sahifasida o\'yiq va kesik detal guruhida');
+    passed.push("Drawing tahriri: yordamchi chiziqlar qulflangan (Ctrl+A tanlamaydi, magnit yopishadi); ichki to'rtburchak — kesik (3D teshik), «O'yiq 6 mm» — POCKET_Z6 (DXF'da), qayta ochilganda o'z qatlamida; CNC sahifasida detal guruhida");
     assert.deepEqual(errors,[]);
   }finally{await browser.close();fs.rmSync(tmp,{recursive:true,force:true})}
   console.log(passed.map(s=>'PASS '+s).join('\n'));console.log(`modeling-cnc-price: ${passed.length} checks passed`);

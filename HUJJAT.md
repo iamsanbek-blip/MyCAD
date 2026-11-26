@@ -1,5 +1,15 @@
 # Rugby 1.1.2 — CNC nesting, panelni Drawing'da tahrirlash, aralash ulagich, narx (2026-11-23)
 
+- **Erkin burchakda aylantirish (Rotate, R).** Ortho o'chiq (Free) bo'lsa halqani sudrab istalgan burchakka buriladi (0.1°), **Ctrl** bosib
+  tursangiz — butun gradus (1°, 2° …); sudrash paytida raqam yozib Enter — aniq burchak, Esc — bekor. Ortho (O) yoqilgan bo'lsa — avvalgidek
+  90° qadam. 90° karrali bo'lib qolsa panel oddiy yo'nalishga qaytadi. Qiya panel xossalarida «Qiya: 37.4°» va **To'g'rilash** tugmasi;
+  qiya panelga furnitura avtomatik qo'yilmaydi (qo'lda teshiklar qoladi), Cutlist/CNC/DXF panelning o'z o'lchamida.
+- **Panelni Drawing'da tahrirlashda teshik va o'yiq.** Pastki satrda **◻ Teshik (kesib o'tadi)** va **▣ O'yiq [chuqurlik] mm** (B yuza
+  belgisi bilan): panel ichiga chizilgan yopiq shakl (to'rtburchak, polyline …) kesik yoki o'yiq bo'ladi, aylana — sverlo teshigi (kontur
+  qatlamida — kesib o'tadi). Modeling'da kesik haqiqiy teshik bo'lib ko'rinadi, o'yiq — yuzada kontur; DXF/CNC'da kesik — kontur qatlamida,
+  o'yiq — `POCKET_Z{chuqurlik}`; CSV va «Teshiklar» ro'yxatida ham bor. Qayta ochilganda o'z qatlamida chiqadi.
+- **Yordamchi chiziqlar faqat magnit uchun.** Drawing tahriridagi kulrang qo'shni panel izlari va yordamchi chiziqlar endi tanlanmaydi,
+  ko'chmaydi va o'chmaydi (Ctrl+A ham olmaydi) — magnit ularga avvalgidek yopishadi.
 - **«Butun korpus ▸ Ko'chirish» va ↺/↻ 90° tanlovga ishlaydi.** Biror panel (yoki guruh) tanlangan bo'lsa, X/Y/Z masofaga faqat tanlangan
   panellar ko'chadi va buriladi; hech narsa tanlanmagan bo'lsa — butun korpus. Maydon ustidagi yozuv kim ko'chishini ko'rsatadi
   («tanlangan 2 ta panel» yoki «butun korpus»).

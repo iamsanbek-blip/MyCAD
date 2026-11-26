@@ -182,4 +182,19 @@ const ops=(p,t)=>(p.ops||[]).filter(o=>!t||o.t===t);
   HW.place(mid,mid,{con:'tab',tab:{w:40,e:25,cl:.2,d:6,bone:false}});assert.equal(HW.outline(byId(mid,3)).filter(q=>q.b).length,0,'dogbone o\'chiq');
   ok("Ship-paz: tortma qutisi burchagida 4 tish + 2×2 kesik (box joint, zazor 0.2), 8+4+4 dogbone yoyi DXF'da; o'rtadagi polka — boka teshib o'tiladi (4 ichki teshik, har burchakda dogbone), CNC detali 400 mm; dogbone o'chirilsa — to'g'ri burchak")}
 
+// 17. Drawing'da chizilgan kesik (k:'c', th) va o'yiq (k:'c', z): CNC detali, DXF qatlami, CSV, burish/ko'zgu, tekshiruv, saqlash
+{const P={id:1,n:'boka',w:500,h:720,t:16,o:'side',x:8,y:360,z:0,ops:[{k:'c',th:1,pts:[[100,200],[300,200],[300,400],[100,400]],t:'man'},{k:'c',f:'A',z:6,pts:[[150,500],[350,500],[350,600],[150,600]],t:'man'}]};
+  const F=HW.flat(P,{});assert.equal(F.cuts.length,1);assert.equal(F.polys.length,1);assert.equal(F.polys[0].layer,'POCKET_Z6');assert.equal(F.side,'A');
+  const D=HW.dxf([P],{});assert.ok(D.layers.includes('POCKET_Z6'));assert.equal((D.text.match(/\nPOLYLINE\n8\nCUT_Z16\n/g)||[]).length,2,'kontur + kesik');
+  assert.match(HW.csv([P]),/Kesik \(teshik\);Teshib;100\.\.300;200\.\.400;;16;1/);assert.match(HW.csv([P]),/O'yiq;A;150\.\.350;500\.\.600;;6/);
+  assert.deepEqual(HW.check(P),[]);
+  const Q=JSON.parse(JSON.stringify(P));HW.mirror(Q,'w');assert.deepEqual(Q.ops[0].pts[0],[400,200]);HW.mirror(Q,'t');assert.equal(Q.ops[1].f,'B');
+  const B=HW.flat(Q,{});assert.equal(B.side,'B');assert.equal(B.polys.length,1);
+  HW.rot90(Q,500);assert.deepEqual(Q.ops[0].pts[0],[200,100]);
+  assert.equal(HW.sanitize([{k:'c',pts:[[0,0],[1,1]]},{k:'c',th:1,pts:[[0,0],[1,0],[1,1]]},{k:'c',z:0,pts:[[0,0],[1,0],[1,1]]}]).length,1,'buzuq kontur va chuqurliksiz o\'yiq tashlanadi');
+  const bad=JSON.parse(JSON.stringify(P));bad.ops[1].z=20;bad.ops[0].pts[1]=[600,200];assert.equal(HW.check(bad).length,2);
+  const ps=corpus();ps[3].rt=[0,0,Math.sin(Math.PI/12),Math.cos(Math.PI/12)];HW.place(ps,ps,{});assert.ok(!ops(byId(ps,4)).length,'qiya krisha — avtomatik teshik yo\'q');
+  assert.ok(ops(byId(ps,3)).some(o=>o.t==='konf'),'dno — odatdagidek');
+  ok("Kesik va o'yiq (Drawing'dan): CNC detalida kesik kontur qatlamida, o'yiq POCKET_Z6; DXF, CSV, ko'zgu (A→B), 90° burish, tekshiruv va saqlash; qiya panelga avtomatik furnitura qo'yilmaydi")}
+
 console.log(passed.map(s=>'PASS '+s).join('\n'));console.log(`panel3d-hw: ${passed.length} checks passed`);

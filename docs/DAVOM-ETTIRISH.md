@@ -37,6 +37,8 @@ haqiqatda o'tkazilgan sinovlar: `docs/TESTING.md`; umumiy arxitektura: `docs/ARC
 | Smart ro'yxat panel siljiganda yopilmaydi | — | `app/js/ui/smart-input.js` (scroll) |
 | CNC sahifasidan Modeling → model sahifasi | — | `modelHome()` |
 | Ko'chirish / ↺↻ 90° — tanlov bo'lsa faqat tanlov, aks holda butun korpus | Butun korpus | `kzTargets()`, `moveK()`, `rotK()` |
+| Erkin burchakda aylantirish (Free; Ctrl — butun gradus; raqam + Enter) | Rotate (R) | `p.rt`, `Wof()`, `rtSet()`, `rotFree()`, `rotgMove()` |
+| Drawing tahririda kesik / o'yiq; yordamchi chiziqlar qulfi (faqat magnit) | 2 marta bosish ▸ pastki satr | `editLayer`, `editRead`, `editApply`; `k:'c'` (panel3d-hw.js); `snapSkipShape` (`p3g`) |
 
 ## Ma'lumot modeli (loyiha faylida `page.panel3d`)
 
@@ -44,10 +46,12 @@ Panel (`panels[]`): `id, n, w, h, t, o, x, y, z, m?, ry?, shape?, pts?, bw?, bh?
 
 - `ops[]` — panel O'Z koordinatasida (u: 0..eni, v: 0..bo'yi, A yuza = +z): `{k:'d', f, u, v, d, z, th?}` yuza teshigi;
   `{k:'e', u, v, c, n:[nu,nv], d, z}` chet teshigi; `{k:'g', f, u0,v0,u1,v1, z}` paz; `{k:'s', f, u0..v1, th, r}` ship-paz teshigi/kesigi;
-  `{k:'t', u0..v1, len, r}` ship-paz tishi (profildan tashqarida). `a:1` — avtomatik (qayta joylashda almashadi),
+  `{k:'t', u0..v1, len, r}` ship-paz tishi (profildan tashqarida); `{k:'c', pts:[[u,v]…], th:1}` — Drawing'da chizilgan kesik (3D da
+  haqiqiy teshik, DXF/CNC — kontur qatlami), `{k:'c', f, pts, z}` — o'yiq (`POCKET_Z{z}`). `a:1` — avtomatik (qayta joylashda almashadi),
   `t` — tur (konf, ekss, shkant, polka, petlya, planka, ruchka, paz, tab, man), `m:1` — polkaderjatel turadigan teshik.
 - `con` — panel ulagichi (`konf|ekss|shkant|konf+shkant|ekss+shkant|tab|none`), `jc{sherikId:tur}` — ulanishga tur
-  (chet panelida), `jf{sherikId:1}` — ekssentrik o'yig'i ikkinchi yuzada, `hs` — petlya tomoni (L/R), `grp` — guruh, `col` — rang.
+  (chet panelida), `jf{sherikId:1}` — ekssentrik o'yig'i ikkinchi yuzada, `hs` — petlya tomoni (L/R), `grp` — guruh, `col` — rang,
+  `rt` — erkin burchak (kvaternion [x,y,z,w], dunyo = R(rt)·Mof; 90° karrali bo'lsa `m` ga qo'shiladi; qiya panelga `joint()` ulanish bermaydi).
 - Model darajasida: `mc{material:'#rrggbb'}` — material rangi, `ms{material:{L,W}}` — material list o'lchami.
 - Ustuvorlik: `jc` → B panel `con` → A panel `con` → Furnitura oynasidagi umumiy tur.
 - Ulanish: B panel QIRRASI A panel YUZASIGA tegadi (oraliq ≤ 3 mm; penetratsiya A qalinligigacha) — `joint()`.
@@ -62,9 +66,9 @@ Brauzer sozlamalari (localStorage): `rugby.hw.v1` (furnitura), `rugby.price.v1` 
 | Buyruq | Nima |
 |---|---|
 | `npm run check` | sintaksis va asset (57 JS) |
-| `npm test` | 18 eski regressiya + workspace (24) + `tests/panel3d-hw.cjs` (17) |
+| `npm test` | 18 eski regressiya + workspace (24) + `tests/panel3d-hw.cjs` (18) |
 | `node tests/panel3d-hw-ui.cjs` | Furnitura oynasi, DXF/CSV (8) |
-| `node tests/modeling-cnc-price.cjs` | ulagich, J asbobi (ramka bilan ham), ship-paz, narx, CNC, birka, Drawing tahrir, guruh/massiv, Stretch, rang, material list o'lchami, kromka, nusxa, tanlovni ko'chirish (18) |
+| `node tests/modeling-cnc-price.cjs` | ulagich, J asbobi (ramka bilan ham), ship-paz, narx, CNC, birka, Drawing tahrir, guruh/massiv, Stretch, rang, material list o'lchami, kromka, nusxa, tanlovni ko'chirish, erkin aylantirish, Drawing'da kesik/o'yiq (20) |
 | `node tests/modeling-precision.cjs`, `node tests/smart-autoname.cjs` | magnit/gizmo, smart kiritish |
 | `npm run test:electron`, `xvfb-run -a node tests/modeling-smoke.cjs` va h.k. | haqiqiy Electron GUI |
 

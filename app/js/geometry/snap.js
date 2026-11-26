@@ -50,7 +50,8 @@ function snapExcludesSelected(){
 function snapSkipShape(l){
   if(!l || l.hidden) return true;
   const ly = layerOf(l);
-  if(!ly.visible || ly.locked) return true;
+  // p3g — Modeling «Drawing'da tahrirlash» yordamchi chiziqlari: qatlami qulflangan (tanlanmaydi, o'zgarmaydi), lekin magnit yopishadi
+  if(!ly.visible || (ly.locked && !l.p3g)) return true;
   if(l.selected && snapExcludesSelected()) return true;
   // grip sudralayotgan shakl ham o'ziga snap qilmasin
   if(typeof draggingGrip!=='undefined' && draggingGrip &&
