@@ -1,3 +1,13 @@
+# Magnit ichki shakllarga, g'ildirak kursorga qarab yaqinlashadi — 2026-11-26 (Linux)
+
+- `modeling-cnc-price` 21: kesik burchagi (u=100, v=200) ikkala yuzada, o'yiq yuzasi va 6 mm tubi magnit nuqtalarida; Right ko'rinishda
+  haqiqiy `mouse.wheel` ×12 kursor ostidagi panel nuqtasida — masofa 1315 → 13 mm (avval eng kami 100 mm edi), nuqta kursor ostida qoldi
+  (piksel yaxlitlash farqi hisobga olingan). Topilgan xato: birinchi variantda nishon nuqtasi noto'g'ri tartibda hisoblanib kamera
+  sakrardi — tuzatildi. `npm run check`, `npm test`, `panel3d-hw` (18), `panel3d-hw-ui`, `modeling-precision`, `smart-autoname`, `panel3d`,
+  `panel3d-export`, Electron `modeling-smoke`, `electron-smoke`, `panel-types-smoke`, `stretch-select` o'tdi. EXE qayta yig'ilmagan.
+
+---
+
 # Erkin aylantirish, Drawing tahririda kesik/o'yiq, yordamchi chiziqlar qulfi — 2026-11-26 (Linux)
 
 - `modeling-cnc-price` 20: Rotate halqasini sudrash (haqiqiy `startRotG`/`rotgMove` yo'li) — Free: 37.4°, Ctrl bilan −13° (butun gradus),

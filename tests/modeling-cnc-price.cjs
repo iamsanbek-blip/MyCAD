@@ -277,6 +277,13 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     assert.match(C.dxf,/POCKET_Z6/);
     await ev(()=>Panel3D._edit(1));await page.waitForFunction(()=>Panel3D._editing());assert.deepEqual(await ev(()=>drawnLines.filter(l=>l.p3op&&l.kind==='line').map(l=>l.layer).sort()),['CUT_Z16','POCKET_Z6']);
     await page.locator('#p3edOk').click();await page.waitForFunction(()=>Panel3D.isOpen());assert.equal(await ev(()=>Panel3D._state().panels[0].ops.filter(o=>o.k==='c').length),2,'qayta ochib-yopilganda saqlanadi');
+    // magnit: kesik burchaklari (ikkala yuza), o'yiq yuzasi va tubi; g'ildirak — kursor ostidagi nuqtaga yaqinlashadi (100 mm dan ham yaqin)
+    const geo=await ev(()=>Panel3D._geo(1)),has=(P)=>geo.end.some(q=>q.every((v,i)=>Math.abs(v-P[i])<.01));
+    assert.ok(has([16,200,150])&&has([0,200,150]),'kesik burchagi (u=100,v=200) ikkala yuzada');assert.ok(has([16,500,100])&&has([10,500,100]),"o'yiq yuzasi va 6 mm tubi");
+    await ev(()=>{Panel3D._view('right');Panel3D._select([])});await page.waitForTimeout(100);
+    const zp=await ev(()=>Panel3D._scr(16,650,-200)),zR0=(await ev(()=>Panel3D._cam())).R,mx0=Math.round(zp.x),my0=Math.round(zp.y),off0=Math.hypot(zp.x-mx0,zp.y-my0);for(let i=0;i<12;i++){await page.mouse.move(mx0,my0);await page.mouse.wheel(0,-400);await page.waitForTimeout(20)}
+    const zc=await ev(()=>Panel3D._cam()),zp2=await ev(()=>Panel3D._scr(16,650,-200));assert.ok(zc.R<100,JSON.stringify(zc));assert.ok(Math.hypot(zp2.x-mx0,zp2.y-my0)<=off0*zR0/zc.R*1.5+3,'nuqta kursor ostida qoldi '+JSON.stringify([zp,zp2,off0]));   // kursor pikselga yaxlitlangan: yarim piksel farq masshtab bilan kattalashadi
+    passed.push(`Magnit: kesik va o'yiq burchaklari topiladi; g'ildirak kursor ostidagi panel nuqtasiga yaqinlashdi (masofa ${zc.R.toFixed(0)} mm, nuqta joyida)`);
     await ev(()=>Panel3D._cnc());const cn=await ev(()=>({pk:drawnLines.filter(l=>l.layer==='POCKET_Z6'&&l.p3op).length,cut:drawnLines.filter(l=>l.layer==='CUT_Z16'&&l.p3op).length}));
     assert.deepEqual(cn,{pk:1,cut:1},'CNC sahifasida o\'yiq va kesik detal guruhida');
     passed.push("Drawing tahriri: yordamchi chiziqlar qulflangan (Ctrl+A tanlamaydi, magnit yopishadi); ichki to'rtburchak — kesik (3D teshik), «O'yiq 6 mm» — POCKET_Z6 (DXF'da), qayta ochilganda o'z qatlamida; CNC sahifasida detal guruhida");

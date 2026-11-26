@@ -298,7 +298,7 @@ function selMatOpts(){const el=q('#p3selMat');if(!el)return;const m=new Map();fo
     if(same){const o2=[...el.options].find(o=>o.value===a+'|'+t);el.value=sameT&&o2?o2.value:a+'|'}}}}
 function clearSel(){msel=[];sel=null;paint();props();list();pmFill()}
 function selectAllP(){const v=panels.filter(p=>!p.hid);if(!v.length)return;msel=v.map(p=>p.id);sel=msel[msel.length-1];paint();props();list();pmFill();dirtyR=true}
-function frameSel(){const ps=selected().filter(p=>p.g&&!p.hid);if(!ps.length){frame();return}const b=new THREE.Box3();ps.forEach(p=>b.expandByObject(p.g));b.getCenter(tg);R=Math.max(b.getSize(new THREE.Vector3()).length()*1.5,300);upd()}
+function frameSel(){const ps=selected().filter(p=>p.g&&!p.hid);if(!ps.length){frame();return}const b=new THREE.Box3();ps.forEach(p=>b.expandByObject(p.g));b.getCenter(tg);R=Math.max(b.getSize(new THREE.Vector3()).length()*1.5,40);upd()}
 // Menyudagi hotkey yorliqlari joriy sozlamadan olinadi (tugma almashtirilsa o'zi yangilanadi)
 const P3KB={p3tSel:'tool.select',p3tMov:'tool.move',p3tRot:'tool.rotate',p3tScl:'tool.scale',p3tStr:'tool.stretch',p3tEdg:'tool.edge',p3tJnt:'tool.joint',p3mkRul:'tool.ruler',p3mkGd:'tool.guide',p3mkGc:'guide.clear',
   p3oCopy:'obj.copy',p3oMx:'obj.mirrorX',p3oMy:'obj.mirrorY',p3oMz:'obj.mirrorZ',p3oDel:'obj.delete',p3vmHide:'view.hide',p3vmIso:'view.isolate',p3vmUn:'view.unhide',
@@ -588,6 +588,13 @@ function geoOf(p){   // dunyo koordinatasida: uchlar, qirra o'rtalari (qalinlik 
   for(const s of hz){if(hz.length>1)cen.push(W(0,0,s));
     for(let i=0;i<n;i++){const a=pr[i],b=pr[(i+1)%n],A=W(a[0],a[1],s),B=W(b[0],b[1],s);end.push(A);mid.push(A.clone().add(B).multiplyScalar(.5));edge.push([A,B])}}
   if(hz.length>1)for(const a of pr){const A=W(a[0],a[1],hz[0]),B=W(a[0],a[1],hz[1]);mid.push(A.clone().add(B).multiplyScalar(.5));edge.push([A,B])}
+  // ichki shakllar ham magnitga: kesik (ikkala yuza + devor qirralari), o'yiq (yuza va tubi), teshik markazlari
+  const ox=-p.w/2,oy=-p.h/2,loop=(P,z)=>{const n2=P.length;for(let i=0;i<n2;i++){const a=P[i],b=P[(i+1)%n2],A=W(a[0]+ox,a[1]+oy,z),B=W(b[0]+ox,b[1]+oy,z);end.push(A);mid.push(A.clone().add(B).multiplyScalar(.5));edge.push([A,B])}
+    cen.push(W(P.reduce((s,q)=>s+q[0],0)/n2+ox,P.reduce((s,q)=>s+q[1],0)/n2+oy,z))};
+  for(const o of p.ops||[]){
+    if(o.k==='c'){if(o.th){for(const z of hz)loop(o.pts,z);if(hz.length>1)for(const a of o.pts){const A=W(a[0]+ox,a[1]+oy,hz[0]),B=W(a[0]+ox,a[1]+oy,hz[1]);mid.push(A.clone().add(B).multiplyScalar(.5));edge.push([A,B])}}
+      else{const sg=o.f==='B'?-1:1;if(hz.length>1){loop(o.pts,sg*p.t/2);loop(o.pts,sg*(p.t/2-o.z))}else loop(o.pts,0)}}
+    else if(o.k==='d')for(const z of hz.length>1?(o.th?hz:[(o.f==='B'?-1:1)*p.t/2]):[0])cen.push(W(o.u+ox,o.v+oy,z))}
   return{end,mid,cen,edge}}
 const cpos=e=>{const r=cv.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
 function scrOf(v){const a=v.clone().project(cam);return{x:(a.x+1)/2*cv.clientWidth,y:(1-a.y)/2*cv.clientHeight,z:a.z,ok:a.z>-1&&a.z<1}}
@@ -900,6 +907,13 @@ function autoName(){
   say(`Avto-nom: ${n} ta panel nomlandi`+(needL?` · korpus ${lt.join(', ')}`:'')+" · chap/o'ng — joriy ko'rinish bo'yicha");
   return n}
 /* --- lineyka va yordamchi chiziqlar --- */
+/* G'ildirak: kursor ostidagi nuqtaga qarab yaqinlashish (3ds Max / Blender kabi) — o'sha nuqta ekranda joyida qoladi.
+   Nuqta: panel yuzasi, bo'lmasa nishon tekisligi. Eng yaqin masofa 2 mm (mayda detal va teshiklarni ko'rish uchun). */
+function zoomAt(e,f){
+  const nR=Math.max(2,Math.min(60000,R*f)),k=nR/R;if(Math.abs(k-1)<1e-9)return;
+  ndc(e);const hs=ray.intersectObjects(P.children,true).find(x=>{const pp=panels.find(a=>a.id===x.object.userData.pid);return pp&&!pp.hid});
+  let A=hs?hs.point.clone():null;if(!A){const v=new THREE.Vector3();A=ray.ray.intersectPlane(new THREE.Plane().setFromNormalAndCoplanarPoint(cam.getWorldDirection(new THREE.Vector3()),tg),v)?v:null}
+  if(A){const d=tg.clone().sub(A).multiplyScalar(k);tg.copy(A).add(d)}R=nR;upd();dirtyR=true}
 function pickPoint(e){   // lineyka / yordamchi chiziq / 3D kursor: magnit nishoni, bo'lmasa panel yuzasi, bo'lmasa ko'rinish tekisligi
   const h=mag?snapFind(e,null):null;showSnap(h);if(h)return h.T.clone();
   ndc(e);const hs=ray.intersectObjects(P.children,true).find(x=>{const pp=panels.find(a=>a.id===x.object.userData.pid);return pp&&!pp.hid});if(hs)return hs.point.clone();
@@ -1982,7 +1996,7 @@ function ensure(){
   selMat=fillMat.clone();ebMat=new THREE.MeshBasicMaterial({color:0xffb454,side:THREE.DoubleSide,transparent:true,opacity:.3,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});/* kromka tasmasi yarim shaffof — orqadagi panel chegarasi ko'rinadi */ebLine=new THREE.LineBasicMaterial({color:0xffb454});grainMat=new THREE.LineBasicMaterial({color:0xc9a063,transparent:true,opacity:.75});opsMat=new THREE.LineBasicMaterial({color:0xff8a1f});opsMat2=new THREE.LineBasicMaterial({color:0xe04fd0});lineMat=new THREE.LineBasicMaterial();selLine=new THREE.LineBasicMaterial();dxfMat=new THREE.LineBasicMaterial();
   cv.style.cssText='display:block;width:100%;height:100%;touch-action:none';
   cv.oncontextmenu=e=>e.preventDefault();cv.onpointerdown=onDown;cv.onpointermove=onMove;cv.onpointerup=onUp;
-  cv.onwheel=e=>{e.preventDefault();R=Math.max(100,Math.min(30000,R*Math.exp(e.deltaY*.001)));upd()};
+  cv.onwheel=e=>{e.preventDefault();zoomAt(e,Math.exp(e.deltaY*.001))};
   cv.ondblclick=e=>{if(tool==='rotate'||tool==='scale')return;const id=pick(e),p=panels.find(a=>a.id===id);if(p&&!dr){if(e.altKey)startDraw(p);else editInDrawing(p)}};   // 2 marta — Drawing'da tahrirlash; Alt+2 marta — 3D da tez chizish
   c3Build();   // 3D kursor; magnit belgisi — DOM (#p3snap): tur shakli + nomi
   buildGizmo();Gg=new THREE.Group();scene.add(Gg);rulerMat=new THREE.LineBasicMaterial({color:0xffb454,depthTest:false});
@@ -2036,7 +2050,7 @@ window.Panel3D={retheme:()=>{if(inited)theme()},hotkeys:{commands:P3CMD.map(({id
     for(let a=0;a<3;a++){const A=new THREE.Vector3();A.setComponent(a,1);o['a'+a]=P(c.clone().addScaledVector(A,90*k));o['v'+a]=gzAx[a].visible;
       const g=gzPl[a];g.updateMatrixWorld(true);o['p'+a]=P(g.getWorldPosition(new THREE.Vector3()));o['pv'+a]=g.visible}return o},
   _cursor:()=>c3?c3.toArray():null,_autoName:()=>autoName(),_clusters:()=>corpusClusters(panels.filter(p=>!p.hid)).map(c=>c.map(p=>p.id)),_pivot:()=>pivot,_act:()=>act?{k:act.k,con:act.con,typed:act.typed,hit:act.hit?act.hit.k:null}:null,_snap:()=>snapHit?{k:snapHit.k,T:snapHit.T.toArray()}:null,
-  _cnc:()=>cncSend(),_col:id=>{const p=panels.find(x=>x.id===id);return p?panelCol(p):null},_vsel:keys=>{if(keys){vsel=new Set(keys);dirtyR=true}return{keys:[...vsel],gz:!!(gz&&gz.visible)}},_group:()=>groupSel(),_ungroup:()=>ungroupSel(),_array:(n,d)=>arraySel(n,d),_dist:a=>distSel(a),_joints:()=>HW.jointLines(panels,hwOpts),_jointScr:k=>{const l=HW.jointLines(panels,hwOpts).find(x=>x.key===k);if(!l)return null;const r=cv.getBoundingClientRect(),s=scrOf(new THREE.Vector3((l.p0[0]+l.p1[0])/2,(l.p0[1]+l.p1[1])/2,(l.p0[2]+l.p1[2])/2));return{x:r.left+s.x,y:r.top+s.y}},_price:o=>{if(o){prices=PRC.merge(o);prSave()}return prCalc()},_prOpen:()=>{if(!prOpen)q('#p3prTab').click()},_guides:()=>drawnLines.filter(l=>l.p3g).map(l=>({k:l.kind,pts:l.points.map(o=>[+o.x.toFixed(2),+o.y.toFixed(2)])})),_edit:id=>{const p=panels.find(x=>x.id===id);return p?editInDrawing(p):false},_editApply:()=>editApply(),_editCancel:()=>editCancel(),_editing:()=>p3edit?{...p3edit}:null,_hw:{place:o=>{if(o)hwOpts=HW.merge(HW.DEF,o);return hwPlace()},clear:hwClear,dxf:()=>hwDxfData(),csv:()=>HW.csv(hwTargets()),check:hwCheck,open:hwOpen,opts:()=>hwOpts,ops:id=>{const p=panels.find(x=>x.id===id);return p&&p.ops?JSON.parse(JSON.stringify(p.ops)):[]},showOps:()=>showOps},_snapM:snapM,_rtDeg:id=>{const p=panels.find(x=>x.id===id);return p?rtDeg(p):null},_wof:id=>{const p=panels.find(x=>x.id===id);return p?Wof(p).map(v=>+v.toFixed(4)):null},_ext:id=>{const p=panels.find(x=>x.id===id);return p?ext(p).map(v=>+v.toFixed(2)):null},
+  _cnc:()=>cncSend(),_col:id=>{const p=panels.find(x=>x.id===id);return p?panelCol(p):null},_vsel:keys=>{if(keys){vsel=new Set(keys);dirtyR=true}return{keys:[...vsel],gz:!!(gz&&gz.visible)}},_group:()=>groupSel(),_ungroup:()=>ungroupSel(),_array:(n,d)=>arraySel(n,d),_dist:a=>distSel(a),_joints:()=>HW.jointLines(panels,hwOpts),_jointScr:k=>{const l=HW.jointLines(panels,hwOpts).find(x=>x.key===k);if(!l)return null;const r=cv.getBoundingClientRect(),s=scrOf(new THREE.Vector3((l.p0[0]+l.p1[0])/2,(l.p0[1]+l.p1[1])/2,(l.p0[2]+l.p1[2])/2));return{x:r.left+s.x,y:r.top+s.y}},_price:o=>{if(o){prices=PRC.merge(o);prSave()}return prCalc()},_prOpen:()=>{if(!prOpen)q('#p3prTab').click()},_guides:()=>drawnLines.filter(l=>l.p3g).map(l=>({k:l.kind,pts:l.points.map(o=>[+o.x.toFixed(2),+o.y.toFixed(2)])})),_edit:id=>{const p=panels.find(x=>x.id===id);return p?editInDrawing(p):false},_editApply:()=>editApply(),_editCancel:()=>editCancel(),_editing:()=>p3edit?{...p3edit}:null,_hw:{place:o=>{if(o)hwOpts=HW.merge(HW.DEF,o);return hwPlace()},clear:hwClear,dxf:()=>hwDxfData(),csv:()=>HW.csv(hwTargets()),check:hwCheck,open:hwOpen,opts:()=>hwOpts,ops:id=>{const p=panels.find(x=>x.id===id);return p&&p.ops?JSON.parse(JSON.stringify(p.ops)):[]},showOps:()=>showOps},_snapM:snapM,_geo:id=>{const p=panels.find(x=>x.id===id);if(!p)return null;const G=geoOf(p),r=v=>v.toArray().map(x=>+x.toFixed(2));return{end:G.end.map(r),cen:G.cen.map(r)}},_cam:()=>({R,tg:tg.toArray().map(x=>+x.toFixed(2))}),_rtDeg:id=>{const p=panels.find(x=>x.id===id);return p?rtDeg(p):null},_wof:id=>{const p=panels.find(x=>x.id===id);return p?Wof(p).map(v=>+v.toFixed(4)):null},_ext:id=>{const p=panels.find(x=>x.id===id);return p?ext(p).map(v=>+v.toFixed(2)):null},
   _rotDrag:(ax,deg,ctrl)=>{const ps=selected();if(!ps.length||!gzR)return null;const[mn,mx]=bboxOf(ps);gzR.position.set((mn[0]+mx[0])/2,(mn[1]+mx[1])/2,(mn[2]+mx[2])/2);
     const r=cv.getBoundingClientRect(),c=gzR.position.clone().project(cam),cx=r.left+(c.x+1)/2*r.width,cy=r.top+(1-c.y)/2*r.height,R0=120;
     startRotG({clientX:cx+R0,clientY:cy},ax);const f=act.facing,n=Math.max(2,Math.ceil(Math.abs(deg)/15));

@@ -1,5 +1,8 @@
 # Rugby 1.1.2 — CNC nesting, panelni Drawing'da tahrirlash, aralash ulagich, narx (2026-11-23)
 
+- **Magnit ichki shakllarni ham topadi, zoom yaqinroq.** Modeling'da panel olib borilganda kesik burchaklari va qirralari (ikkala yuzada va
+  devorida), o'yiq yuzasi va tubi, teshik markazlari magnit nuqtasi bo'ladi. Sichqoncha g'ildiragi kursor ostidagi nuqtaga qarab
+  yaqinlashadi (o'sha nuqta ekranda joyida qoladi), eng yaqin masofa 100 mm emas, 2 mm; «Tanlanganga moslash» ham mayda detalga yaqinroq.
 - **Erkin burchakda aylantirish (Rotate, R).** Ortho o'chiq (Free) bo'lsa halqani sudrab istalgan burchakka buriladi (0.1°), **Ctrl** bosib
   tursangiz — butun gradus (1°, 2° …); sudrash paytida raqam yozib Enter — aniq burchak, Esc — bekor. Ortho (O) yoqilgan bo'lsa — avvalgidek
   90° qadam. 90° karrali bo'lib qolsa panel oddiy yo'nalishga qaytadi. Qiya panel xossalarida «Qiya: 37.4°» va **To'g'rilash** tugmasi;
