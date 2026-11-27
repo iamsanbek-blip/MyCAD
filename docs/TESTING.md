@@ -1,3 +1,19 @@
+# Stretch (W): tanlovsiz ramka, ustma-ust nuqtalar, strelka nuqtani to'smaydi — 2026-11-27 (Linux)
+
+- Topilgan sabablar: (1) tanlovsiz W da sichqoncha panel ustida bosilsa o'sha panel darhol tanlanib, ramka faqat uning nuqtalarini olardi;
+  (2) Front/Top da oldi va orqa nuqtalar ekranda bir joyda — bosganda bittasi belgilanib panel qiyshayardi; (3) belgilangan nuqta yonida
+  belgilanmagan nuqta bo'lsa, sudrash tanlovni o'sha bitta nuqtaga almashtirardi; (4) Stretch strelkasi belgilangan nuqtalar ustidan
+  o'tib, nuqtani ushlashga xalaqit qilardi (noto'g'ri o'q bo'ylab surardi).
+- Tuzatildi: bosish va sudrash ajratildi (sudrash — ramka, tanlovsiz bo'lsa hamma panellar; sudramasdan bosish — panel tanlash); ekranda
+  bir joydagi nuqtalar birga belgilanadi; belgilangan nuqta 12 px ichida bo'lsa butun tanlov suriladi; nuqtaga ≤7 px — nuqta strelkadan ustun.
+- `modeling-cnc-price` 31: tanlovsiz ramka A ustidan boshlanib A va B nuqtalarini oldi, ikkalasi +20 mm; Front'da yon panel burchagi —
+  2 nuqta, sudrash 600 → 620+ (to'rtburchak qoldi); A o'ng chekkasi belgilangan, B nuqtasi 4 mm yonida — A cho'zildi, B joyida.
+  Foydalanuvchi stuli: tanlovsiz W, Front, ramka — 2 ustun uchidagi 4 nuqta, sudrash — ikkala ustun 869 → 943 mm.
+- O'tdi: `npm run check`, `npm test`, `modeling-xlap`, `panel3d-hw-ui`, `modeling-precision`, `smart-autoname`, `panel3d`, `panel3d-export`,
+  Electron `modeling-smoke`, `electron-smoke`, `panel-types-smoke`, `stretch-select`.
+
+---
+
 # Object ▾ menyusi: «Kesishma» tepada, menyu ekranga sig'adi — 2026-11-27 (Linux)
 
 - `modeling-xlap` 8: 1280×640 da Object ▾ ochilganda birinchi bo'lim «Kesishma — bir-biriga kiygizish» (1. tekshirish, 2. O'zaro o'yiq,

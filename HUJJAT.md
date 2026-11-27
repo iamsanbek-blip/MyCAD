@@ -22,6 +22,10 @@
 - **Lineyka — nima o'lchanganini ko'rsatadi.** Nishon belgisi va nomi (Uch, O'rta, Markaz, Qirra, Kesishish; magnitsiz bo'lsa —
   «Panel yuzasi» / «Bo'sh joy», qizil uzuk) A va B nuqtada o'lchovdan keyin ham qoladi; yozuvda «A: Uch → B: O'rta». Qirraga
   yopishganda o'sha qirra yonadi.
+- **Stretch (W) — tanlovsiz ham to'g'ri.** Hech narsa tanlanmagan bo'lsa ramka (panel ustidan boshlansa ham) HAMMA panellarning nuqtalarini
+  belgilaydi; sudramasdan bosish — panelni tanlaydi. Front/Top kabi ko'rinishda ekranda bir joyda turgan nuqtalar (oldi va orqa) birga
+  belgilanadi — panel qiyshaymaydi. Belgilangan nuqtani ushlab sudrash butun tanlovni suradi (yonidagi belgilanmagan nuqta tanlovni
+  buzmaydi); nuqta ustida strelka bo'lsa ham nuqta ushlanadi.
 - **Stretch (W) — faqat tanlangan panel.** Panel tanlab W bosilsa asbob shu panelga «qulflanadi»: boshqa panel ustiga adashib bosish
   tanlovni almashtirmaydi (ramka belgilash boshlanadi), ramka va bosish faqat tanlangan panel nuqtalarini oladi, faqat u cho'ziladi.
   Kursor ostidagi nuqta oq bo'lib yonadi — bosilsa aynan o'sha belgilanadi (ustma-ust bo'lsa kameraga yaqini). Boshqa panelga o'tish:

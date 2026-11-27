@@ -1083,6 +1083,10 @@ function stretchHandles(){
   if(vHov){const c=cs.find(x=>x.key===vHov);if(c)mk([c.w.x,c.w.y,c.w.z],0xffffff,17)}   // kursor ostidagi nuqta — bosilsa aynan shu belgilanadi
   scene.add(vH);
   bar.hidden=!vsel.size;q('#p3sdn').textContent=vsel.size}
+function stretchHits(e){   // kursordan 12 px ichidagi nuqtalar, yaqinidan uzog'iga (teng bo'lsa kameraga yaqini oldin)
+  const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,out=[];
+  for(const c of stretchCands()){const v=c.w.clone().project(cam),d=Math.hypot((v.x+1)/2*r.width-mx,(1-v.y)/2*r.height-my);if(d<12)out.push({c,d,z:v.z})}
+  return out.sort((a,b)=>Math.abs(a.d-b.d)>.5?a.d-b.d:a.z-b.z)}
 function stretchPick(e){
   const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;let best=null;
   for(const c of stretchCands()){const v=c.w.clone().project(cam),d=Math.hypot((v.x+1)/2*r.width-mx,(1-v.y)/2*r.height-my);if(d<12&&(!best||d<best.d-.5||(Math.abs(d-best.d)<=.5&&v.z<best.z)))best={c,d,z:v.z}}   // eng yaqini; ustma-ust bo'lsa — kameraga yaqini
@@ -1138,7 +1142,7 @@ function stretchNumeric(){
   for(const id of ids)applyStretchD(snapBase(panels.find(a=>a.id===id)),keys,d);
   props();list();changed()}   // nuqtalar tanlovi qoladi (gizmo bilan cho'zish kabi)
 function finishVRect(a){
-  if(a.moved<4){if(!a.add)vsel.clear();dirtyR=true;return}
+  if(a.moved<4){if(a.pid){select(a.pid,a.add);vsel.clear();dirtyR=true;return}if(!a.add)vsel.clear();dirtyR=true;return}
   const r=cv.getBoundingClientRect(),X0=Math.min(a.x0,a.x)-r.left,X1=Math.max(a.x0,a.x)-r.left,Y0=Math.min(a.y0,a.y)-r.top,Y1=Math.max(a.y0,a.y)-r.top,ns=a.add?new Set(vsel):new Set();
   for(const c of stretchCands()){const v=c.w.clone().project(cam),sx=(v.x+1)/2*r.width,sy=(1-v.y)/2*r.height;if(sx>=X0&&sx<=X1&&sy>=Y0&&sy<=Y1)ns.add(c.key)}
   vsel=ns;dirtyR=true}
@@ -1368,15 +1372,17 @@ function onDown(e){
   if(e.button===0&&tool==='ruler'){rulerClick(e);return}
   if(e.button===0&&tool==='guide'){addGuide(e);return}
   if(tool==='stretch'&&e.button===0){
-    {const AG=activeGizmo();if(AG){AG.updateMatrixWorld(true);ndc(e);const gh=gizmoHits(AG,ray.intersectObject(AG,true))[0];if(gh){startStretchG(e,gh.object.userData.ax);dirtyR=true;return}}}   // strelka / tekislik / markaz
-    const c=stretchPick(e);
-    if(c){if(e.shiftKey||e.ctrlKey){vsel.has(c.key)?vsel.delete(c.key):vsel.add(c.key);dirtyR=true;return}
-      if(!vsel.has(c.key)){vsel.clear();vsel.add(c.key)}
-      startStretch(e,c);dirtyR=true;return}
+    const H=stretchHits(e),onPt=H.length&&H[0].d<=7;   // nuqta ustida (≤7 px) — nuqta strelkadan ustun (strelka nuqtalar ustidan o'tsa ham ushlanadi)
+    if(!onPt){const AG=activeGizmo();if(AG){AG.updateMatrixWorld(true);ndc(e);const gh=gizmoHits(AG,ray.intersectObject(AG,true))[0];if(gh){startStretchG(e,gh.object.userData.ax);dirtyR=true;return}}}   // strelka / tekislik / markaz
+    if(H.length){const G=H.filter(h=>h.d<=H[0].d+2.5).map(h=>h.c),sh=H.find(h=>vsel.has(h.c.key));   // G — ekranda ustma-ust (bir joyda) turgan nuqtalar: Front/Top da oldi-orqa nuqta birga
+      if(e.shiftKey||e.ctrlKey){const all=G.every(c=>vsel.has(c.key));G.forEach(c=>all?vsel.delete(c.key):vsel.add(c.key));dirtyR=true;return}
+      if(sh){startStretch(e,sh.c);dirtyR=true;return}   // belgilangan nuqta yaqinida — butun tanlov suriladi (yonidagi belgilanmagan nuqta tanlovni buzmaydi)
+      vsel.clear();G.forEach(c=>vsel.add(c.key));startStretch(e,G[0]);dirtyR=true;return}
     // Panel tanlangan bo'lsa Stretch shu panelga «qulflanadi»: boshqa panel ustiga bosish tanlovni almashtirmaydi — ramka bilan nuqta
     // belgilash boshlanadi (faqat tanlangan panel nuqtalari). Boshqa panelga o'tish: Esc (tanlov tozalanadi) yoki Panellar ro'yxati; Shift+bosish — qo'shish.
-    const pid=pick(e);if(pid&&(!msel.length||e.shiftKey||e.ctrlKey)){select(pid,e.shiftKey||e.ctrlKey);dirtyR=true;return}
-    act={k:'rect',v:true,x0:cx,y0:cy,x:cx,y:cy,add:e.shiftKey||e.ctrlKey,moved:0};return}
+    // Bosish va sudrash ajratiladi: sudrash — ramka (panel tanlanmagan bo'lsa HAMMA panel nuqtalari, tanlangan bo'lsa — faqat uniki);
+    // sudramasdan bosish — panelni tanlash (tanlangan panel bo'lsa boshqasiga o'tmaydi; Shift — qo'shish)
+    const pid=pick(e);act={k:'rect',v:true,x0:cx,y0:cy,x:cx,y:cy,add:e.shiftKey||e.ctrlKey,moved:0,pid:pid&&(!msel.length||e.shiftKey||e.ctrlKey)?pid:null};return}
   if(tool==='edge'&&e.button===0){const h=edgePick(e);if(h)edgeToggle(h);return}
   if(tool==='joint'&&e.button===0){const l=jointPick(e);if(l){jointClick(l,e.shiftKey);return}   // bo'sh joydan sudrash — ramka bilan ulanishlarni tanlash
     act={k:'rect',j:true,x0:cx,y0:cy,x:cx,y:cy,add:e.shiftKey||e.ctrlKey,moved:0};return}
@@ -2223,7 +2229,7 @@ window.Panel3D={retheme:()=>{if(inited)theme()},hotkeys:{commands:P3CMD.map(({id
     for(let a=0;a<3;a++){const A=new THREE.Vector3();A.setComponent(a,1);o['a'+a]=P(c.clone().addScaledVector(A,90*k));o['v'+a]=gzAx[a].visible;
       const g=gzPl[a];g.updateMatrixWorld(true);o['p'+a]=P(g.getWorldPosition(new THREE.Vector3()));o['pv'+a]=g.visible}return o},
   _cursor:()=>c3?c3.toArray():null,_autoName:()=>autoName(),_clusters:()=>corpusClusters(panels.filter(p=>!p.hid)).map(c=>c.map(p=>p.id)),_pivot:()=>pivot,_act:()=>act?{k:act.k,con:act.con,typed:act.typed,hit:act.hit?act.hit.k:null}:null,_snap:()=>snapHit?{k:snapHit.k,T:snapHit.T.toArray()}:null,
-  _cnc:()=>cncSend(),_col:id=>{const p=panels.find(x=>x.id===id);return p?panelCol(p):null},_vsel:keys=>{if(keys){vsel=new Set(keys);dirtyR=true}return{keys:[...vsel],gz:!!(gz&&gz.visible)}},_group:()=>groupSel(),_ungroup:()=>ungroupSel(),_array:(n,d)=>arraySel(n,d),_dist:a=>distSel(a),_joints:()=>HW.jointLines(panels,hwOpts),_jointScr:k=>{const l=HW.jointLines(panels,hwOpts).find(x=>x.key===k);if(!l)return null;const r=cv.getBoundingClientRect(),s=scrOf(new THREE.Vector3((l.p0[0]+l.p1[0])/2,(l.p0[1]+l.p1[1])/2,(l.p0[2]+l.p1[2])/2));return{x:r.left+s.x,y:r.top+s.y}},_price:o=>{if(o){prices=PRC.merge(o);prSave()}return prCalc()},_prOpen:()=>{if(!prOpen)q('#p3prTab').click()},_guides:()=>drawnLines.filter(l=>l.p3g).map(l=>({k:l.kind,pts:l.points.map(o=>[+o.x.toFixed(2),+o.y.toFixed(2)])})),_edit:id=>{const p=panels.find(x=>x.id===id);return p?editInDrawing(p):false},_editApply:()=>editApply(),_editCancel:()=>editCancel(),_editing:()=>p3edit?{...p3edit}:null,_hw:{place:o=>{if(o)hwOpts=HW.merge(HW.DEF,o);return hwPlace()},clear:hwClear,dxf:()=>hwDxfData(),csv:()=>HW.csv(hwTargets()),check:hwCheck,open:hwOpen,opts:()=>hwOpts,ops:id=>{const p=panels.find(x=>x.id===id);return p&&p.ops?JSON.parse(JSON.stringify(p.ops)):[]},showOps:()=>showOps},_snapM:snapM,_xlap:m=>xlapSel(m||'auto'),_clash:()=>clashCheck().map(x=>({...x})),_keyw:id=>{const p=panels.find(x=>x.id===id);return p?KEYW(p):null},_guides3:()=>guides.map(g=>({p:g.p,d:gDir(g).toArray().map(v=>+v.toFixed(4))})),_gsel:()=>[...gsel],_ruler:()=>ruler?{A:ruler.A.toArray(),B:ruler.B?ruler.B.toArray():null,kA:ruler.kA,kB:ruler.kB||null}:null,_msel:()=>msel.slice(),_geo:id=>{const p=panels.find(x=>x.id===id);if(!p)return null;const G=geoOf(p),r=v=>v.toArray().map(x=>+x.toFixed(2));return{end:G.end.map(r),cen:G.cen.map(r)}},_cam:()=>({R,tg:tg.toArray().map(x=>+x.toFixed(2))}),_rtDeg:id=>{const p=panels.find(x=>x.id===id);return p?rtDeg(p):null},_wof:id=>{const p=panels.find(x=>x.id===id);return p?Wof(p).map(v=>+v.toFixed(4)):null},_ext:id=>{const p=panels.find(x=>x.id===id);return p?ext(p).map(v=>+v.toFixed(2)):null},
+  _cnc:()=>cncSend(),_col:id=>{const p=panels.find(x=>x.id===id);return p?panelCol(p):null},_vsel:keys=>{if(keys){vsel=new Set(keys);dirtyR=true}return{keys:[...vsel],gz:!!(gz&&gz.visible)}},_group:()=>groupSel(),_ungroup:()=>ungroupSel(),_array:(n,d)=>arraySel(n,d),_dist:a=>distSel(a),_joints:()=>HW.jointLines(panels,hwOpts),_jointScr:k=>{const l=HW.jointLines(panels,hwOpts).find(x=>x.key===k);if(!l)return null;const r=cv.getBoundingClientRect(),s=scrOf(new THREE.Vector3((l.p0[0]+l.p1[0])/2,(l.p0[1]+l.p1[1])/2,(l.p0[2]+l.p1[2])/2));return{x:r.left+s.x,y:r.top+s.y}},_price:o=>{if(o){prices=PRC.merge(o);prSave()}return prCalc()},_prOpen:()=>{if(!prOpen)q('#p3prTab').click()},_guides:()=>drawnLines.filter(l=>l.p3g).map(l=>({k:l.kind,pts:l.points.map(o=>[+o.x.toFixed(2),+o.y.toFixed(2)])})),_edit:id=>{const p=panels.find(x=>x.id===id);return p?editInDrawing(p):false},_editApply:()=>editApply(),_editCancel:()=>editCancel(),_editing:()=>p3edit?{...p3edit}:null,_hw:{place:o=>{if(o)hwOpts=HW.merge(HW.DEF,o);return hwPlace()},clear:hwClear,dxf:()=>hwDxfData(),csv:()=>HW.csv(hwTargets()),check:hwCheck,open:hwOpen,opts:()=>hwOpts,ops:id=>{const p=panels.find(x=>x.id===id);return p&&p.ops?JSON.parse(JSON.stringify(p.ops)):[]},showOps:()=>showOps},_snapM:snapM,_stretchScr:k=>{const c=stretchCands().find(x=>x.key===k);if(!c)return null;const r=cv.getBoundingClientRect(),v=scrOf(c.w);return{x:r.left+v.x,y:r.top+v.y}},_xlap:m=>xlapSel(m||'auto'),_clash:()=>clashCheck().map(x=>({...x})),_keyw:id=>{const p=panels.find(x=>x.id===id);return p?KEYW(p):null},_guides3:()=>guides.map(g=>({p:g.p,d:gDir(g).toArray().map(v=>+v.toFixed(4))})),_gsel:()=>[...gsel],_ruler:()=>ruler?{A:ruler.A.toArray(),B:ruler.B?ruler.B.toArray():null,kA:ruler.kA,kB:ruler.kB||null}:null,_msel:()=>msel.slice(),_geo:id=>{const p=panels.find(x=>x.id===id);if(!p)return null;const G=geoOf(p),r=v=>v.toArray().map(x=>+x.toFixed(2));return{end:G.end.map(r),cen:G.cen.map(r)}},_cam:()=>({R,tg:tg.toArray().map(x=>+x.toFixed(2))}),_rtDeg:id=>{const p=panels.find(x=>x.id===id);return p?rtDeg(p):null},_wof:id=>{const p=panels.find(x=>x.id===id);return p?Wof(p).map(v=>+v.toFixed(4)):null},_ext:id=>{const p=panels.find(x=>x.id===id);return p?ext(p).map(v=>+v.toFixed(2)):null},
   _rotDrag:(ax,deg,ctrl)=>{const ps=selected();if(!ps.length||!gzR)return null;const[mn,mx]=bboxOf(ps);gzR.position.set((mn[0]+mx[0])/2,(mn[1]+mx[1])/2,(mn[2]+mx[2])/2);
     const r=cv.getBoundingClientRect(),c=gzR.position.clone().project(cam),cx=r.left+(c.x+1)/2*r.width,cy=r.top+(1-c.y)/2*r.height,R0=120;
     startRotG({clientX:cx+R0,clientY:cy},ax);const f=act.facing,n=Math.max(2,Math.ceil(Math.abs(deg)/15));

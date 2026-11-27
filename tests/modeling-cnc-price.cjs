@@ -374,6 +374,30 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
       assert.ok(res.a0[0]>20&&res.a0[1]===0&&res.a0[2]===0,'X '+JSON.stringify(res));assert.ok(res.a2[2]>10&&res.a2[0]===0&&res.a2[1]===0,'Z '+JSON.stringify(res));
       assert.ok(res.p1[0]>20&&res.p1[2]>10&&res.p1[1]===0,'XZ '+JSON.stringify(res));await ev(()=>Panel3D._setTool('select'))}
     passed.push("Move (M) Top ko'rinishda: X strelkasi — faqat X, Z strelkasi — faqat Z, XZ tekisligi — ikkalasi (Y o'zgarmadi)");
+    // Stretch (W), hech narsa tanlanmagan: ramka panel USTIDAN boshlansa ham hamma panellar bo'ylab nuqtalar belgilanadi (panel tanlanib qolmaydi);
+    // sudramasdan bosish — panelni tanlaydi
+    {await ev(()=>{Panel3D.load({T:16,uid:10,panels:[{id:1,n:'A',w:400,h:600,t:16,o:'front',x:0,y:300,z:0},{id:2,n:'B',w:400,h:600,t:16,o:'front',x:500,y:300,z:0}]});Panel3D._view('front');Panel3D._select([]);Panel3D._setTool('stretch')});
+      await page.waitForTimeout(80);const a0=await ev(()=>Panel3D._scr(150,300,8)),a1=await ev(()=>Panel3D._scr(760,620,8));   // A ustidan boshlanadi, A va B ning o'ng-yuqori nuqtalarini qamraydi
+      await page.mouse.move(a0.x,a0.y);await page.mouse.down();await page.mouse.move(a1.x,a1.y,{steps:6});await page.mouse.up();
+      const vk=(await ev(()=>Panel3D._vsel())).keys.sort();
+      assert.ok(vk.some(k=>k.startsWith('1:'))&&vk.some(k=>k.startsWith('2:')),'ikkala panel nuqtalari: '+vk);assert.deepEqual(await ev(()=>Panel3D._msel()),[],'panel tanlanib qolmadi');
+      await page.locator('#p3sdx').fill('20');await page.fill('#p3sdy','0');await page.fill('#p3sdz','0');await page.locator('#p3sdb').click();
+      const ws=await ev(()=>Panel3D._state().panels.map(p=>Math.round(p.w)));assert.deepEqual(ws,[420,420],'ikkala panel o\'ng tomoni 20 mm cho\'zildi');
+      const pc=await ev(()=>Panel3D._scr(0,450,8));await page.mouse.click(pc.x,pc.y);assert.deepEqual(await ev(()=>Panel3D._msel()),[1],'oddiy bosish — panel tanlandi');
+      await ev(()=>Panel3D._setTool('select'))}
+    // Front'da yon panel burchagini bosish — oldi va orqa nuqta birga (ekranda bir joyda) → sudrash panelni qiyshaytirmay cho'zadi
+    {await ev(()=>{Panel3D.load({T:16,uid:10,panels:[{id:1,n:'yon',w:500,h:600,t:16,o:'side',x:0,y:300,z:0}]});Panel3D._view('front');Panel3D._select([]);Panel3D._setTool('stretch')});
+      if(await ev(()=>document.getElementById('p3mkMag').classList.contains('chk')))await page.keyboard.press('Space');
+      await page.waitForTimeout(80);const t=await ev(()=>Panel3D._scr(0,600,8));await page.mouse.move(t.x,t.y);await page.mouse.down();
+      assert.equal((await ev(()=>Panel3D._vsel())).keys.length,2,'oldi-orqa ikkala nuqta');await page.mouse.move(t.x,t.y-30,{steps:5});await page.mouse.up();
+      const yp=await ev(()=>{const p=Panel3D._state().panels[0];return{h:p.h,pts:p.pts||null,w:p.w}});assert.ok(yp.h>620&&yp.pts===null&&yp.w===500,'to\'g\'ri to\'rtburchak bo\'lib cho\'zildi '+JSON.stringify(yp));
+      // belgilangan nuqtalar yonida qo'shni panel nuqtasi: sudrash tanlovni buzmaydi — A o'ng tomoni suriladi, B joyida
+      await ev(()=>{Panel3D.load({T:16,uid:10,panels:[{id:1,n:'A',w:400,h:600,t:16,o:'front',x:0,y:300,z:0},{id:2,n:'B',w:400,h:600,t:16,o:'front',x:404,y:300,z:0}]});Panel3D._view('front');Panel3D._select([]);Panel3D._setTool('stretch');Panel3D._vsel(['1:1','1:2'])});
+      await page.waitForTimeout(80);const b=await ev(()=>Panel3D._scr(204,600,8));await page.mouse.move(b.x,b.y);await page.mouse.down();await page.mouse.move(b.x+25,b.y,{steps:5});await page.mouse.up();
+      const ab=await ev(()=>Panel3D._state().panels.map(p=>Math.round(p.w)));assert.ok(ab[0]>410&&ab[1]===400,'A cho\'zildi, B joyida '+ab);
+      if(!(await ev(()=>document.getElementById('p3mkMag').classList.contains('chk'))))await page.keyboard.press('Space');await ev(()=>Panel3D._setTool('select'))}
+    passed.push("Stretch (W): Front'da yon panel burchagi — oldi-orqa nuqta birga belgilanib to'g'ri cho'zildi; qo'shni panel nuqtasi yonida sudrash tanlovni buzmadi (A cho'zildi, B joyida)");
+    passed.push("Stretch (W) tanlovsiz: ramka panel ustidan boshlansa ham ikkala panel nuqtalari belgilandi, ikkalasi 20 mm cho'zildi; oddiy bosish — panel tanlaydi");
     // Stretch kaliti kesiklar tartibi bo'yicha: oldida avtomatik teshik bo'lsa ham to'g'ri kesik nuqtasi suriladi
     await ev(()=>{Panel3D.load({T:16,uid:10,panels:[{id:1,n:'f',w:500,h:720,t:16,o:'front',x:250,y:360,z:0,ops:[{k:'d',f:'A',u:30,v:30,d:5,z:10,t:'konf',a:1},{k:'c',th:1,pts:[[100,200],[300,200],[300,400],[100,400]],t:'man'}]}]});Panel3D._setTool('stretch');Panel3D._vsel(['1:c0.1'])});
     await page.fill('#p3sdx','10');await page.fill('#p3sdy','0');await page.fill('#p3sdz','0');await page.locator('#p3sdb').click();
