@@ -37,6 +37,10 @@ fs.writeFileSync('dist/RELEASE-NOTES.md', `Windows x64 uchun Rugby ${pkg.version
   '- Detal raqami va A4 stiker birkalar (Cnc ▸ Birkalar); narx (smeta) paneli; guruh, massiv, teng taqsimlash.\n' +
   '- Panelni 2 marta bosib Drawing\'da tahrirlash (qo\'shni panellar izi bilan); Stretch strelkalari; panel ranglari; kromka qalinliksiz ko\'rinish.\n' +
   '- J asbobida ulanishlarni ramka bilan tanlash («Yo\'q» — hammasini olib tashlash); material bo\'yicha list o\'lchami (narx, list hisobi, CNC); panel tanlanganda materiali; smart takliflar ro\'yxati panel siljiganda yopilmaydi.\n\n' +
+  '- Yangi (preview.4): O\'zaro o\'yiq — kesishgan panellarni (qiya ham) bir-biriga kiygizish: yarim-yarim yoki to\'liq o\'tish o\'yig\'i, dogbone; Kesishmalarni tekshirish.\n' +
+  '- Erkin burchakda aylantirish (Ctrl — butun gradus), Drawing tahririda kesik va o\'yiq (3D da haqiqiy teshik/chuqurcha), OBJ import — yoysimon va har qanday bir xil qalinlikdagi shakl.\n' +
+  '- Nusxa (C) Blender Duplicate kabi; yordamchi chiziq SketchUp kabi (A→B); lineyka magnit turini ko\'rsatadi; g\'ildirak kursorga qarab zoom (2 mm gacha).\n' +
+  '- Stretch (W): tanlovsiz ramka hamma panellarga, kesik nuqtalari ham, aniq ushlash; qiya qo\'shni panel izi; furnitura oynasi akkordeon; menyular ekranga sig\'adi.\n\n' +
   '**Imzosiz sinov versiyasi:** SmartScreen tugma ko‘rsatsa, More info → Run anyway. ' +
   'Smart App Control uni bloklashi mumkin; kod imzolash hali hal qilinmagan.\n\n' +
   'Windows Server 2022 muhitida kod testlari, manba va paketlangan dastur GUI sinovi, ' +
