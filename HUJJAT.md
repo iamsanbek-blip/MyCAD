@@ -1,5 +1,8 @@
 # Rugby 1.1.2 — CNC nesting, panelni Drawing'da tahrirlash, aralash ulagich, narx (2026-11-23)
 
+- **Stretch (W) kesik va o'yiq nuqtalarini ham tahrirlaydi.** Panel tanlanib W bosilsa kontur bilan birga kesik/o'yiq burchaklari ham
+  nuqta bo'lib chiqadi (ramka bilan hammasi belgilanadi) — surib teshik joyini/o'lchamini o'zgartirasiz. Kontur qirrasi surilganda teshik,
+  kesik va pazlar joyidan qo'zg'almaydi. Teshik chetida jism qirrasidan tashqari ortiqcha chiziq yo'q.
 - **O'yiq — haqiqiy chuqurcha, qiya qo'shni panel izi.** Modeling'da o'yiq panelda chuqurligi bilan ko'rinadi (tubi va devorlari),
   tekstura chiziqlari kesik va o'yiq ustidan o'tmaydi (avval «noma'lum chiziq» bo'lib ko'rinardi), OBJ eksportida ham kesik/o'yiq bor.
   Panelni Drawing'da tahrirlaganda qiya (erkin burchakli) qo'shni panel izi haqiqiy qiya shaklda chiqadi (panel qalinligidagi kesimi),

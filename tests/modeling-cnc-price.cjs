@@ -302,6 +302,15 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     const vs=poly.pts.map(q=>q[1]),us=poly.pts.map(q=>q[0]);assert.ok(Math.max(...vs)-Math.min(...vs)>16.5,'qiya iz — 16 mm dan baland (to\'rtburchak emas)');assert.ok(Math.max(...us)-Math.min(...us)>390,'chuqurligi bo\'yicha ~400');
     assert.ok(qg.g.some(g=>g.k==='line'&&g.pts.length===2&&Math.abs(g.pts[0][1]-g.pts[1][1])>1&&Math.abs(g.pts[0][0]-g.pts[1][0])>1),'qiya qirra davom chizig\'i');
     await page.locator('#p3edNo').click();await page.waitForFunction(()=>Panel3D.isOpen());
+    // Stretch (W): kesik nuqtalari ham belgilanadi va suriladi; kontur nuqtasi surilib profil boshi o'zgarsa teshik dunyoda joyida qoladi
+    await ev(()=>{Panel3D.load({T:16,uid:10,panels:[{id:1,n:'fasad',w:500,h:720,t:16,o:'front',x:250,y:360,z:0,ops:[{k:'c',th:1,pts:[[100,200],[300,200],[300,400],[100,400]],t:'man'},{k:'d',f:'A',u:50,v:50,d:5,z:10,t:'man'}]}]});Panel3D._setTool('stretch')});
+    await ev(()=>Panel3D._vsel(['1:c0.1','1:c0.2']));await page.fill('#p3sdx','40');await page.fill('#p3sdy','0');await page.fill('#p3sdz','0');await page.locator('#p3sdb').click();
+    let so=await ev(()=>Panel3D._state().panels[0].ops);assert.deepEqual(so[0].pts,[[100,200],[340,200],[340,400],[100,400]],'kesik o\'ng qirrasi 40 mm surildi');
+    await ev(()=>Panel3D._vsel(['1:0','1:3']));await page.fill('#p3sdx','-30');await page.locator('#p3sdb').click();   // chap kontur qirrasi 30 mm chapga — profil boshi siljiydi
+    const swc=await ev(()=>{const p=Panel3D._state().panels[0];return{w:p.w,x:p.x,c:p.ops[0].pts[0],d:[p.ops[1].u,p.ops[1].v]}});
+    assert.deepEqual(swc,{w:530,x:235,c:[130,200],d:[80,50]},'teshik va kesik dunyoda joyida: '+JSON.stringify(swc));
+    await ev(()=>Panel3D._setTool('select'));
+    passed.push("Stretch (W): kesik nuqtalari belgilanib 40 mm surildi; kontur chap qirrasi surilganda kesik va teshik joyidan qo'zg'almadi");
     passed.push("O'yiq 3D da haqiqiy chuqurcha (tubi 6 mm), panel chetida ortiqcha chiziq yo'q; tekstura chiziqlari kesik ustidan o'tmaydi; 10° qiya polka izi Drawing'da qiya ko'pburchak (nomi bilan)");
     passed.push("Drawing tahriri: yordamchi chiziqlar qulflangan (Ctrl+A tanlamaydi, magnit yopishadi); ichki to'rtburchak — kesik (3D teshik), «O'yiq 6 mm» — POCKET_Z6 (DXF'da), qayta ochilganda o'z qatlamida; CNC sahifasida detal guruhida");
     assert.deepEqual(errors,[]);

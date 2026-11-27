@@ -117,7 +117,7 @@ function grainLines(p){   // tekstura: panel ikki yuzasida yo'nalish bo'ylab ing
 function toggleGrain(){showGrain=!showGrain;panels.forEach(build);viewMenuSync()}
 /* --- teshik / paz ko'rinishi (furnitura): yuza teshigi — to'q sariq halqa, chet teshigi — pushti halqa + chuqurlik chizig'i, paz — to'rtburchak --- */
 let showOps=true,opsMat=null,opsMat2=null;
-function opsGroup(p){
+function opsGroup(p){   // kesik / o'yiq (k:'c') bu yerda chizilmaydi — ular jismning haqiqiy teshik/chuqurchasi, qirralari bilan ko'rinadi
   if(!showOps||!p.ops||!p.ops.length||!opsMat)return null;
   const v=[],v2=[],ox=-p.w/2,oy=-p.h/2,zA=p.t/2+.4,TAU=Math.PI*2;
   const ring=(cx,cy,z,r)=>{const N=r>8?32:16;for(let i=0;i<N;i++){const a=i/N*TAU,b=(i+1)/N*TAU;v.push(cx+r*Math.cos(a),cy+r*Math.sin(a),z,cx+r*Math.cos(b),cy+r*Math.sin(b),z)}};
@@ -125,8 +125,6 @@ function opsGroup(p){
     if(o.k==='d'){for(const z of o.th?[zA,-zA]:[o.f==='A'?zA:-zA])ring(o.u+ox,o.v+oy,z,o.d/2)}
     else if(o.k==='g'||o.k==='s'||o.k==='t'){const x0=o.u0+ox,y0=o.v0+oy,x1=o.u1+ox,y1=o.v1+oy;   // paz; ship-paz teshigi (s) va tishi (t) — ikkala yuzada
       for(const z of o.k==='g'?[o.f==='A'?zA:-zA]:[zA,-zA])v.push(x0,y0,z,x1,y0,z,x1,y0,z,x1,y1,z,x1,y1,z,x0,y1,z,x0,y1,z,x0,y0,z)}
-    else if(o.k==='c'){const P=o.pts,n=P.length,sg=o.f==='B'?-1:1;   // kesik — ikkala yuzada, o'yiq — o'z yuzasida (chuqurligi jismda ko'rinadi)
-      for(const z of o.th?[zA,-zA]:[sg*zA])for(let i=0;i<n;i++){const a=P[i],b=P[(i+1)%n];v.push(a[0]+ox,a[1]+oy,z,b[0]+ox,b[1]+oy,z)}}
     else if(o.k==='e'){const n=o.n||[0,0],x=o.u+ox-n[0]*.4,y=o.v+oy-n[1]*.4,z=o.c||0,r=o.d/2,tx=-n[1],ty=n[0];
       for(let i=0;i<16;i++){const a=i/16*TAU,b=(i+1)/16*TAU;v2.push(x+tx*r*Math.cos(a),y+ty*r*Math.cos(a),z+r*Math.sin(a),x+tx*r*Math.cos(b),y+ty*r*Math.cos(b),z+r*Math.sin(b))}
       v2.push(o.u+ox,o.v+oy,z,o.u+ox+n[0]*o.z,o.v+oy+n[1]*o.z,z)}}
@@ -989,8 +987,11 @@ function navClick(e){
 /* --- Stretch: burchak nuqtalarini belgilab masofaga surish --- */
 function stretchCands(){
   const ps=(msel.length?selected():panels).filter(p=>!p.hid&&p.g),out=[];
-  for(const p of ps){p.g.updateMatrixWorld(true);prof(p).forEach((a,i)=>out.push({p,i,key:p.id+':'+i,w:p.g.localToWorld(new THREE.Vector3(a[0]-p.w/2,a[1]-p.h/2,0))}))}
+  for(const p of ps){p.g.updateMatrixWorld(true);prof(p).forEach((a,i)=>out.push({p,i,key:p.id+':'+i,w:p.g.localToWorld(new THREE.Vector3(a[0]-p.w/2,a[1]-p.h/2,0))}));
+    (p.ops||[]).forEach((o,oi)=>{if(o.k==='c')o.pts.forEach((a,j)=>out.push({p,i:-1,key:p.id+':c'+oi+'.'+j,w:p.g.localToWorld(new THREE.Vector3(a[0]-p.w/2,a[1]-p.h/2,0))}))})}   // kesik / o'yiq nuqtalari ham
   return out}
+function opShift(o,dx,dy){if(!dx&&!dy)return;const r=v=>+v.toFixed(3);   // panel profili boshi (0,0) siljiganda teshik/paz/kesik joyida qolsin
+  if(o.k==='c')o.pts=o.pts.map(a=>[r(a[0]+dx),r(a[1]+dy)]);else if(o.u0!==undefined){o.u0=r(o.u0+dx);o.u1=r(o.u1+dx);o.v0=r(o.v0+dy);o.v1=r(o.v1+dy)}else if(o.u!==undefined){o.u=r(o.u+dx);o.v=r(o.v+dy)}}
 function stretchHandles(){
   if(vH){scene.remove(vH);vH.children.forEach(c=>c.geometry.dispose());vH=null}
   const bar=q('#p3sd');
@@ -1006,18 +1007,21 @@ function stretchPick(e){
   const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;let best=null;
   for(const c of stretchCands()){const v=c.w.clone().project(cam),d=Math.hypot((v.x+1)/2*r.width-mx,(1-v.y)/2*r.height-my);if(d<12&&(!best||d<best.d))best={c,d}}
   return best&&best.c}
-function snapBase(p){return{p,w:p.w,h:p.h,x:p.x,y:p.y,z:p.z,shape:p.shape,c:p.c,bw:p.bw,bh:p.bh,pts:p.pts?p.pts.map(a=>a.slice()):null}}
-function restoreBase(b){const p=b.p;p.w=b.w;p.h=b.h;p.x=b.x;p.y=b.y;p.z=b.z;p.shape=b.shape;p.c=b.c;p.bw=b.bw;p.bh=b.bh;p.pts=b.pts?b.pts.map(a=>a.slice()):null;
+function snapBase(p){return{p,w:p.w,h:p.h,x:p.x,y:p.y,z:p.z,shape:p.shape,c:p.c,bw:p.bw,bh:p.bh,pts:p.pts?p.pts.map(a=>a.slice()):null,ops:p.ops?JSON.stringify(p.ops):null}}
+function restoreBase(b){const p=b.p;p.w=b.w;p.h=b.h;p.x=b.x;p.y=b.y;p.z=b.z;p.shape=b.shape;p.c=b.c;p.bw=b.bw;p.bh=b.bh;p.pts=b.pts?b.pts.map(a=>a.slice()):null;if(b.ops)p.ops=JSON.parse(b.ops);
   if(p.shape===undefined)delete p.shape;if(p.c===undefined)delete p.c;if(p.bw===undefined)delete p.bw;if(p.bh===undefined)delete p.bh;if(!p.pts)delete p.pts}
 function applyStretchD(b,keys,d){
   const p=b.p;restoreBase(b);
-  const idx=keys.filter(k=>k.startsWith(p.id+':')).map(k=>+k.split(':')[1]);if(!idx.length){build(p);return}
-  if(new Set(idx).size>=prof(p).length){p.x+=d.x;p.y+=d.y;p.z+=d.z;build(p);return}   // panelning hamma nuqtasi belgilangan: butun panel har qanday o'q bo'ylab (qalinlik o'qi ham) ko'chadi
+  const own=keys.filter(k=>k.startsWith(p.id+':')).map(k=>k.slice(String(p.id).length+1)),idx=own.filter(k=>/^\d+$/.test(k)).map(Number),opk=own.filter(k=>k[0]==='c');
+  if(!idx.length&&!opk.length){build(p);return}
+  if(new Set(idx).size>=prof(p).length){p.x+=d.x;p.y+=d.y;p.z+=d.z;build(p);return}   // panelning hamma nuqtasi belgilangan: butun panel (teshik/kesiklari bilan) har qanday o'q bo'ylab ko'chadi
   const m=Wof(p),dl=[0,1].map(l=>m[l]*d.x+m[3+l]*d.y+m[6+l]*d.z);   // dunyo siljishining panel tekisligidagi tashkil etuvchilari (qalinlik o'qi e'tiborga olinmaydi)
+  for(const k of opk){const[oi,j]=k.slice(1).split('.').map(Number),o=p.ops&&p.ops[oi];if(o&&o.k==='c'&&o.pts[j])o.pts[j]=[+(o.pts[j][0]+dl[0]).toFixed(3),+(o.pts[j][1]+dl[1]).toFixed(3)]}   // kesik / o'yiq nuqtasi
+  if(!idx.length){build(p);return}
   let pts=prof(p);for(const i of idx)pts[i]=[pts[i][0]+dl[0],pts[i][1]+dl[1]];
   const xs=pts.map(a=>a[0]),ys=pts.map(a=>a[1]),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
   if(x1-x0<1||y1-y0<1){restoreBase(b);build(p);return}
-  const W=x1-x0,H=y1-y0,ox=(x0+x1)/2-p.w/2,oy=(y0+y1)/2-p.h/2;pts=pts.map(a=>[a[0]-x0,a[1]-y0]);
+  const W=x1-x0,H=y1-y0,ox=(x0+x1)/2-p.w/2,oy=(y0+y1)/2-p.h/2;pts=pts.map(a=>[a[0]-x0,a[1]-y0]);if(p.ops)for(const o of p.ops)opShift(o,-x0,-y0);   // profil boshi siljisa teshiklar dunyoda joyida qoladi
   p.x+=m[0]*ox+m[1]*oy;p.y+=m[3]*ox+m[4]*oy;p.z+=m[6]*ox+m[7]*oy;
   p.w=p.bw=W;p.h=p.bh=H;delete p.c;
   if(isRectPoly(pts,0,0,W,H)){delete p.pts;p.shape='rect'}else{p.pts=pts;p.shape='poly'}

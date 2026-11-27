@@ -1,3 +1,15 @@
+# Stretch kesik nuqtalariga, teshik joyida qoladi, teshik chetida ortiqcha chiziq yo'q — 2026-11-27 (Linux)
+
+- `modeling-cnc-price` 23: Stretch (W) — kesikning o'ng ikki nuqtasi raqamli Δx=40 bilan surildi; kontur chap qirrasi −30 surilganda
+  (profil boshi siljiydi) kesik va Ø5 teshik dunyoda joyida qoldi (u 100→130, 50→80; panel x 250→235, eni 530). Avval kontur surilganda
+  teshiklar panel bilan birga siljib ketardi.
+- Teshik chetidagi ortiqcha chiziq: kesik/o'yiq konturi jism qirrasi ustidan yana to'q sariq chiziq bilan chizilardi — olib tashlandi;
+  skrinshotda teshik va o'yiq faqat jism qirralari bilan ko'rinadi.
+- O'tdi: `npm run check`, `npm test`, `panel3d-hw`, `panel3d-hw-ui`, `modeling-precision`, `smart-autoname`, `panel3d`, `panel3d-export`,
+  Electron `modeling-smoke`, `electron-smoke`, `panel-types-smoke`, `stretch-select`. EXE qayta yig'ilmagan.
+
+---
+
 # O'yiq haqiqiy chuqurcha, tekstura kesikda uziladi, qiya qo'shni panel izi — 2026-11-26 (Linux)
 
 - `modeling-cnc-price` 22: o'yiq geometriyasida tubi (z = 8−6) bor, panel chetida o'yiq chuqurligida qirra chizig'i yo'q; teksturali
