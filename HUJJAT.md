@@ -1,5 +1,9 @@
 # Rugby 1.1.2 — CNC nesting, panelni Drawing'da tahrirlash, aralash ulagich, narx (2026-11-23)
 
+- **Stretch (W) — faqat tanlangan panel.** Panel tanlab W bosilsa asbob shu panelga «qulflanadi»: boshqa panel ustiga adashib bosish
+  tanlovni almashtirmaydi (ramka belgilash boshlanadi), ramka va bosish faqat tanlangan panel nuqtalarini oladi, faqat u cho'ziladi.
+  Kursor ostidagi nuqta oq bo'lib yonadi — bosilsa aynan o'sha belgilanadi (ustma-ust bo'lsa kameraga yaqini). Boshqa panelga o'tish:
+  Esc (tanlovni tozalash) yoki Panellar ro'yxati; Shift+bosish — panel qo'shish.
 - **OBJ import — yoysimon va har qanday shakl.** File ▸ Import ▸ OBJ (Blender va b.) endi faqat to'g'ri qutilarni emas, bir xil
   qalinlikdagi har qanday ob'ektni panelga aylantiradi: yoysimon qovurg'a, o'yiqli, burchakli, qiya (erkin burchak) plita. Ichidagi
   teshik — kesik bo'ladi. Metrdagi fayl avtomatik mm ga o'tadi, Y — yuqoriga (Blender eksporti standarti). Qalinligi bir xil bo'lmagan

@@ -1,3 +1,13 @@
+# Stretch (W) tanlangan panelga qulflanadi, nuqta aniq belgilanadi — 2026-11-27 (Linux)
+
+- `modeling-cnc-price` 26: A tanlangan, W — B panel ustiga haqiqiy sichqoncha bilan bosish tanlovni o'zgartirmadi; A va B ni qamragan
+  ramka faqat A ning 4 nuqtasini belgiladi; bo'sh joy — nuqtalar tozalandi, panel tanlovi qoldi; burchakdan 3–2 px narida bosish
+  aynan `1:0` nuqtasini belgiladi. Kursor ostidagi nuqta oq katta nuqta bilan ko'rsatiladi (bosilsa aynan u belgilanadi).
+- O'tdi: `npm run check`, `npm test`, `panel3d-hw`, `panel3d-hw-ui`, `modeling-precision`, `smart-autoname`, `panel3d`, `panel3d-export`,
+  Electron `modeling-smoke`, `electron-smoke`, `panel-types-smoke`, `stretch-select`. EXE qayta yig'ilmagan.
+
+---
+
 # Drawing tahriri: qo'shni panel izlari yozuvsiz — 2026-11-27 (Linux)
 
 - `modeling-cnc-price` 25: fasadni 2 marta bosganda va qiya polka holatida `YORDAMCHI` qatlamida matn yo'q, izlar va yordamchi

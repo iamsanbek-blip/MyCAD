@@ -340,6 +340,17 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     const swc=await ev(()=>{const p=Panel3D._state().panels[0];return{w:p.w,x:p.x,c:p.ops[0].pts[0],d:[p.ops[1].u,p.ops[1].v]}});
     assert.deepEqual(swc,{w:530,x:235,c:[130,200],d:[80,50]},'teshik va kesik dunyoda joyida: '+JSON.stringify(swc));
     await ev(()=>Panel3D._setTool('select'));
+    // Stretch (W) tanlangan panelga qulflanadi: boshqa panel ustiga bosish tanlovni almashtirmaydi, ramka faqat shu panel nuqtalarini oladi
+    await ev(()=>{Panel3D.load({T:16,uid:10,panels:[{id:1,n:'A',w:400,h:600,t:16,o:'front',x:0,y:300,z:0},{id:2,n:'B',w:400,h:600,t:16,o:'front',x:500,y:300,z:0}]});Panel3D._view('front');Panel3D._select([1]);Panel3D._setTool('stretch')});
+    await page.waitForTimeout(100);const pB=await ev(()=>Panel3D._scr(500,300,8));await page.mouse.click(pB.x,pB.y);
+    assert.deepEqual(await ev(()=>Panel3D._msel()),[1],'boshqa panelga bosish tanlovni almashtirmadi');
+    const a0=await ev(()=>Panel3D._scr(-260,-20,8)),a1=await ev(()=>Panel3D._scr(760,620,8));await page.mouse.move(a0.x,a0.y);await page.mouse.down();await page.mouse.move(a1.x,a1.y,{steps:5});await page.mouse.up();
+    const vk=(await ev(()=>Panel3D._vsel())).keys;assert.ok(vk.length===4&&vk.every(k=>k.startsWith('1:')),'ramka faqat A nuqtalari: '+vk);
+    {const pe=await ev(()=>Panel3D._scr(250,680,8));await page.mouse.click(pe.x,pe.y)}assert.equal((await ev(()=>Panel3D._vsel())).keys.length,0,"bo'sh joy — nuqtalar tozalandi");assert.deepEqual(await ev(()=>Panel3D._msel()),[1]);
+    const ph=await ev(()=>Panel3D._scr(-200,0,8));await page.mouse.move(ph.x+3,ph.y-2);await page.mouse.down();await page.mouse.up();
+    {const kk=(await ev(()=>Panel3D._vsel())).keys;assert.deepEqual(kk,['1:0'],'bosilgan aynan shu nuqta '+JSON.stringify(kk))}
+    await ev(()=>Panel3D._setTool('select'));
+    passed.push("Stretch (W): tanlangan panelga qulflanadi — B panel ustiga bosish tanlovni o'zgartirmadi, ramka faqat A ning 4 nuqtasini oldi, nuqta aniq belgilandi");
     passed.push("Stretch (W): kesik nuqtalari belgilanib 40 mm surildi; kontur chap qirrasi surilganda kesik va teshik joyidan qo'zg'almadi");
     passed.push("O'yiq 3D da haqiqiy chuqurcha (tubi 6 mm), panel chetida ortiqcha chiziq yo'q; tekstura chiziqlari kesik ustidan o'tmaydi; 10° qiya polka izi Drawing'da qiya ko'pburchak (yozuvsiz)");
     passed.push("Drawing tahriri: yordamchi chiziqlar qulflangan (Ctrl+A tanlamaydi, magnit yopishadi); ichki to'rtburchak — kesik (3D teshik), «O'yiq 6 mm» — POCKET_Z6 (DXF'da), qayta ochilganda o'z qatlamida; CNC sahifasida detal guruhida");
