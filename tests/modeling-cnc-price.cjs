@@ -247,6 +247,7 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
       await page.mouse.move(cx+120,cy,{steps:5});const mid=await ev(()=>Panel3D._state().panels.map(p=>Math.round(p.x)));assert.ok(mid[1]>mid[0]+20,'nusxa kursorga ergashdi '+mid);
       await page.mouse.move(cx+160,cy,{steps:3});const before=await ev(()=>Panel3D._state().panels[1].x);await page.mouse.click(cx+160,cy);
       await page.mouse.move(cx+300,cy,{steps:3});const after=await ev(()=>Panel3D._state().panels.map(p=>p.x));assert.ok(Math.abs(after[1]-before)<.01&&after[0]===8,'bosilgan joyda qotdi '+after);
+      assert.equal(await ev(()=>document.getElementById('p3tMov').classList.contains('on')),true,'nusxadan keyin Move asbobi — strelkalar');
       await page.keyboard.press('c');await page.mouse.move(cx+350,cy,{steps:3});await page.keyboard.press('Escape');
       const ce=await ev(()=>({n:Panel3D._state().panels.length,sel:Panel3D._state().msel||null}));assert.equal(ce.n,2,'Esc — nusxa bekor');
       await page.keyboard.press('Control+z');assert.equal(await ev(()=>Panel3D._state().panels.length),1,'Ctrl+Z — birinchi nusxa qaytarildi')}
@@ -365,6 +366,14 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
       const RU=await ev(()=>({r:Panel3D._ruler(),a:document.getElementById('p3rA').textContent,b:document.getElementById('p3rB').textContent,ah:document.getElementById('p3rA').hidden,l:document.getElementById('p3rul').textContent}));
       assert.equal(RU.r.kA,'end');assert.equal(RU.r.kB,'mid');assert.ok(!RU.ah&&/A · Uch/.test(RU.a)&&/B · O'rta/.test(RU.b),JSON.stringify(RU));assert.match(RU.l,/^200\.0 mm .*A: Uch → B: O'rta/);
       await page.keyboard.press('Escape');await ev(()=>Panel3D._setTool('select'))}
+    // Move (M) strelkalari Top ko'rinishda: X o'qi, Z o'qi, XZ tekisligi
+    {await ev(()=>{Panel3D.load({T:16,uid:10,panels:[{id:1,n:'A',w:400,h:300,t:16,o:'flat',x:0,y:8,z:0},{id:2,n:'B',w:300,h:200,t:16,o:'flat',x:600,y:8,z:0}]});Panel3D._setTool('move');Panel3D._view('top');Panel3D._select([2])});
+      await page.waitForTimeout(80);const PB=()=>ev(()=>{const p=Panel3D._state().panels[1];return[p.x,p.y,p.z].map(v=>Math.round(v))}),res={};
+      for(const k of['a0','a2','p1']){const h=(await ev(()=>Panel3D._gz()))[k];const p0=await PB();await page.mouse.move(h.x,h.y,{steps:2});await page.mouse.down();await page.mouse.move(h.x+40,h.y+30,{steps:6});await page.mouse.up();
+        const p1=await PB();res[k]=p1.map((v,i)=>v-p0[i])}
+      assert.ok(res.a0[0]>20&&res.a0[1]===0&&res.a0[2]===0,'X '+JSON.stringify(res));assert.ok(res.a2[2]>10&&res.a2[0]===0&&res.a2[1]===0,'Z '+JSON.stringify(res));
+      assert.ok(res.p1[0]>20&&res.p1[2]>10&&res.p1[1]===0,'XZ '+JSON.stringify(res));await ev(()=>Panel3D._setTool('select'))}
+    passed.push("Move (M) Top ko'rinishda: X strelkasi — faqat X, Z strelkasi — faqat Z, XZ tekisligi — ikkalasi (Y o'zgarmadi)");
     passed.push("Yordamchi chiziq: A→B tik (400;0→400;600) va qiya (0;0→400;600) cheksiz chiziq magnit bilan aniq; Select'da bosib tanlandi, Delete o'chirdi; lineyka 200.0 mm — «A · Uch», «B · O'rta» belgilari qoldi");
     passed.push("Stretch (W): tanlangan panelga qulflanadi — B panel ustiga bosish tanlovni o'zgartirmadi, ramka faqat A ning 4 nuqtasini oldi, nuqta aniq belgilandi");
     passed.push("Stretch (W): kesik nuqtalari belgilanib 40 mm surildi; kontur chap qirrasi surilganda kesik va teshik joyidan qo'zg'almadi");

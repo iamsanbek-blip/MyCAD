@@ -1,3 +1,14 @@
+# Move strelkalari (Top) tekshirildi; nusxadan keyin Move asbobi — 2026-11-27 (Linux)
+
+- Shikoyat: «o'q/tekislik bo'yicha ko'chirish ishlamay qoldi, ayniqsa Top». Qayta hosil qilinmadi: Top va Iso da X/Z strelka va XZ
+  tekisligi, sudrash paytida X / Shift+Y / raqam — sintetik panellarda ham, foydalanuvchining OBJ stulida ham to'g'ri ishladi.
+  Ehtimoliy sabab: yangi Nusxa (C) endi Move asbobiga o'tmasdi — nusxadan keyin Select asbobida strelkalar yo'q. Endi nusxa qo'yilgach
+  Move yoqiladi; Select yordamida «strelkalar — Move (M)» deb yoziladi.
+- `modeling-cnc-price` 28: Top — X strelka faqat X, Z — faqat Z, XZ — ikkalasi (Y o'zgarmaydi); nusxadan keyin Move faol.
+  `npm test`, `modeling-precision`, `panel3d-export`, Electron `modeling-smoke` o'tdi. Windows'da qo'lda tekshirilmagan.
+
+---
+
 # Yordamchi chiziq (SketchUp kabi A→B), tanlash/Delete; lineyka magnit belgilari — 2026-11-27 (Linux)
 
 - `modeling-cnc-price` 27 (haqiqiy sichqoncha, Front): yordamchi chiziq A(400;0)→B(400;600) — tik, A(0;0)→B(400;600) — qiya
