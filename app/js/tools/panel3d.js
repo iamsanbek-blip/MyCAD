@@ -1639,10 +1639,8 @@ function hull2(P){const p=P.map(a=>[+a[0].toFixed(3),+a[1].toFixed(3)]).sort((a,
 function editGuides(gd,L){
   if(!gd)return 0;const G=L('YORDAMCHI',8),M=120,ly=layers.find(l=>l.id===G);if(ly){ly.color='#5f7088';ly.aci=8;ly.locked=true}   // qulf: tanlanmaydi/o'zgarmaydi, magnit — snap.js (p3g)
   const push=(pts,closed,kind,col)=>drawnLines.unshift({kind:kind||'line',closed:!!closed,selected:false,layer:G,color:col||'#46546a',points:pts,grips:pts.map(o=>({x:o.x,y:o.y})),p3g:1});   // kulrang: iz — ochroq, davom chiziqlari — xira
-  gd.rects.forEach((r,k)=>{push(genRectPts({x:r.u0,y:r.v0},{x:r.u1,y:r.v1}),true,'rect','#7f93ad');const h=Math.max(12,Math.min(40,Math.min(r.u1-r.u0,r.v1-r.v0,200)/3));
-    if(typeof texts!=='undefined')texts.push({id:typeof newTextId==='function'?newTextId():'tg'+k,x:(r.u0+r.u1)/2-r.n.length*h*.28,y:(r.v0+r.v1)/2-h/2,text:r.n,size:h,rot:0,color:'#8fa3bf',layer:G,selected:false})});
-  for(const r of gd.polys||[]){const pp=r.pts.map(c=>({x:c[0],y:c[1]}));push(pp,true,'line','#7f93ad');const cx=pp.reduce((s,o)=>s+o.x,0)/pp.length,cy=pp.reduce((s,o)=>s+o.y,0)/pp.length,h=24;
-    if(typeof texts!=='undefined')texts.push({id:typeof newTextId==='function'?newTextId():'tgp',x:cx-r.n.length*h*.28,y:cy-h/2,text:r.n,size:h,rot:0,color:'#8fa3bf',layer:G,selected:false})}
+  gd.rects.forEach(r=>push(genRectPts({x:r.u0,y:r.v0},{x:r.u1,y:r.v1}),true,'rect','#7f93ad'));   // izlar yozuvsiz — chizishga xalaqit bermasin
+  for(const r of gd.polys||[])push(r.pts.map(c=>({x:c[0],y:c[1]})),true,'line','#7f93ad');
   for(const[a,d]of gd.slant||[]){   // qiya qirraning davomi — panel to'rtburchagi (+M) ichida
     const ts=[];for(const[k,lim]of[[0,-M],[0,gd.W+M],[1,-M],[1,gd.H+M]]){if(Math.abs(d[k])<1e-9)continue;const t=(lim-a[k])/d[k],o=a[1-k]+t*d[1-k];if(o>=(k?-M:-M)-1e-6&&o<=(k?gd.W+M:gd.H+M)+1e-6)ts.push(t)}
     if(ts.length>=2){const t0=Math.min(...ts),t1=Math.max(...ts);push([{x:a[0]+d[0]*t0,y:a[1]+d[1]*t0},{x:a[0]+d[0]*t1,y:a[1]+d[1]*t1}])}}

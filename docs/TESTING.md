@@ -1,3 +1,10 @@
+# Drawing tahriri: qo'shni panel izlari yozuvsiz — 2026-11-27 (Linux)
+
+- `modeling-cnc-price` 25: fasadni 2 marta bosganda va qiya polka holatida `YORDAMCHI` qatlamida matn yo'q, izlar va yordamchi
+  chiziqlar avvalgidek. `npm test`, `panel3d-hw`, `panel3d-hw-ui`, `panel3d-export`, `modeling-precision`, Electron `modeling-smoke` o'tdi.
+
+---
+
 # OBJ import — har qanday bir xil qalinlikdagi shakl; Nusxa (C) Blender Duplicate kabi — 2026-11-27 (Linux)
 
 - Foydalanuvchi fayli (Blender 4.2, 14 ob'ekt: 7 yoysimon «Section» qovurg'a, 7 «Cube» ustun) — avval faqat 8 uchli qutilar (7 ta)

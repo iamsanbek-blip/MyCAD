@@ -159,7 +159,7 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     const gd=await ev(()=>Panel3D._guides()),gr=gd.filter(g=>g.k==='rect');   // qo'shni panellar izi: 2 boka, dno, krisha (fasadga tegadi)
     assert.equal(gr.length,4,JSON.stringify(gr));assert.ok(gd.filter(g=>g.k==='line').length>=6);
     assert.ok(gr.some(g=>{const xs=g.pts.map(q=>q[0]);return Math.min(...xs)===-2&&Math.max(...xs)===14}),'chap boka izi fasad chetida (u −2..14)');
-    assert.ok(await ev(()=>texts.some(t=>t.text==='A. dno'&&t.layer==='YORDAMCHI')));
+    assert.ok(await ev(()=>!texts.some(t=>t.layer==='YORDAMCHI')),'izlar yozuvsiz (chizishga xalaqit bermaydi)');
     const fOps=await ev(()=>{const s=documentPages[0].panel3d.panels.find(p=>p.id===8);return(s.ops||[]).filter(o=>o.k==='d').length});assert.equal(ed.c,fOps);
     await ev(()=>{const c=drawnLines.find(l=>l.kind==='line'&&!l.p3g);const pts=[{x:0,y:0},{x:596,y:0},{x:596,y:616},{x:496,y:716},{x:0,y:716}];c.points=pts;c.grips=pts.map(o=>({...o}));
       const ce={x:298,y:60};drawnLines.push({kind:'circle',center:ce,radius:4,closed:true,selected:false,layer:'DRILL_D8_Z12',points:genCirclePts(ce,4),grips:[]})});
@@ -169,7 +169,7 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     assert.deepEqual(F.man,[{k:'d',f:'A',u:298,v:60,d:8,z:12,t:'man'}]);assert.equal(F.n,fOps+1);assert.equal(F.eb,null,'kromka qirralar soni o\'zgardi');
     assert.deepEqual(F.pages,['Sahifa 1','CNC · LDSP oq 16 mm','CNC · MDF 16 mm','CNC · XDF 4 mm']);
     await page.keyboard.press('Control+z');assert.equal(await ev(()=>Panel3D._state().panels.find(p=>p.id===8).pts),undefined);
-    passed.push("Fasad 2 marta bosildi → «✎ A. fasad» Drawing sahifasi (qo'shni 4 panel izi va yordamchi chiziqlar, nomlari bilan); kesilgan burchak va Ø8×12 teshik «Modeling'ga qaytarish» bilan panelga o'tdi, joyi o'zgarmadi, vaqtinchalik sahifa o'chdi; Ctrl+Z qaytaradi");
+    passed.push("Fasad 2 marta bosildi → «✎ A. fasad» Drawing sahifasi (qo'shni 4 panel izi va yordamchi chiziqlar, yozuvsiz); kesilgan burchak va Ø8×12 teshik «Modeling'ga qaytarish» bilan panelga o'tdi, joyi o'zgarmadi, vaqtinchalik sahifa o'chdi; Ctrl+Z qaytaradi");
     await ev(()=>Panel3D._select([]));await page.mouse.dblclick(fc.x,fc.y);await page.waitForFunction(()=>Panel3D._editing());
     await ev(()=>{drawnLines.length=0});await page.locator('#p3edNo').click();await page.waitForFunction(()=>Panel3D.isOpen());
     assert.equal(await ev(()=>Panel3D._state().panels.find(p=>p.id===8).pts),undefined);assert.equal(await ev(()=>documentPages.length),4);
@@ -327,7 +327,7 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     assert.equal(gx,0,'tekstura chizig\'i kesik ustidan o\'tmaydi');
     await ev(()=>{const s=Math.sin(Math.PI/36),c=Math.cos(Math.PI/36);Panel3D.load({T:16,uid:10,panels:[{id:1,n:'boka',w:500,h:720,t:16,o:'side',x:8,y:360,z:0},{id:2,n:'qiya polka',w:600,h:400,t:16,o:'flat',x:300,y:400,z:0,rt:[s,0,0,c]}]});Panel3D._edit(1)});
     await page.waitForFunction(()=>Panel3D._editing());
-    const qg=await ev(()=>({g:Panel3D._guides(),t:texts.some(t=>t.text==='qiya polka'&&t.layer==='YORDAMCHI')}));
+    const qg=await ev(()=>({g:Panel3D._guides(),t:!texts.some(t=>t.layer==='YORDAMCHI')}));
     const poly=qg.g.find(g=>g.k==='line'&&g.pts.length>=4);assert.ok(poly&&qg.t,JSON.stringify(qg.g.slice(0,3)));
     const vs=poly.pts.map(q=>q[1]),us=poly.pts.map(q=>q[0]);assert.ok(Math.max(...vs)-Math.min(...vs)>16.5,'qiya iz — 16 mm dan baland (to\'rtburchak emas)');assert.ok(Math.max(...us)-Math.min(...us)>390,'chuqurligi bo\'yicha ~400');
     assert.ok(qg.g.some(g=>g.k==='line'&&g.pts.length===2&&Math.abs(g.pts[0][1]-g.pts[1][1])>1&&Math.abs(g.pts[0][0]-g.pts[1][0])>1),'qiya qirra davom chizig\'i');
@@ -341,7 +341,7 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     assert.deepEqual(swc,{w:530,x:235,c:[130,200],d:[80,50]},'teshik va kesik dunyoda joyida: '+JSON.stringify(swc));
     await ev(()=>Panel3D._setTool('select'));
     passed.push("Stretch (W): kesik nuqtalari belgilanib 40 mm surildi; kontur chap qirrasi surilganda kesik va teshik joyidan qo'zg'almadi");
-    passed.push("O'yiq 3D da haqiqiy chuqurcha (tubi 6 mm), panel chetida ortiqcha chiziq yo'q; tekstura chiziqlari kesik ustidan o'tmaydi; 10° qiya polka izi Drawing'da qiya ko'pburchak (nomi bilan)");
+    passed.push("O'yiq 3D da haqiqiy chuqurcha (tubi 6 mm), panel chetida ortiqcha chiziq yo'q; tekstura chiziqlari kesik ustidan o'tmaydi; 10° qiya polka izi Drawing'da qiya ko'pburchak (yozuvsiz)");
     passed.push("Drawing tahriri: yordamchi chiziqlar qulflangan (Ctrl+A tanlamaydi, magnit yopishadi); ichki to'rtburchak — kesik (3D teshik), «O'yiq 6 mm» — POCKET_Z6 (DXF'da), qayta ochilganda o'z qatlamida; CNC sahifasida detal guruhida");
     assert.deepEqual(errors,[]);
   }finally{await browser.close();fs.rmSync(tmp,{recursive:true,force:true})}
