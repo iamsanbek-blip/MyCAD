@@ -1,5 +1,10 @@
 # Rugby 1.1.2 — CNC nesting, panelni Drawing'da tahrirlash, aralash ulagich, narx (2026-11-23)
 
+- **Modeling chap paneli ixcham.** Shablonlar ostidagi uzun yo'riqnoma endi doim turmaydi — Panel/Magnit ustiga olib borilganda
+  suzuvchi oynada vaqtincha chiqadi. «2D chizma / DXF» (chizmadan/DXF dan panel) bo'limi tepaga — Shablonlar ostiga ko'tarildi.
+- **Furnitura oynasi — akkordeon.** Har bo'lim (Ulanish, Ship-paz va O'zaro o'yiq, Polka, Fasad, Orqa devor, DXF) sarlavhasidagi
+  strelka bilan ochiladi; bittasi ochilsa qolganlari yopiladi — oyna pastga cho'zilib ketmaydi. O'zaro o'yiq zazori va freza Ø —
+  «Ship-paz va O'zaro o'yiq» bo'limida.
 - **Furnitura sozlamalari yuqori menyuda ham.** Modeling ochiq bo'lsa yuqoridagi **Object** menyusida «Modeling» bo'limi: Furnitura va
   teshiklar (sozlamalar)… (Alt+F), Kesishmalarni tekshirish, O'zaro o'yiq. Web versiyada Alt+F ni brauzer o'zi ushlab qolsa — shu menyudan.
 - **O'zaro o'yiq (kiygizish) va kesishmalarni tekshirish.** Object ▸ **Kesishmalarni tekshirish** — bir-biriga kirib qolgan panellarni

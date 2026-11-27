@@ -1,3 +1,13 @@
+# Chap panel ixcham, Furnitura oynasi akkordeon — 2026-11-27 (Linux)
+
+- `modeling-xlap` 7: Shablonlar yo'riqnomasi yashirin, Panel ustiga olib borilganda suzuvchi oynada chiqadi va kursor ketgach yo'qoladi;
+  «2D chizma / DXF» bo'limi Shablonlardan keyin (Butun korpusdan yuqorida). Furnitura oynasi — akkordeon: bir bo'lim ochilsa qolganlari
+  yopiladi (Ulanish ham), «Ship-paz va O'zaro o'yiq (zazor, freza Ø)» ochilganda zazor maydoni ko'rinadi. 1366×768 skrinshotda oyna
+  ekranga sig'adi. `npm test`, `panel3d-hw-ui`, `modeling-cnc-price`, `modeling-precision`, `smart-autoname`, `panel3d`, `panel3d-export`,
+  Electron `modeling-smoke`, `electron-smoke`, `panel-types-smoke`, `stretch-select` o'tdi.
+
+---
+
 # Yuqori Object menyusida Modeling bo'limi (Furnitura, O'zaro o'yiq) — 2026-11-27 (Linux)
 
 - `modeling-xlap` 6: Modeling ochiq — yuqori Object menyusida «Furnitura va teshiklar (sozlamalar)… Alt+F» ko'rinadi, bosilsa oyna

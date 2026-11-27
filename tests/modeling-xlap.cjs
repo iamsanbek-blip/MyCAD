@@ -65,6 +65,17 @@ const errors=[],passed=[];
     // 7. Yuqori Object menyusi: Modeling bo'limi — Furnitura (sozlamalar, Ship-paz zazor / freza Ø), O'zaro o'yiq, tekshirish
     await page.locator('#mbObject .mbBtn').click();assert.ok(await page.locator('#mbObject [data-act="p3:p3oHw"]').isVisible());await page.locator('#mbObject [data-act="p3:p3oHw"]').click();
     await page.waitForSelector('#p3hw:not([hidden])');assert.ok(await ev(()=>!!document.getElementById('p3hw_tab_cl')&&!!document.getElementById('p3hw_tab_d')),'Ship-paz: zazor va freza Ø maydonlari');
+    // Furnitura oynasi — akkordeon: bitta bo'lim ochilsa qolganlari yopiladi
+    const sums=page.locator('#p3hw details.p3hwd > summary');const nS=await sums.count();assert.ok(nS>=4);
+    await sums.nth(0).click();await sums.nth(nS-1).click();await page.waitForTimeout(100);assert.equal(await ev(()=>document.querySelectorAll('#p3hw details.p3hwd[open]').length),1);
+    await page.locator('#p3hw details.p3hwd > summary',{hasText:"O'zaro o'yiq"}).click();await page.waitForTimeout(100);assert.equal(await ev(()=>[...document.querySelectorAll('#p3hw details.p3hwd[open]')].map(d=>d.querySelector('summary').textContent).join()),"Ship-paz va O'zaro o'yiq (zazor, freza Ø)");
+    assert.ok(await page.locator('#p3hw_tab_cl').isVisible(),'zazor maydoni ko\'rinadi');
+    // chap panel: yo'riqnoma yashirin, Panel ustiga olib borilsa ko'rinadi; 2D chizma / DXF — Shablonlar ostida, Butun korpusdan yuqorida
+    await page.keyboard.press('Escape');await ev(()=>document.getElementById('p3hw').hidden=true);
+    assert.ok(await page.locator('#p3tplHelp').isHidden());await page.locator('#p3tpl .p3tile').first().hover();assert.ok(await page.locator('#p3tplHelp').isVisible());
+    await page.mouse.move(cx,cy);await page.waitForTimeout(400);assert.ok(await page.locator('#p3tplHelp').isHidden());
+    assert.ok(await ev(()=>{const h=[...document.querySelectorAll('#p3wrap .p3lib h4')].map(x=>x.textContent);return h.indexOf('2D chizma / DXF')===1&&h.indexOf('Butun korpus')>1}),'tartib');
+    passed.push("Furnitura oynasi akkordeon (bitta bo'lim ochiq), «Ship-paz va O'zaro o'yiq» bo'limida zazor; yo'riqnoma faqat Panel ustida ko'rinadi; 2D chizma / DXF tepada");
     await page.keyboard.press('Escape');await page.locator('#mbDraw').click();await page.locator('#mbObject .mbBtn').click();assert.ok(await page.locator('#mbObject .mbP3').first().isHidden(),'Drawing\'da Modeling bo\'limi yashirin');await page.keyboard.press('Escape');
     passed.push("Yuqori Object menyusi: Modeling ochiq bo'lsa — Furnitura (Ship-paz zazor, freza Ø), Kesishmalarni tekshirish, O'zaro o'yiq; Drawing'da yashirin");
     assert.deepEqual(errors,[]);

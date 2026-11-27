@@ -1556,7 +1556,7 @@ const HWF=[
   ['konf.fd','Yevrovint: yuza Ø (teshib o\'tadi)'],['konf.ed','Yevrovint: chet Ø'],['konf.ez','Yevrovint: chet chuqurligi'],
   ['ekss.d','Ekssentrik Ø'],['ekss.z','Ekssentrik chuqurligi'],['ekss.b','Ekssentrik: chetdan markazigacha'],['ekss.ed','Ekssentrik: chet Ø'],['ekss.ez','Ekssentrik: chet chuqurligi'],['ekss.bd','Shtok Ø'],['ekss.bz','Shtok chuqurligi'],
   ['shkant.d','Shkant Ø'],['shkant.fz','Shkant: yuza chuqurligi'],['shkant.ez','Shkant: chet chuqurligi'],
-  ['h','Ship-paz (metallsiz, tishli birikma)'],['tab.w','Tish eni'],['tab.e','Ulanish chetidan'],['tab.cl','Zazor (teshik kengroq)'],['tab.bone','Dogbone — ichki burchak o\'yig\'i','chk'],['tab.d','Freza Ø (dogbone)'],
+  ['h','Ship-paz va O\'zaro o\'yiq (zazor, freza Ø)'],['tab.w','Tish eni'],['tab.e','Ulanish chetidan'],['tab.cl','Zazor (teshik kengroq)'],['tab.bone','Dogbone — ichki burchak o\'yig\'i','chk'],['tab.d','Freza Ø (dogbone)'],
   ['h','Polka (nomi «polka…»)'],['pin.on','Polkaderjatel (polka qotirilmaydi)','chk'],['pin.d','Polkaderjatel Ø'],['pin.z','Chuqurligi'],['pin.e','Oldi / orqa chetidan'],['pin.drop','Polka ostidan pastga'],['pin.row','Qo\'shimcha teshik (±, 32 mm qadam)'],
   ['h','Fasad (nomi «fasad…»)'],['hinge.on','Petlya (eshik — bo\'yi enidan katta)','chk'],['hinge.d','Chashka Ø'],['hinge.z','Chashka chuqurligi'],['hinge.k','Chashka chetdan (K)'],['hinge.e','Tepadan / pastdan'],
   ['hinge.pd','Planka teshigi Ø'],['hinge.pz','Planka teshigi chuqurligi'],['hinge.pe','Planka: boka oldidan'],['hinge.ps','Planka teshiklari oralig\'i'],
@@ -1605,7 +1605,7 @@ function hwExportDxf(){
 function hwExportCsv(){const ps=hwTargets();try{downloadFile(HW.csv(ps),'rugby-teshiklar.csv','text/csv')}catch(e){}hwSay(`rugby-teshiklar.csv: ${ps.reduce((a,p)=>a+(p.ops||[]).length,0)} qator.`)}
 /* Ixcham forma: ulanish bo'limida faqat tanlangan turga tegishli maydonlar (yevrovint → yevrovint o'lchamlari, ekssentrik → ekssentrik …);
    qolgan bo'limlar (polka, fasad, orqa devor, DXF) yig'ilgan — sarlavhasi bosilsa ochiladi. */
-let hwSecOpen=new Set();
+let hwSecOpen=new Set([0]);   // akkordeon: ochiq bo'lim (standart — Ulanish)
 function hwVis(k){const c=hwOpts.con||'konf',sh=c==='shkant'||c.endsWith('+shkant');
   if(/^konf\./.test(k))return c.startsWith('konf');if(/^ekss\./.test(k))return c.startsWith('ekss');
   if(/^shkant\./.test(k))return sh||(hwOpts.dowel&&c!=='none');if(k==='dowel')return c==='konf'||c==='ekss';if(k==='e'||k==='step')return c!=='none'&&c!=='tab';return true}
@@ -1615,7 +1615,7 @@ function hwField([k,l,t,o]){const v=hwGet(k),id='p3hw_'+k.replace('.','_');
   return `<div class="p3hwr"><label for="${id}">${esc(l)}</label><input id="${id}" data-k="${k}" type="text"${t==='txt'?'':' inputmode="decimal"'} value="${esc(v)}"></div>`}
 function hwForm(){const sec=[];for(const f of HWF){if(f[0]==='h')sec.push({t:f[1],f:[]});else sec[sec.length-1].f.push(f)}
   return sec.map((g,i)=>{const body=g.f.filter(f=>hwVis(f[0])).map(hwField).join('');
-    return i===0?`<div class="p3hwh">${esc(g.t)}</div>${body}`:`<details class="p3hwd" data-s="${i}"${hwSecOpen.has(i)?' open':''}><summary>${esc(g.t)}</summary>${body}</details>`}).join('')}
+    return `<details class="p3hwd${i===0?' p3hwd0':''}" data-s="${i}"${hwSecOpen.has(i)?' open':''}><summary>${esc(g.t)}</summary>${body}</details>`}).join('')}
 function hwOpen(){if(!wrap||!HW)return;const d=q('#p3hw');q('#p3hwF').innerHTML=hwForm();d.hidden=false;
   const s=selected().length;q('#p3hwScope').textContent=s?`Tanlangan ${s} ta panel`:`Hamma ko'rinadigan panel (${panels.filter(p=>!p.hid).length})`}
 function hwWire(){
@@ -1632,7 +1632,8 @@ function hwWire(){
     if(t.type==='checkbox')hwSet(k,t.checked);else if(t.tagName==='SELECT'||/^dxf\.(drills|cut|drill|thru|groove|edge|dec)$/.test(k))hwSet(k,t.value);
     else{const v=num(t.value);if(Number.isFinite(v)&&v>=0)hwSet(k,v);t.value=hwGet(k)}hwSave();
     if(k==='con'||k==='dowel'){const f=q('#p3hwF'),y=f.scrollTop;f.innerHTML=hwForm();f.scrollTop=y}});   // faqat shu turga tegishli maydonlar
-  d.addEventListener('toggle',e=>{const x=e.target;if(x.classList&&x.classList.contains('p3hwd')){const i=+x.dataset.s;x.open?hwSecOpen.add(i):hwSecOpen.delete(i)}},true);
+  d.addEventListener('toggle',e=>{const x=e.target;if(x.classList&&x.classList.contains('p3hwd')){const i=+x.dataset.s;   // akkordeon: bittasi ochilsa qolganlari yopiladi
+    if(x.open){hwSecOpen.clear();hwSecOpen.add(i);d.querySelectorAll('details.p3hwd[open]').forEach(o=>{if(o!==x)o.open=false});x.scrollIntoView({block:'nearest'})}else hwSecOpen.delete(i)}},true);
   d.addEventListener('keydown',e=>{if(e.key==='Escape'){d.hidden=true;e.stopPropagation()}});
   q('#p3hwX').onclick=()=>{d.hidden=true};q('#p3hwGo').onclick=hwPlace;q('#p3hwClr').onclick=hwClear;q('#p3hwChk').onclick=hwCheck;q('#p3hwDxf').onclick=hwExportDxf;q('#p3hwCsv').onclick=hwExportCsv;q('#p3hwNest').onclick=()=>{d.hidden=true;cncSend()}}
 /* --- CNC'ga yuborish: har material + qalinlik uchun yangi Drawing sahifasi («CNC · MDF 16 mm»). Har detal — bitta GURUH
@@ -2019,7 +2020,14 @@ const HTML=`
 <div class="p3main">
  <aside class="p3lib">
   <h4>Shablonlar</h4><div class="p3tpl" id="p3tpl"></div>
-  <p class="p3mu">Bosing — panel kursorga ilashadi, joyiga bosib qo'ying. Magnit (Probel) — panel qo'yishda ham, sudrashda ham nuqtalari (uchlar, o'rta nuqta, markaz, qirra — «Magnit turi» da tanlanadi) boshqa panelniki bilan yopishadi; nishon kursor ostida belgilanadi. Panel joriy ko'rinishga mos tushadi: Old — frontal, Yon — vertikal, Yuqori — gorizontal. Panelga 2 marta bosing — Drawing'da shaklini tahrirlash (Alt + 2 marta — 3D da tez chizish).</p>
+  <p class="p3mu p3tplHelp" id="p3tplHelp" role="tooltip">Bosing — panel kursorga ilashadi, joyiga bosib qo'ying. Magnit (Probel) — panel qo'yishda ham, sudrashda ham nuqtalari (uchlar, o'rta nuqta, markaz, qirra — «Magnit turi» da tanlanadi) boshqa panelniki bilan yopishadi; nishon kursor ostida belgilanadi. Panel joriy ko'rinishga mos tushadi: Old — frontal, Yon — vertikal, Yuqori — gorizontal. Panelga 2 marta bosing — Drawing'da shaklini tahrirlash (Alt + 2 marta — 3D da tez chizish).</p>
+  <h4>2D chizma / DXF</h4>
+  <div class="p3row" style="margin-top:0"><button id="p3bDraw">2D chizmadan</button><button id="p3bFile">DXF fayl…</button></div>
+  <input type="file" id="p3file" accept=".dxf" style="display:none">
+  <p class="p3mu" id="p3dxfInfo"></p>
+  <div class="p3r"><label style="width:96px">Chizma tekisligi</label><select id="p3dxP"><option value="plan">Reja (yuqoridan)</option><option value="front">Old (XY)</option></select></div>
+  <div class="p3r"><label style="width:96px">Extrude (mm)</label><input id="p3dxD" type="text" inputmode="decimal" value="500"></div>
+  <div class="p3row"><button id="p3bDxfP" hidden>Yopiq konturlarni extrude qilish (panel)</button><button id="p3bDxfC" hidden>Chiziqlarni o'chirish</button></div>
   <div class="p3row"><button id="p3bDemo">Namuna korpus</button><button id="p3bClear">Tozalash</button></div>
   <h4>Butun korpus</h4>
   <div id="p3kz">
@@ -2029,13 +2037,6 @@ const HTML=`
    <p class="p3mu" id="p3dimT">Umumiy o'lcham (gabarit)</p>
    <div class="p3dim" id="p3dim"><span><i>X</i><b id="p3dx">—</b></span><span><i>Y</i><b id="p3dy">—</b></span><span><i>Z</i><b id="p3dz">—</b></span></div>
   </div>
-  <h4>2D chizma / DXF</h4>
-  <div class="p3row" style="margin-top:0"><button id="p3bDraw">2D chizmadan</button><button id="p3bFile">DXF fayl…</button></div>
-  <input type="file" id="p3file" accept=".dxf" style="display:none">
-  <p class="p3mu" id="p3dxfInfo"></p>
-  <div class="p3r"><label style="width:96px">Chizma tekisligi</label><select id="p3dxP"><option value="plan">Reja (yuqoridan)</option><option value="front">Old (XY)</option></select></div>
-  <div class="p3r"><label style="width:96px">Extrude (mm)</label><input id="p3dxD" type="text" inputmode="decimal" value="500"></div>
-  <div class="p3row"><button id="p3bDxfP" hidden>Yopiq konturlarni extrude qilish (panel)</button><button id="p3bDxfC" hidden>Chiziqlarni o'chirish</button></div>
  </aside>
  <div class="p3view"><div class="p3hint" id="p3hint"></div></div>
  <aside class="p3props">
@@ -2081,6 +2082,9 @@ function initUI(){
   q('#p3tpl').innerHTML=TPL.map(t=>`<button class="p3tile" title="${t.n} ${t.w}×${t.h}"><canvas></canvas>${t.n}</button>`).join('');
   q('#p3tpl').insertAdjacentHTML('beforeend','<button id="p3bMag" class="p3tile on" title="Magnit — panel burchak/o\'rta nuqtalarga yopishadi (Probel)"><svg viewBox="0 0 48 48" width="48" height="48"><path d="M13 10v17a11 11 0 0 0 22 0V10" fill="none" stroke="currentColor" stroke-width="5"/><path d="M10 5h8v9h-8zM30 5h8v9h-8z" fill="currentColor"/></svg>Magnit · Probel</button>');
   qa('#p3tpl .p3tile:not(#p3bMag)').forEach(b=>b.onclick=()=>{ensure();if(inited)startPlace()});
+  {const H=q('#p3tplHelp'),T=q('#p3tpl');let tm=null;   // yo'riqnoma faqat Panel/Magnit ustiga olib borilganda (yoki bosib turilganda) vaqtincha ko'rinadi
+    const show=()=>{clearTimeout(tm);H.style.top=(T.offsetTop+T.offsetHeight+6)+'px';H.classList.add('show');tm=setTimeout(()=>H.classList.remove('show'),8000)},hide=()=>{clearTimeout(tm);tm=setTimeout(()=>H.classList.remove('show'),250)};
+    T.addEventListener('mouseenter',show);T.addEventListener('mouseleave',hide);T.addEventListener('pointerdown',show)}
   q('#p3bMag').onclick=toggleMag;
   q('#p3tpl').insertAdjacentHTML('afterend','<button id="p3bMagT" style="margin-top:6px">Magnit turi ▾</button><div id="p3magMenu" class="p3menu" hidden><label><input type="checkbox" id="p3snE" checked> Uchlar (Endpoint / Vertex)</label><label><input type="checkbox" id="p3snM" checked> O\'rta nuqta (Midpoint)</label><label><input type="checkbox" id="p3snC"> Markaz (Center)</label><label><input type="checkbox" id="p3snG"> Qirra (Edge — eng yaqin nuqta)</label></div>');
   q('#p3bMagT').onclick=()=>{const m=q('#p3magMenu');m.hidden=!m.hidden;q('#p3bMagT').textContent=m.hidden?'Magnit turi ▾':'Magnit turi ▴'};
