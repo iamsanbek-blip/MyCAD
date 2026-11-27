@@ -140,7 +140,11 @@ const ops=(p,t)=>(p.ops||[]).filter(o=>!t||o.t===t);
   assert.deepEqual(r.hw.map(h=>[h.k,h.n]),[['konf',8],['polka',4],['petlya',2],['ruchka',1]]);
   assert.equal(r.eb[0].m,0.72);assert.equal(r.eb[0].cost,1440);
   const per=r.perPanel.reduce((a,x)=>a+x.sum,0);assert.ok(Math.abs(per-(r.matT+r.ebT+r.hwT+r.workT))<1e-6,'detallar yig\'indisi');
-  assert.ok(Math.abs(r.total-(r.sub*1.1))<1e-6);assert.equal(r.sub,r.matT+r.ebT+r.hwT+r.workT+50000);
+  assert.ok(Math.abs(r.total-(r.sub*1.1))<1e-6);
+  {const pc=JSON.parse(JSON.stringify(ps));const B=pc[0];B.ops=(B.ops||[]).concat([{k:'c',th:1,pts:[[100,100],[300,100],[300,300],[100,300]],t:'man'}]);   // 200×200 kesik
+    const r2=PR.compute(pc,P,H),a0=r.perPanel.find(x=>x.id===B.id).area,a1=r2.perPanel.find(x=>x.id===B.id).area;
+    assert.ok(Math.abs((a0-a1)-.04)<1e-9,'kesik maydoni ayrildi');assert.ok(Math.abs(r2.work.find(w=>w.k==='cut').n-r.work.find(w=>w.k==='cut').n-.8)<1e-9,'raspil +0.8 m (kesik perimetri)');
+    assert.ok(Math.abs(r2.perPanel.reduce((a,x)=>a+x.sum,0)-(r2.matT+r2.ebT+r2.hwT+r2.workT))<1e-6)}assert.equal(r.sub,r.matT+r.ebT+r.hwT+r.workT+50000);
   {const r2=PR.compute(ps,P,Object.assign({},H,{sheetFor:m=>m==='XDF'?{L:1220,W:610,K:4,T:10}:H.sheet}));const x=r2.groups.find(g=>g.m==='XDF');   // material o'z list o'lchami
     assert.deepEqual([x.L,x.W],[1220,610]);assert.equal(x.sheets,1,'584×704 XDF 1220×610 (ishchi 1200×590) listga burib sig\'adi');assert.equal(r2.groups.find(g=>g.m==='LDSP').L,2800)}
   const m2=PR.compute(ps,Object.assign({},P,{mode:'m2',waste:20}),H);assert.ok(Math.abs(m2.groups[0].cost-m2.groups[0].area*1.2*500000/(2.8*2.07))<1e-6);

@@ -30,7 +30,7 @@ function compute(panels,prices,H){
   const groups=new Map(),missing=new Set();
   // material
   for(const p of vis){const t=+(+p.t).toFixed(2),key=H.matN(p)+'|'+t,g=groups.get(key)||{key,m:H.matN(p),t,items:[],area:0,ps:[]};
-    const lw=H.LW(p),n=p.q||1,a=areaOf(H.prof(p))/1e6;g.area+=a*n;g.ps.push(p);per.get(p.id).area=a;
+    const lw=H.LW(p),n=p.q||1,a=Math.max(0,areaOf(H.prof(p))-cutArea(p))/1e6;/* ichki kesik (k:'c', th) maydoni ayriladi */g.area+=a*n;g.ps.push(p);per.get(p.id).area=a;
     for(let i=0;i<n;i++)g.items.push({w:lw[0],h:lw[1],rot:H.canRot(p)});groups.set(key,g)}
   let matT=0,sheetsT=0;
   const G=[...groups.values()].sort((a,b)=>a.m.localeCompare(b.m)||a.t-b.t).map(g=>{
@@ -51,7 +51,7 @@ function compute(panels,prices,H){
       const t=o.t;if(t==='konf'&&o.k==='e')c.konf=(c.konf||0)+1;else if(t==='ekss'&&o.k==='e')c.ekss=(c.ekss||0)+1;else if(t==='shkant'&&o.k==='e')c.shkant=(c.shkant||0)+1;
       else if(t==='polka'&&(o.m||!ops.some(x=>x.t==='polka'&&x.m)))c.polka=(c.polka||0)+1;else if(t==='petlya')c.petlya=(c.petlya||0)+1;else if(t==='ruchka')c.ruchka=(c.ruchka||0)+.5}
     for(const k in c){hwN[k]=(hwN[k]||0)+c[k]*n}hwPer.set(p.id,c);
-    cutM+=perim(H.prof(p))/1000*n}
+    cutM+=(perim(H.prof(p))+cutPerim(p))/1000*n}   // raspil/CNC kesimi: kontur + ichki kesiklar
   const hwRows=HW_KEYS.filter(([k])=>hwN[k]).map(([k,l,u])=>{const price=num(P.hw[k]);if(!price)missing.add('hw:'+k);return{k,l,u,n:hwN[k],price,cost:hwN[k]*price}});
   for(const p of vis){const x=per.get(p.id),c=hwPer.get(p.id)||{};for(const k in c)x.hw+=c[k]*num(P.hw[k])}
   const qty={cut:cutM,edge:ebM,drill:holes,groove:grooveM,cnc:sheetsT};
@@ -59,13 +59,14 @@ function compute(panels,prices,H){
   // ishlarni detalga bo'lish: raspil — perimetr, kromka — o'z metri, teshik/paz — o'z teshiklari, CNC — maydon ulushi
   const areaT=vis.reduce((a,p)=>a+per.get(p.id).area*(p.q||1),0);
   for(const p of vis){const x=per.get(p.id),ops=p.ops||[],e=H.ebInfo(p);
-    x.work=perim(H.prof(p))/1000*num(P.work.cut)+e.len*num(P.work.edge)+ops.filter(o=>o.k==='d'||o.k==='e').length*num(P.work.drill)+
+    x.work=(perim(H.prof(p))+cutPerim(p))/1000*num(P.work.cut)+e.len*num(P.work.edge)+ops.filter(o=>o.k==='d'||o.k==='e').length*num(P.work.drill)+
       ops.filter(o=>o.k==='g').reduce((a,o)=>a+Math.max(o.u1-o.u0,o.v1-o.v0)/1000,0)*num(P.work.groove)+(areaT?sheetsT*num(P.work.cnc)*x.area/areaT:0);
     x.total=x.mat+x.edge+x.work+x.hw;x.sum=x.total*x.q}
   const ebT=ebRows.reduce((a,r)=>a+r.cost,0),hwT=hwRows.reduce((a,r)=>a+r.cost,0),workT=workRows.reduce((a,r)=>a+r.cost,0),exT=P.extra.reduce((a,e)=>a+e.v,0);
   const sub=matT+ebT+hwT+workT+exT,mk=sub*P.markup/100;
   return{cur:P.cur,mode:P.mode,groups:G,eb:ebRows,hw:hwRows,work:workRows,extra:P.extra,matT,ebT,hwT,workT,exT,sub,markup:mk,total:sub+mk,sheets:sheetsT,
     perPanel:[...per.values()],missing:[...missing]}}
+const cuts=p=>(p.ops||[]).filter(o=>o&&o.k==='c'&&o.th&&Array.isArray(o.pts)),cutArea=p=>cuts(p).reduce((a,o)=>a+areaOf(o.pts),0),cutPerim=p=>cuts(p).reduce((a,o)=>a+perim(o.pts),0);
 function areaOf(pr){let s=0;for(let i=0;i<pr.length;i++){const a=pr[i],b=pr[(i+1)%pr.length];s+=a[0]*b[1]-b[0]*a[1]}return Math.abs(s)/2}
 function perim(pr){let s=0;for(let i=0;i<pr.length;i++){const a=pr[i],b=pr[(i+1)%pr.length];s+=Math.hypot(b[0]-a[0],b[1]-a[1])}return s}
 const money=(v,cur)=>Math.round(v).toLocaleString('ru-RU').replace(/ /g,' ')+(cur?' '+cur:'');

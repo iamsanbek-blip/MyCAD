@@ -374,6 +374,14 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
       assert.ok(res.a0[0]>20&&res.a0[1]===0&&res.a0[2]===0,'X '+JSON.stringify(res));assert.ok(res.a2[2]>10&&res.a2[0]===0&&res.a2[1]===0,'Z '+JSON.stringify(res));
       assert.ok(res.p1[0]>20&&res.p1[2]>10&&res.p1[1]===0,'XZ '+JSON.stringify(res));await ev(()=>Panel3D._setTool('select'))}
     passed.push("Move (M) Top ko'rinishda: X strelkasi — faqat X, Z strelkasi — faqat Z, XZ tekisligi — ikkalasi (Y o'zgarmadi)");
+    // Stretch kaliti kesiklar tartibi bo'yicha: oldida avtomatik teshik bo'lsa ham to'g'ri kesik nuqtasi suriladi
+    await ev(()=>{Panel3D.load({T:16,uid:10,panels:[{id:1,n:'f',w:500,h:720,t:16,o:'front',x:250,y:360,z:0,ops:[{k:'d',f:'A',u:30,v:30,d:5,z:10,t:'konf',a:1},{k:'c',th:1,pts:[[100,200],[300,200],[300,400],[100,400]],t:'man'}]}]});Panel3D._setTool('stretch');Panel3D._vsel(['1:c0.1'])});
+    await page.fill('#p3sdx','10');await page.fill('#p3sdy','0');await page.fill('#p3sdz','0');await page.locator('#p3sdb').click();
+    assert.deepEqual(await ev(()=>Panel3D._state().panels[0].ops.find(o=>o.k==='c').pts[1]),[310,200]);
+    // qiya panelda Scale o'qlari: Y atrofida 60° burilgan polka — dunyo X endi panel bo'yiga (h) yaqin
+    assert.deepEqual(await ev(()=>{const s=Math.sin(Math.PI/6),c=Math.cos(Math.PI/6);Panel3D.load({T:16,uid:10,panels:[{id:1,n:'q',w:600,h:300,t:16,o:'flat',x:0,y:0,z:0,rt:[0,s,0,c]}]});return Panel3D._keyw(1)}),['h','t','w']);
+    await ev(()=>Panel3D._setTool('select'));
+    passed.push("Stretch kaliti avtomatik teshik oldida bo'lsa ham to'g'ri kesik nuqtasini suradi; qiya panelda Scale o'qi to'g'ri (dunyo X → panel bo'yi)");
     passed.push("Yordamchi chiziq: A→B tik (400;0→400;600) va qiya (0;0→400;600) cheksiz chiziq magnit bilan aniq; Select'da bosib tanlandi, Delete o'chirdi; lineyka 200.0 mm — «A · Uch», «B · O'rta» belgilari qoldi");
     passed.push("Stretch (W): tanlangan panelga qulflanadi — B panel ustiga bosish tanlovni o'zgartirmadi, ramka faqat A ning 4 nuqtasini oldi, nuqta aniq belgilandi");
     passed.push("Stretch (W): kesik nuqtalari belgilanib 40 mm surildi; kontur chap qirrasi surilganda kesik va teshik joyidan qo'zg'almadi");

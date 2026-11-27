@@ -44,6 +44,8 @@ function Wof(p){const m=Mof(p);if(!p.rt)return m;const e=new THREE.Matrix4().mak
 function rtSet(p,qt){qt.normalize();if(Math.abs(Math.abs(qt.w)-1)<1e-12){delete p.rt;return}p.rt=[qt.x,qt.y,qt.z,qt.w];
   const w=Wof(p);if(w.every(v=>Math.abs(v-Math.round(v))<1e-6)){p.m=w.map(v=>Math.round(v)||0);delete p.rt}}
 function rtDeg(p){return p.rt?+(2*Math.acos(Math.min(1,Math.abs(p.rt[3])))*180/Math.PI).toFixed(1):0}
+function KEYW(p){if(!p.rt)return KEY(p);const w=Wof(p),k=['w','h','t'],pr=[];for(let a=0;a<3;a++)for(let l=0;l<3;l++)pr.push([Math.abs(w[a*3+l]),a,l]);   // qiya panel: har dunyo o'qiga eng yaqin panel o'qi (takrorlanmaydi)
+  pr.sort((x,y)=>y[0]-x[0]);const o=[],ul=new Set();for(const[,a,l]of pr)if(o[a]===undefined&&!ul.has(l)){o[a]=k[l];ul.add(l)}return o}
 function KEY(p){const m=Mof(p),k=['w','h','t'],o=[];for(let a=0;a<3;a++)for(let l=0;l<3;l++)if(Math.abs(m[a*3+l])===1)o[a]=k[l];return o}
 const oriOf=p=>['side','flat','front'][KEY(p).indexOf('t')];
 function rot90(axis,dir){let R=axis===0?[1,0,0,0,0,-1,0,1,0]:axis===1?[0,0,1,0,1,0,-1,0,0]:[0,-1,0,1,0,0,0,0,1];if(dir<0)R=[R[0],R[3],R[6],R[1],R[4],R[7],R[2],R[5],R[8]];return R}
@@ -184,7 +186,7 @@ function histGo(d){
   for(const p of panels)if(p.g){P.remove(p.g);p.g.traverse(o=>o.geometry&&o.geometry.dispose())}
   panels=JSON.parse(hist[hi]);hwSigv=HW?hwSig():'';panels.forEach(build);msel=msel.filter(i=>panels.some(p=>p.id===i));sel=msel.length?msel[msel.length-1]:null;
   paint();props();list();markDirty();if(mode==='cut')clRender();kzSync();histBtns()}
-function changed(){hwAuto();histPush();if(tool==='joint')jointShow();pmFill();markDirty();if(mode==='cut')clRender();kzSync();prRefresh()}
+function changed(){hwAuto();histPush();if(guides.length&&Gg)drawGuides();if(tool==='joint')jointShow();pmFill();markDirty();if(mode==='cut')clRender();kzSync();prRefresh()}
 
 /* ---------------- sahna, kamera ---------------- */
 function lum(c){const m=/#?([0-9a-f]{6})/i.exec(c);if(!m)return 0;const n=parseInt(m[1],16);return (((n>>16)&255)*.299+((n>>8)&255)*.587+(n&255)*.114)/255}
@@ -701,7 +703,7 @@ function scaleMove(e){
     if(ortho){if(act.ax<0){if(Math.hypot(dx,dy)<8)return;act.ax=Math.abs(dx)>=Math.abs(dy)?ri.indexOf(Math.max(...ri)):up.indexOf(Math.max(...up));act.hor=Math.abs(dx)>=Math.abs(dy)}
       s=Math.exp((act.hor?dx:-dy)*.004);sa[act.ax]=s}
     else{s=Math.exp(dx*.004);sa=[s,s,s]}}
-  for(const b of act.base){const p=b.p,K=KEY(p);
+  for(const b of act.base){const p=b.p,K=KEYW(p);
     for(let a=0;a<3;a++){const pk=['x','y','z'][a];p[pk]=act.cen[a]+(b[pk]-act.cen[a])*sa[a];
       if(K[a]!=='t')p[K[a]]=rs(b[K[a]]*sa[a])}
     build(p)}
@@ -1028,7 +1030,7 @@ function navClick(e){
 function stretchCands(){
   const ps=(msel.length?selected():panels).filter(p=>!p.hid&&p.g),out=[];
   for(const p of ps){p.g.updateMatrixWorld(true);prof(p).forEach((a,i)=>out.push({p,i,key:p.id+':'+i,w:p.g.localToWorld(new THREE.Vector3(a[0]-p.w/2,a[1]-p.h/2,0))}));
-    (p.ops||[]).forEach((o,oi)=>{if(o.k==='c')o.pts.forEach((a,j)=>out.push({p,i:-1,key:p.id+':c'+oi+'.'+j,w:p.g.localToWorld(new THREE.Vector3(a[0]-p.w/2,a[1]-p.h/2,0))}))})}   // kesik / o'yiq nuqtalari ham
+    (p.ops||[]).filter(o=>o.k==='c').forEach((o,ci)=>o.pts.forEach((a,j)=>out.push({p,i:-1,key:p.id+':c'+ci+'.'+j,w:p.g.localToWorld(new THREE.Vector3(a[0]-p.w/2,a[1]-p.h/2,0))})))}   // kesik / o'yiq nuqtalari (kalit — kesiklar tartibi: avtomatik teshiklar qayta qo'yilsa ham o'zgarmaydi)
   return out}
 function opShift(o,dx,dy){if(!dx&&!dy)return;const r=v=>+v.toFixed(3);   // panel profili boshi (0,0) siljiganda teshik/paz/kesik joyida qolsin
   if(o.k==='c')o.pts=o.pts.map(a=>[r(a[0]+dx),r(a[1]+dy)]);else if(o.u0!==undefined){o.u0=r(o.u0+dx);o.u1=r(o.u1+dx);o.v0=r(o.v0+dy);o.v1=r(o.v1+dy)}else if(o.u!==undefined){o.u=r(o.u+dx);o.v=r(o.v+dy)}}
@@ -1058,7 +1060,7 @@ function applyStretchD(b,keys,d){
   if(!idx.length&&!opk.length){build(p);return}
   if(new Set(idx).size>=prof(p).length){p.x+=d.x;p.y+=d.y;p.z+=d.z;build(p);return}   // panelning hamma nuqtasi belgilangan: butun panel (teshik/kesiklari bilan) har qanday o'q bo'ylab ko'chadi
   const m=Wof(p),dl=[0,1].map(l=>m[l]*d.x+m[3+l]*d.y+m[6+l]*d.z);   // dunyo siljishining panel tekisligidagi tashkil etuvchilari (qalinlik o'qi e'tiborga olinmaydi)
-  for(const k of opk){const[oi,j]=k.slice(1).split('.').map(Number),o=p.ops&&p.ops[oi];if(o&&o.k==='c'&&o.pts[j])o.pts[j]=[+(o.pts[j][0]+dl[0]).toFixed(3),+(o.pts[j][1]+dl[1]).toFixed(3)]}   // kesik / o'yiq nuqtasi
+  const cs=(p.ops||[]).filter(o=>o.k==='c');for(const k of opk){const[ci,j]=k.slice(1).split('.').map(Number),o=cs[ci];if(o&&o.pts[j])o.pts[j]=[+(o.pts[j][0]+dl[0]).toFixed(3),+(o.pts[j][1]+dl[1]).toFixed(3)]}   // kesik / o'yiq nuqtasi
   if(!idx.length){build(p);return}
   let pts=prof(p);for(const i of idx)pts[i]=[pts[i][0]+dl[0],pts[i][1]+dl[1]];
   const xs=pts.map(a=>a[0]),ys=pts.map(a=>a[1]),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
@@ -1874,7 +1876,7 @@ function load(d){
   if(d&&Array.isArray(d.panels)){T=d.T>0?d.T:16;uid=d.uid||1;
     panels=d.panels.filter(p=>p&&p.o&&p.w>0&&p.h>0&&p.t>0).map(p=>{const c=Object.assign({},p);if(c.rt&&!(Array.isArray(c.rt)&&c.rt.length===4&&c.rt.every(Number.isFinite)&&Math.hypot(...c.rt)>.5))delete c.rt;if(HW){const o=HW.sanitize(p.ops);if(o)c.ops=o;else delete c.ops}return c});
     uid=Math.max(uid,...panels.map(p=>p.id+1),1);
-    lines=Array.isArray(d.lines)?d.lines:[];planeMode=d.pl||'front';guides=Array.isArray(d.guides)?d.guides:[]}
+    lines=Array.isArray(d.lines)?d.lines:[];planeMode=d.pl||'front';guides=Array.isArray(d.guides)?d.guides.filter(g=>g&&Array.isArray(g.p)&&g.p.length===3&&g.p.every(Number.isFinite)&&(!g.d||Array.isArray(g.d)&&g.d.length===3&&g.d.every(Number.isFinite))):[]}
   else{T=16;uid=1}
   if(wrap){q('#p3T').value=T;q('#p3dxP').value=planeMode;if(d&&d.dp)q('#p3dxD').value=d.dp;sync()}
   hwSigv=HW?hwSig():'';histReset()}
@@ -2174,7 +2176,7 @@ window.Panel3D={retheme:()=>{if(inited)theme()},hotkeys:{commands:P3CMD.map(({id
     for(let a=0;a<3;a++){const A=new THREE.Vector3();A.setComponent(a,1);o['a'+a]=P(c.clone().addScaledVector(A,90*k));o['v'+a]=gzAx[a].visible;
       const g=gzPl[a];g.updateMatrixWorld(true);o['p'+a]=P(g.getWorldPosition(new THREE.Vector3()));o['pv'+a]=g.visible}return o},
   _cursor:()=>c3?c3.toArray():null,_autoName:()=>autoName(),_clusters:()=>corpusClusters(panels.filter(p=>!p.hid)).map(c=>c.map(p=>p.id)),_pivot:()=>pivot,_act:()=>act?{k:act.k,con:act.con,typed:act.typed,hit:act.hit?act.hit.k:null}:null,_snap:()=>snapHit?{k:snapHit.k,T:snapHit.T.toArray()}:null,
-  _cnc:()=>cncSend(),_col:id=>{const p=panels.find(x=>x.id===id);return p?panelCol(p):null},_vsel:keys=>{if(keys){vsel=new Set(keys);dirtyR=true}return{keys:[...vsel],gz:!!(gz&&gz.visible)}},_group:()=>groupSel(),_ungroup:()=>ungroupSel(),_array:(n,d)=>arraySel(n,d),_dist:a=>distSel(a),_joints:()=>HW.jointLines(panels,hwOpts),_jointScr:k=>{const l=HW.jointLines(panels,hwOpts).find(x=>x.key===k);if(!l)return null;const r=cv.getBoundingClientRect(),s=scrOf(new THREE.Vector3((l.p0[0]+l.p1[0])/2,(l.p0[1]+l.p1[1])/2,(l.p0[2]+l.p1[2])/2));return{x:r.left+s.x,y:r.top+s.y}},_price:o=>{if(o){prices=PRC.merge(o);prSave()}return prCalc()},_prOpen:()=>{if(!prOpen)q('#p3prTab').click()},_guides:()=>drawnLines.filter(l=>l.p3g).map(l=>({k:l.kind,pts:l.points.map(o=>[+o.x.toFixed(2),+o.y.toFixed(2)])})),_edit:id=>{const p=panels.find(x=>x.id===id);return p?editInDrawing(p):false},_editApply:()=>editApply(),_editCancel:()=>editCancel(),_editing:()=>p3edit?{...p3edit}:null,_hw:{place:o=>{if(o)hwOpts=HW.merge(HW.DEF,o);return hwPlace()},clear:hwClear,dxf:()=>hwDxfData(),csv:()=>HW.csv(hwTargets()),check:hwCheck,open:hwOpen,opts:()=>hwOpts,ops:id=>{const p=panels.find(x=>x.id===id);return p&&p.ops?JSON.parse(JSON.stringify(p.ops)):[]},showOps:()=>showOps},_snapM:snapM,_guides3:()=>guides.map(g=>({p:g.p,d:gDir(g).toArray().map(v=>+v.toFixed(4))})),_gsel:()=>[...gsel],_ruler:()=>ruler?{A:ruler.A.toArray(),B:ruler.B?ruler.B.toArray():null,kA:ruler.kA,kB:ruler.kB||null}:null,_msel:()=>msel.slice(),_geo:id=>{const p=panels.find(x=>x.id===id);if(!p)return null;const G=geoOf(p),r=v=>v.toArray().map(x=>+x.toFixed(2));return{end:G.end.map(r),cen:G.cen.map(r)}},_cam:()=>({R,tg:tg.toArray().map(x=>+x.toFixed(2))}),_rtDeg:id=>{const p=panels.find(x=>x.id===id);return p?rtDeg(p):null},_wof:id=>{const p=panels.find(x=>x.id===id);return p?Wof(p).map(v=>+v.toFixed(4)):null},_ext:id=>{const p=panels.find(x=>x.id===id);return p?ext(p).map(v=>+v.toFixed(2)):null},
+  _cnc:()=>cncSend(),_col:id=>{const p=panels.find(x=>x.id===id);return p?panelCol(p):null},_vsel:keys=>{if(keys){vsel=new Set(keys);dirtyR=true}return{keys:[...vsel],gz:!!(gz&&gz.visible)}},_group:()=>groupSel(),_ungroup:()=>ungroupSel(),_array:(n,d)=>arraySel(n,d),_dist:a=>distSel(a),_joints:()=>HW.jointLines(panels,hwOpts),_jointScr:k=>{const l=HW.jointLines(panels,hwOpts).find(x=>x.key===k);if(!l)return null;const r=cv.getBoundingClientRect(),s=scrOf(new THREE.Vector3((l.p0[0]+l.p1[0])/2,(l.p0[1]+l.p1[1])/2,(l.p0[2]+l.p1[2])/2));return{x:r.left+s.x,y:r.top+s.y}},_price:o=>{if(o){prices=PRC.merge(o);prSave()}return prCalc()},_prOpen:()=>{if(!prOpen)q('#p3prTab').click()},_guides:()=>drawnLines.filter(l=>l.p3g).map(l=>({k:l.kind,pts:l.points.map(o=>[+o.x.toFixed(2),+o.y.toFixed(2)])})),_edit:id=>{const p=panels.find(x=>x.id===id);return p?editInDrawing(p):false},_editApply:()=>editApply(),_editCancel:()=>editCancel(),_editing:()=>p3edit?{...p3edit}:null,_hw:{place:o=>{if(o)hwOpts=HW.merge(HW.DEF,o);return hwPlace()},clear:hwClear,dxf:()=>hwDxfData(),csv:()=>HW.csv(hwTargets()),check:hwCheck,open:hwOpen,opts:()=>hwOpts,ops:id=>{const p=panels.find(x=>x.id===id);return p&&p.ops?JSON.parse(JSON.stringify(p.ops)):[]},showOps:()=>showOps},_snapM:snapM,_keyw:id=>{const p=panels.find(x=>x.id===id);return p?KEYW(p):null},_guides3:()=>guides.map(g=>({p:g.p,d:gDir(g).toArray().map(v=>+v.toFixed(4))})),_gsel:()=>[...gsel],_ruler:()=>ruler?{A:ruler.A.toArray(),B:ruler.B?ruler.B.toArray():null,kA:ruler.kA,kB:ruler.kB||null}:null,_msel:()=>msel.slice(),_geo:id=>{const p=panels.find(x=>x.id===id);if(!p)return null;const G=geoOf(p),r=v=>v.toArray().map(x=>+x.toFixed(2));return{end:G.end.map(r),cen:G.cen.map(r)}},_cam:()=>({R,tg:tg.toArray().map(x=>+x.toFixed(2))}),_rtDeg:id=>{const p=panels.find(x=>x.id===id);return p?rtDeg(p):null},_wof:id=>{const p=panels.find(x=>x.id===id);return p?Wof(p).map(v=>+v.toFixed(4)):null},_ext:id=>{const p=panels.find(x=>x.id===id);return p?ext(p).map(v=>+v.toFixed(2)):null},
   _rotDrag:(ax,deg,ctrl)=>{const ps=selected();if(!ps.length||!gzR)return null;const[mn,mx]=bboxOf(ps);gzR.position.set((mn[0]+mx[0])/2,(mn[1]+mx[1])/2,(mn[2]+mx[2])/2);
     const r=cv.getBoundingClientRect(),c=gzR.position.clone().project(cam),cx=r.left+(c.x+1)/2*r.width,cy=r.top+(1-c.y)/2*r.height,R0=120;
     startRotG({clientX:cx+R0,clientY:cy},ax);const f=act.facing,n=Math.max(2,Math.ceil(Math.abs(deg)/15));

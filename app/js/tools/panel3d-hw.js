@@ -190,7 +190,7 @@ function create(G){
       if(o.d>p.t-2)out.push(`${nm}: chet teshigi Ø${f2(o.d)} qalinlik ${f2(p.t)} mm ga sig'maydi`);
       if(dEdge(P,o.u,o.v)>1)out.push(`${nm}: chet teshigi (${f2(o.u)}; ${f2(o.v)}) qirrada emas — o'lcham o'zgargan bo'lsa «Furniturala»ni qayta bosing`)}
     for(const o of ops.filter(o=>o.k==='g'))if(!inPoly(P,(o.u0+o.u1)/2,(o.v0+o.v1)/2))out.push(`${nm}: paz panel tashqarisida`);
-    for(const o of ops.filter(o=>o.k==='c')){if(!o.pts.every(q=>inPoly(P,q[0],q[1])))out.push(`${nm}: ${o.th?'kesik':"o'yiq"} panel chetidan chiqib ketgan`);
+    for(const o of ops.filter(o=>o.k==='c')){if(!o.pts.every(q=>inPoly(P,q[0],q[1])||dEdge(P,q[0],q[1])<.05))out.push(`${nm}: ${o.th?'kesik':"o'yiq"} panel chetidan chiqib ketgan`);
       if(!o.th&&o.z>=p.t)out.push(`${nm}: o'yiq chuqurligi ${f2(o.z)} — qalinlik ${f2(p.t)} dan kam bo'lishi kerak`)}
     return out}
 

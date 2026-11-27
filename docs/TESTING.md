@@ -1,3 +1,23 @@
+# preview.3 dan keyingi o'zgarishlar ko'rib chiqildi — 2026-11-27 (Linux)
+
+- Kod ko'rib chiqildi (3ca154e..HEAD: erkin burchak, kesik/o'yiq, Stretch, yordamchi chiziq, lineyka, OBJ import, Duplicate, zoom).
+  Topilgan va tuzatilgan:
+  - Stretch kesik nuqtasi kaliti `ops` dagi tartib raqami edi — avtomatik furnitura qayta qo'yilsa siljib, boshqa amalni ko'rsatardi; endi
+    kesiklar tartibi (`c0`, `c1` …) — `modeling-cnc-price`da avtomatik teshik oldida turgan holat bilan tekshirildi.
+  - Scale qiya panelda asosiy (burilmagan) o'qlar bo'yicha o'lchamni tanlardi — endi haqiqiy yo'nalish (`KEYW`): Y atrofida 60° polkada
+    dunyo X → panel bo'yi.
+  - Narx: ichki kesik maydoni material maydonidan ayriladi, kesik perimetri raspil/CNC metriga qo'shiladi (`panel3d-hw` — 200×200 kesik:
+    −0.04 m², +0.8 m; detal yig'indisi jamiga teng).
+  - Tekshiruv (`check`) panel chegarasida turgan kesik nuqtasini «chetdan chiqib ketgan» deb noto'g'ri ko'rsatardi — 0.05 mm chegara.
+  - Yordamchi chiziqlar loyiha ochilganda tekshiriladi (buzuq yozuv o'tkaziladi) va panel qo'shilganda uzunligi sahnaga moslanadi.
+- Brauzerda bir ketma-ketlikda (OBJ stul import → 22.5° burish → Drawing tahriri → Nusxa → yordamchi chiziq → lineyka → zoom → narx →
+  DXF → snapshot/load → CNC → Modeling'ga qaytish): sahifa va konsol xatolari yo'q.
+- `modeling-cnc-price` bir marta massiv qismida yiqildi (polka nusxalari paydo bo'lmadi), keyin 3/3 o'tdi — vaqtga bog'liq beqarorlik
+  sifatida qayd etildi. Qolganlari o'tdi: `npm run check`, `npm test`, `panel3d-hw` (18), `panel3d-hw-ui`, `modeling-precision`,
+  `smart-autoname`, `panel3d`, `panel3d-export`, Electron `modeling-smoke`, `electron-smoke`, `panel-types-smoke`, `stretch-select`.
+
+---
+
 # Move strelkalari (Top) tekshirildi; nusxadan keyin Move asbobi — 2026-11-27 (Linux)
 
 - Shikoyat: «o'q/tekislik bo'yicha ko'chirish ishlamay qoldi, ayniqsa Top». Qayta hosil qilinmadi: Top va Iso da X/Z strelka va XZ
