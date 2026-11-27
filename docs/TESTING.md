@@ -1,3 +1,13 @@
+# Reliz 1.1.2-preview.4 — 2026-11-27
+
+- EXE: GitHub Actions «Windows portable preview» run 45957358660 (Windows Server 2022, commit 8822d5e) — **muvaffaqiyatli**: `npm run check`,
+  `npm test`, manba va paketlangan dastur GUI sinovi (pageErrors bo'sh), portable launcher ochilishi. Reliz `v1.1.2-preview.4`:
+  `Rugby-Portable.exe` 65 842 090 bayt, SHA256 `5cccaa6330d69ed09152f3c885431e48f93d8cd59d4ce9b93a721595b5608266` (yuklab olingan fayl
+  bilan `sha256sum` mos). Windows 10/11 da qo'lda sinov, SmartScreen/SAC va haqiqiy fayl dialoglari hali tekshirilmagan.
+- Umumiy hujjat: `docs/OZGARISHLAR-1.1.2-preview.4.md`.
+
+---
+
 # Stretch (W): tanlovsiz ramka, ustma-ust nuqtalar, strelka nuqtani to'smaydi — 2026-11-27 (Linux)
 
 - Topilgan sabablar: (1) tanlovsiz W da sichqoncha panel ustida bosilsa o'sha panel darhol tanlanib, ramka faqat uning nuqtalarini olardi;

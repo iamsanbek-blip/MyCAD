@@ -5,7 +5,7 @@ haqiqatda o'tkazilgan sinovlar: `docs/TESTING.md`; umumiy arxitektura: `docs/ARC
 
 ## Holat
 
-- Versiya: **1.1.2-preview.3** (branch `claude/vigilant-goodall-nvrvty`). EXE — GitHub Actions «Windows portable preview»
+- Versiya: **1.1.2-preview.4** (branch `claude/vigilant-goodall-nvrvty`). EXE — GitHub Actions «Windows portable preview»
   (`.github/workflows/windows-portable.yml`, workflow_dispatch) Windows Server 2022 da yig'adi, testlaydi va
   `v<versiya>` prerelease sifatida chiqaradi (`Rugby-Portable.exe`, `SHA256.txt`, `BUILD-REPORT.json`).
   Bir versiya ikki marta chiqarilmaydi — har yangi EXE uchun `package.json` va `package-lock.json` versiyasini oshiring.
@@ -98,6 +98,6 @@ Brauzer testlari uchun: `RUGBY_CHROMIUM=/opt/pw-browsers/chromium` (bulutli muhi
 ## Rezerv
 
 - Kod: GitHub `iamsanbek-blip/MyCAD`, branch `claude/vigilant-goodall-nvrvty` (har o'zgarish commit + push qilingan).
-- EXE: GitHub Releases `v1.1.2-preview.3` — https://github.com/iamsanbek-blip/MyCAD/releases/tag/v1.1.2-preview.3
-  (SHA256 `99c57b73…a035b2f0`; oldingilari `v1.1.2-preview.2`, `v1.1.2-preview.1`).
+- EXE: GitHub Releases `v1.1.2-preview.4` — https://github.com/iamsanbek-blip/MyCAD/releases/tag/v1.1.2-preview.4
+  (SHA256 `5cccaa63…b5608266`; oldingilari `v1.1.2-preview.3`, `.2`, `.1`). Umumiy hujjat: `docs/OZGARISHLAR-1.1.2-preview.4.md`.
 - Web: claude.ai artifact (shaxsiy) — `scripts/build-web.py` bilan istalgan payt qayta yig'iladi.

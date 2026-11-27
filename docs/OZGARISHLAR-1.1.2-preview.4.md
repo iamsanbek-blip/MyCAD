@@ -11,8 +11,8 @@ qayerda joylashganini, qanday ishlatilishini, qanday tekshirilganini va davom et
 |---|---|
 | **Windows dasturi (EXE, portable)** | https://github.com/iamsanbek-blip/MyCAD/releases/download/v1.1.2-preview.4/Rugby-Portable.exe |
 | Reliz sahifasi (EXE, SHA256.txt, BUILD-REPORT.json) | https://github.com/iamsanbek-blip/MyCAD/releases/tag/v1.1.2-preview.4 |
-| EXE nazorat summasi (SHA256) | `__SHA__` |
-| EXE hajmi | __SIZE__ bayt |
+| EXE nazorat summasi (SHA256) | `5cccaa6330d69ed09152f3c885431e48f93d8cd59d4ce9b93a721595b5608266` |
+| EXE hajmi | 65 842 090 (≈ 62.8 MB) bayt |
 | Web versiya (brauzerda, shaxsiy) | https://claude.ai/artifact/8dtatEhvPjbViEre1NRLka |
 | Manba kod | GitHub `iamsanbek-blip/MyCAD`, branch `claude/vigilant-goodall-nvrvty` |
 
@@ -137,8 +137,8 @@ Hotkeylar View ▸ Hotkeylar… da almashtiriladi. Web versiyada Alt+F ni brauze
   `electron-smoke`, `panel-types-smoke`, `stretch-select`.
 - Foydalanuvchi stuli (`test.obj`, 14 panel): import, 35 kesishma — O'zaro o'yiq (ikkala rejim), qiya suyanchiq qovurg'asi, Stretch (2 ustun
   869 → 943 mm), CNC — skrinshot va detal konturlari ko'rildi.
-- EXE: GitHub Actions «Windows portable preview» (Windows Server 2022) — run __RUN__: kod testlari, manba va paketlangan dastur GUI sinovi,
-  portable launcher ochilishi: __RESULT__.
+- EXE: GitHub Actions «Windows portable preview» (Windows Server 2022) — run 45957358660 (commit 8822d5e): kod testlari, manba va paketlangan dastur GUI sinovi,
+  portable launcher ochilishi — **hammasi muvaffaqiyatli** (BUILD-REPORT.json: source / packaged / launcher — passed, sahifa xatolari yo'q). Yuklab olingan faylning SHA256 summasi relizdagi bilan mos keldi.
 - **Hali tekshirilmagan:** Windows 10/11 da qo'lda qabul sinovi, SmartScreen/Smart App Control, haqiqiy CNC dastgohda kesib-yig'ish,
   birkalarni haqiqiy printerda chop etish, web versiyada Alt+F.
 
