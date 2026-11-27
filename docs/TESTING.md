@@ -1,3 +1,25 @@
+# O'zaro o'yiq (kiygizish) va kesishmalarni tekshirish — 2026-11-27 (Linux)
+
+- Yangi `app/js/tools/panel3d-xlap.js` + `tests/panel3d-xlap.cjs` (6, `npm test` ichida): to'g'ri burchakli X — har biriga 16.4×25
+  (zazor 0.2), ustun qovurg'adan to'liq o'tadi — ochiq o'yiq yoki «teshik» rejimida yopiq kesik, 15° qiya qovurg'a × ustun — o'yiq
+  qiyalik hisobida kattaroq (1781 mm²), 20° qiya X — yarim-yarim + dogbone, parallel/uzoq — hech narsa, ikkiga bo'luvchi o'yiq rad.
+- `tests/modeling-xlap.cjs` (5, haqiqiy Chromium, menyular orqali): File ▸ Import ▸ OBJ (yarim halqa qovurg'a + 3 ustun, ikkitasi 45°
+  qiya) → Object ▸ Kesishmalarni tekshirish (3 juft) → A (hammasi) → Object ▸ O'zaro o'yiq → kesishma yo'q; qovurg'a nusxasi C, Y, −80,
+  Enter (aniq −80), erkin burish 10°; tekshirish → O'zaro o'yiq → kesishma yo'q; Ctrl+Z / Ctrl+Y; CNC — 5 detal o'yiqli kontur bilan.
+- Foydalanuvchi OBJ stuli (14 panel): asl modelda 35 juft kesishma (ustunlar qovurg'alarga 22–50 mm kirgan) topildi; butun stulga
+  O'zaro o'yiq — 7 yarim-yarim (o'rta ustun), 28 to'liq o'tish, xatosiz, kesishma qolmadi (oddiy va «teshik bilan» rejimi, ~0.1 s).
+  Suyanchiq tepasidagi qovurg'a nusxasi Y −28, 10° qiya → 3 ustun bilan kesishdi → O'zaro o'yiq → kesishma yo'q; detallar rasmga
+  chiqarib ko'rildi (o'rta ustunda 7 yarim o'yiq, qovurg'alarda mos o'yiqlar, dogbone).
+- Jarayonda topilib tuzatilgan: kesim burchagida sherik panel tugasa (ustun uchi qovurg'a yuzasida) o'yiq kesilmay qolardi; ustun
+  halqani deyarli to'liq egallasa ochiq o'yiq qovurg'ani bo'lib yuborardi; o'yilgan qovurg'a nusxasida yarim-yarim o'yiq panelni bo'lardi —
+  endi variantlar navbat bilan (yaqin/uzoq chekka, aniq kesim; yarim-yarim → biriga to'liq kesim) sinaladi; to'qnashuv tekshiruvi
+  ichki kesiklarni hisobga oladi.
+- O'tdi: `npm run check` (58), `npm test`, `modeling-cnc-price` (29), `panel3d-hw` (18), `panel3d-hw-ui`, `modeling-precision`,
+  `smart-autoname`, `panel3d`, `panel3d-export`, Electron `modeling-smoke`, `electron-smoke`, `panel-types-smoke`, `stretch-select`.
+  EXE qayta yig'ilmagan. Haqiqiy CNC'da kesib, yig'ib ko'rilmagan.
+
+---
+
 # preview.3 dan keyingi o'zgarishlar ko'rib chiqildi — 2026-11-27 (Linux)
 
 - Kod ko'rib chiqildi (3ca154e..HEAD: erkin burchak, kesik/o'yiq, Stretch, yordamchi chiziq, lineyka, OBJ import, Duplicate, zoom).

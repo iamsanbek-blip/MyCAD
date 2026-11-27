@@ -5,4 +5,5 @@ let failed=0;
 for(const file of files){const r=spawnSync(process.execPath,[file],{cwd:root,encoding:'utf8'});const pass=r.status===0;console.log(`${pass?'PASS':'FAIL'} ${file}`);if(!pass){console.error(r.stdout,r.stderr);failed++;}}
 const result=spawnSync(process.execPath,['tests/workspace.test.cjs'],{cwd:root,stdio:'inherit'});if(result.status!==0)failed++;
 {const r=spawnSync(process.execPath,['tests/panel3d-hw.cjs'],{cwd:root,encoding:'utf8'});console.log(`${r.status===0?'PASS':'FAIL'} tests/panel3d-hw.cjs (furnitura, teshik, DXF)`);if(r.status!==0){console.error(r.stdout,r.stderr);failed++}}
+{const r=spawnSync(process.execPath,['tests/panel3d-xlap.cjs'],{cwd:root,encoding:'utf8'});console.log(`${r.status===0?'PASS':'FAIL'} tests/panel3d-xlap.cjs (o'zaro o'yiq, kesishma)`);if(r.status!==0){console.error(r.stdout,r.stderr);failed++}}
 console.log(`${files.length} legacy regression files + workspace behavior suite; ${failed} failing suites.`);process.exitCode=failed?1:0;

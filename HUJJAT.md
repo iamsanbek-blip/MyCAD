@@ -1,5 +1,13 @@
 # Rugby 1.1.2 — CNC nesting, panelni Drawing'da tahrirlash, aralash ulagich, narx (2026-11-23)
 
+- **O'zaro o'yiq (kiygizish) va kesishmalarni tekshirish.** Object ▸ **Kesishmalarni tekshirish** — bir-biriga kirib qolgan panellarni
+  topadi, juftlar va kirish uzunligini yozadi, ularni tanlaydi. Object ▸ **O'zaro o'yiq (kiygizish)** — tanlangan panellarning har bir
+  kesishmasiga (qiya, erkin burchakli panel ham) o'yiq: X ko'rinishda kesishsa — ikkalasiga yarim-yarim (har biri o'z chekkasidan),
+  biri ikkinchisidan to'liq o'tsa — kattasiga yaqin chekkadan ochiq o'yiq (panelni bo'lib yubormaydigan variant tanlanadi);
+  **O'zaro o'yiq — teshik bilan** — o'tuvchi panel uchun yopiq teshik. O'yiq kengligi qalinlik, burchak va zazordan aniq hisoblanadi,
+  ichki burchaklarda dogbone (freza Ø). Zazor, freza Ø va dogbone — Furnitura ▸ Ship-paz sozlamalaridan. Ctrl+Z bilan qaytariladi.
+  O'yilgan detallar CNC/DXF'ga konturi bilan chiqadi. Masalan: stul suyanchig'iga qovurg'a nusxasini qo'yib (C, Y, −28, Enter),
+  10° qiyalatib (R), tekshirish → O'zaro o'yiq.
 - **Yordamchi chiziq — SketchUp kabi.** Asbobda A nuqtani, keyin B nuqtani bosasiz — A va B dan o'tuvchi cheksiz chiziq qo'yiladi
   (tik, gorizontal, chuqurlik bo'ylab yoki qiya). Ortho yoqilsa yo'nalish eng yaqin X/Y/Z o'qiga to'g'rilanadi. Magnit ikkala nuqtada
   ishlaydi, ikki yordamchi chiziq kesishgan joy ham magnit nuqtasi. Select (V) da chiziqni bosib tanlaysiz (Shift — qo'shish),

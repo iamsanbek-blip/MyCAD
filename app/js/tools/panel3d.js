@@ -68,7 +68,8 @@ function prof(p){
   if(s==='U')return[[0,0],[w,0],[w,h],[w-c,h],[w-c,c],[c,c],[c,h],[0,h]];
   return[[0,0],[w,0],[w,h],[0,h]];
 }
-const HW=(typeof RugbyHW!=='undefined')?RugbyHW.create({Mof:Wof,prof}):null;   // furnitura / teshik / paz (panel3d-hw.js)
+const HW=(typeof RugbyHW!=='undefined')?RugbyHW.create({Mof:Wof,prof}):null;
+const XLAP=(typeof RugbyXLap!=='undefined')?RugbyXLap.create({Wof,prof}):null;   // o'zaro o'yiq (panel3d-xlap.js)   // furnitura / teshik / paz (panel3d-hw.js)
 const shapeOf=p=>p.pts?'poly':p.shape||(p.c?'L':'rect');
 const hasC=p=>!p.pts&&(p.shape==='L'||p.shape==='U'||(!p.shape&&p.c));
 const flatV=()=>!!cam&&cam===ocam&&!thick2d;   // 2D ko'rinishlarda qalinlik yashirin
@@ -323,7 +324,7 @@ const P3KB={p3tSel:'tool.select',p3tMov:'tool.move',p3tRot:'tool.rotate',p3tScl:
   p3oCopy:'obj.copy',p3oMx:'obj.mirrorX',p3oMy:'obj.mirrorY',p3oMz:'obj.mirrorZ',p3oDel:'obj.delete',p3vmHide:'view.hide',p3vmIso:'view.isolate',p3vmUn:'view.unhide',
   p3vmSolid:'view.solid',p3vmWire:'view.wire',p3vmThick:'view.thick',p3vmGrain:'view.grain',p3vmFrame:'view.frame',p3vmFrameSel:'view.frameSel',p3mkMag:'snap.magnet',p3bOrtho:'snap.ortho',p3pnNew:'panel.new',p3pnFromDraw:'panel.fromDraw',p3pnDraw:'panel.draw',
   p3bGrp:'sel.group',p3bDraw:'panel.load2d',p3bRot:'obj.rot90',p3bRL:'body.rotL',p3bRR:'body.rotR',
-  p3oAuto:'obj.autoname',p3oGrp:'obj.group',p3oUngrp:'obj.ungroup',p3oArr:'obj.array',p3oDistY:'obj.distY',p3oDistX:'obj.distX',p3oDistZ:'obj.distZ',p3oHw:'obj.hardware',p3c3Sel:'cursor.toSel',p3c3Go:'cursor.selTo',p3c3O:'cursor.origin',p3c3Piv:'snap.pivot'};
+  p3oAuto:'obj.autoname',p3oGrp:'obj.group',p3oUngrp:'obj.ungroup',p3oArr:'obj.array',p3oDistY:'obj.distY',p3oXlap:'obj.xlap',p3oXlapH:'obj.xlapHole',p3oClash:'obj.clash',p3oDistX:'obj.distX',p3oDistZ:'obj.distZ',p3oHw:'obj.hardware',p3c3Sel:'cursor.toSel',p3c3Go:'cursor.selTo',p3c3O:'cursor.origin',p3c3Piv:'snap.pivot'};
 function p3KbSync(){
   if(!wrap)return;
   for(const id in P3KB){const b=q('#'+id);if(!b)continue;const k=p3Keys[P3KB[id]]||'';
@@ -1032,6 +1033,41 @@ function stretchCands(){
   for(const p of ps){p.g.updateMatrixWorld(true);prof(p).forEach((a,i)=>out.push({p,i,key:p.id+':'+i,w:p.g.localToWorld(new THREE.Vector3(a[0]-p.w/2,a[1]-p.h/2,0))}));
     (p.ops||[]).filter(o=>o.k==='c').forEach((o,ci)=>o.pts.forEach((a,j)=>out.push({p,i:-1,key:p.id+':c'+ci+'.'+j,w:p.g.localToWorld(new THREE.Vector3(a[0]-p.w/2,a[1]-p.h/2,0))})))}   // kesik / o'yiq nuqtalari (kalit — kesiklar tartibi: avtomatik teshiklar qayta qo'yilsa ham o'zgarmaydi)
   return out}
+/* Panelga yangi profil (lokal koordinatada; boshi siljigan bo'lsa — markaz, teshik va kesiklar dunyoda joyida qoladi) */
+function setProfile(p,pts){
+  const xs=pts.map(a=>a[0]),ys=pts.map(a=>a[1]),x0=Math.min(...xs),y0=Math.min(...ys),W=Math.max(...xs)-x0,H=Math.max(...ys)-y0;if(W<1||H<1)return false;
+  const m=Wof(p),ox=x0+W/2-p.w/2,oy=y0+H/2-p.h/2,n0=prof(p).length;p.x+=m[0]*ox+m[1]*oy;p.y+=m[3]*ox+m[4]*oy;p.z+=m[6]*ox+m[7]*oy;
+  if(p.ops)for(const o of p.ops)opShift(o,-x0,-y0);const r3=v=>+v.toFixed(3),np=pts.map(a=>[r3(a[0]-x0),r3(a[1]-y0)]);
+  p.w=W;p.h=H;delete p.c;if(isRectPoly(np,0,0,W,H)){delete p.pts;delete p.bw;delete p.bh;p.shape='rect'}else{p.pts=np;p.bw=W;p.bh=H;p.shape='poly'}
+  if(p.eb&&prof(p).length!==n0)delete p.eb;return true}
+/* O'zaro o'yiq: tanlangan panellarning har bir kesishmasi uchun o'yiq (panel3d-xlap.js). Bitta panelga bir nechta o'yiq — hammasi eski
+   koordinatada ayiriladi, profil oxirida bir marta yangilanadi. Natijada kesishma qolsa — xabar. */
+function xlapSel(mode){
+  if(!XLAP)return null;const ps=selected().filter(p=>!p.hid);if(ps.length<2){say("O'zaro o'yiq: kamida 2 ta kesishgan panelni tanlang (Shift yoki ramka bilan)");return null}
+  const T2=hwOpts&&hwOpts.tab?hwOpts.tab:{cl:.2,d:6,bone:true},o={cl:+T2.cl||0,mode,bone:T2.bone!==false,d:+T2.d||0};
+  const plans=XLAP.plan(ps,o),cur=new Map(),holes=new Map(),err=[];let half=0,thr=0;
+  for(const pl of plans){pl.kind==='half'?half++:thr++;let done=false,last='';
+    for(const opt of pl.options){   // variantlar navbat bilan: hammasi muvaffaqiyatli bo'lgani olinadi
+      const tc=new Map(),th=[];let ok=true;
+      for(const sl of opt){const p=sl.p,tmp=Object.assign({},p,{pts:tc.get(p.id)||cur.get(p.id)||prof(p),bw:p.w,bh:p.h,shape:'poly'});
+        let r=null;for(const poly of sl.alts||[sl.poly]){r=XLAP.cut(tmp,poly,o);if(!r.err)break}   // muqobil o'yiqlar: birinchisi panelni bo'lmasa — o'sha
+        if(r.err){ok=false;last=`${p.n||'Panel'}: ${r.err}`;break}
+        if(r.hole)th.push([p.id,r.hole.map(a=>[+a[0].toFixed(3),+a[1].toFixed(3)])]);else tc.set(p.id,r.pts)}
+      if(!ok)continue;for(const[id,pts]of tc)cur.set(id,pts);for(const[id,h]of th)(holes.get(id)||holes.set(id,[]).get(id)).push(h);done=true;break}
+    if(!done)err.push(last||`${pl.A.n||'Panel'} × ${pl.B.n||'Panel'}: o'yiq topilmadi`)}
+  const ch=new Set([...cur.keys(),...holes.keys()]);
+  for(const id of ch){const p=panels.find(x=>x.id===id);if(holes.has(id))for(const h of holes.get(id))(p.ops=p.ops||[]).push({k:'c',th:1,pts:h,t:'xlap'});if(cur.has(id))setProfile(p,cur.get(id));build(p)}
+  if(!plans.length){say("O'zaro o'yiq: tanlangan panellar kesishmaydi");return{half,thr,err,left:[]}}
+  paint();props();list();changed();
+  const left=XLAP.interference(ps);
+  say(`O'zaro o'yiq: ${plans.length} ta kesishma — ${half} ta yarim-yarim, ${thr} ta to'liq o'tish; ${ch.size} ta panel o'yildi`+(err.length?` · bajarilmadi: ${err.join('; ')}`:'')+(left.length?` · hali kesishadi: ${left.length} juft (Kesishmalarni tekshirish)`:' · kesishma qolmadi'));
+  return{half,thr,err,left,panels:ch.size}}
+function clashCheck(){
+  if(!XLAP)return[];const ps=(selected().length>1?selected():panels).filter(p=>!p.hid),r=XLAP.interference(ps);
+  if(!r.length){say(`Kesishma yo'q (${ps.length} panel tekshirildi)`);return r}
+  msel=[...new Set(r.flatMap(x=>[x.a,x.b]))];sel=msel[0];paint();props();list();
+  const nm=id=>{const p=panels.find(x=>x.id===id);return p?p.n||'Panel':id};
+  say(`Kesishma: ${r.length} juft — ${r.slice(0,4).map(x=>`${nm(x.a)} × ${nm(x.b)} (${x.len} mm)`).join(', ')}${r.length>4?' …':''}. Ular tanlandi — O'zaro o'yiq bilan kiygizish mumkin`);return r}
 function opShift(o,dx,dy){if(!dx&&!dy)return;const r=v=>+v.toFixed(3);   // panel profili boshi (0,0) siljiganda teshik/paz/kesik joyida qolsin
   if(o.k==='c')o.pts=o.pts.map(a=>[r(a[0]+dx),r(a[1]+dy)]);else if(o.u0!==undefined){o.u0=r(o.u0+dx);o.u1=r(o.u1+dx);o.v0=r(o.v0+dy);o.v1=r(o.v1+dy)}else if(o.u!==undefined){o.u=r(o.u+dx);o.v=r(o.v+dy)}}
 function stretchHandles(){
@@ -1407,6 +1443,8 @@ const P3CMD=[
   ['obj.delete','Obyekt: Delete (o\'chirish)','Delete',()=>selected().forEach(del)],
   ['obj.autoname','Obyekt: Avto-nom (chap/o\'ng boka, krisha, dno, polka…; korpus A., B.)','Alt+N',()=>autoName()],
   ['obj.group','Obyekt: Group (guruh)','Ctrl+G',()=>groupSel()],['obj.ungroup','Obyekt: Ungroup','Ctrl+Shift+G',()=>ungroupSel()],['obj.array','Obyekt: Massiv (Array)','',()=>arrOpen()],
+  ['obj.xlap','Obyekt: o\'zaro o\'yiq (kesishgan panellarni kiygizish)','',()=>xlapSel('auto')],['obj.xlapHole','Obyekt: o\'zaro o\'yiq — o\'tuvchi panelga teshik','',()=>xlapSel('hole')],
+  ['obj.clash','Obyekt: kesishmalarni tekshirish','',()=>clashCheck()],
   ['obj.distY','Obyekt: teng taqsimlash Y','',()=>distSel(1)],['obj.distX','Obyekt: teng taqsimlash X','',()=>distSel(0)],['obj.distZ','Obyekt: teng taqsimlash Z','',()=>distSel(2)],
   ['obj.hardware','Obyekt: Furnitura va teshiklar (CNC DXF)','Alt+F',()=>hwOpen()],
   // Panel
@@ -1965,6 +2003,10 @@ const HTML=`
     <button class="p3di" id="p3oDistY" title="Tanlangan panellar: eng past va eng yuqori joyida, oradagilar teng oraliq bilan (masalan polkalar)">Teng taqsimlash — Y (yuqoriga)</button>
     <button class="p3di" id="p3oDistX">Teng taqsimlash — X</button>
     <button class="p3di" id="p3oDistZ">Teng taqsimlash — Z</button>
+    <div class="p3dsep"></div><div class="p3dh">Kesishma (kiygizish)</div>
+    <button class="p3di" id="p3oXlap" title="Tanlangan kesishgan panellar (qiya ham): X kesishmada har biriga yarim o'yiq, biri ikkinchisidan to'liq o'tsa — kattasiga yaqin chekkadan ochiq o'yiq. Zazor, freza Ø va dogbone — Furnitura ▸ Ship-paz sozlamalaridan">O'zaro o'yiq (kiygizish)</button>
+    <button class="p3di" id="p3oXlapH" title="O'tuvchi panel uchun kattasiga yopiq teshik (ochiq o'yiq o'rniga); X kesishma — yarim-yarim">O'zaro o'yiq — teshik bilan</button>
+    <button class="p3di" id="p3oClash" title="Tanlangan (yoki hamma) panellardan bir-biriga kirib qolganlarini topadi va belgilaydi">Kesishmalarni tekshirish</button>
     <div class="p3dsep"></div>
     <button class="p3di" id="p3oAuto" title="Ro'para ko'rinishda: chap/o'ng boka, krisha, dno, polka, oraliq boka, orqa devor, fasad; bir nechta korpus — A., B., …">Avto-nom (korpus detallari)</button>
     <button class="p3di" id="p3oHw" title="Yevrovint, ekssentrik, shkant, polkaderjatel, petlya, ruchka, orqa devor pazi — korpus ulanishlaridan avtomatik; teshikli DXF (CNC)">Furnitura va teshiklar (CNC DXF)…</button>
@@ -2079,7 +2121,7 @@ function initUI(){
   q('#p3mkGc').onclick=()=>{guides=[];gsel.clear();gdraw=null;gPrevClear();drawGuides();markDirty()};
   // Object
   q('#p3oCopy').onclick=copySel;q('#p3oMx').onclick=()=>mirrorSel(0);q('#p3oMy').onclick=()=>mirrorSel(1);q('#p3oMz').onclick=()=>mirrorSel(2);
-  q('#p3oDel').onclick=()=>selected().forEach(del);q('#p3oAuto').onclick=()=>autoName();q('#p3oGrp').onclick=()=>groupSel();q('#p3oUngrp').onclick=()=>ungroupSel();q('#p3oArr').onclick=()=>arrOpen();[0,1,2].forEach(a=>q('#p3oDist'+'XYZ'[a]).onclick=()=>distSel(a));q('#p3oHw').onclick=()=>hwOpen();hwWire();prWire();
+  q('#p3oDel').onclick=()=>selected().forEach(del);q('#p3oAuto').onclick=()=>autoName();q('#p3oGrp').onclick=()=>groupSel();q('#p3oUngrp').onclick=()=>ungroupSel();q('#p3oXlap').onclick=()=>xlapSel('auto');q('#p3oXlapH').onclick=()=>xlapSel('hole');q('#p3oClash').onclick=()=>clashCheck();q('#p3oArr').onclick=()=>arrOpen();[0,1,2].forEach(a=>q('#p3oDist'+'XYZ'[a]).onclick=()=>distSel(a));q('#p3oHw').onclick=()=>hwOpen();hwWire();prWire();
   q('#p3T').onchange=e=>{T=Math.max(1,num(e.target.value)||16);e.target.value=T;markDirty()};
   q('#p3bAllT').onclick=()=>{panels.forEach(p=>{p.t=T;build(p)});paint();props();list();changed()};
   q('#p3bGrp').onclick=()=>{grp=!grp;q('#p3bGrp').classList.toggle('on',grp)};
@@ -2176,7 +2218,7 @@ window.Panel3D={retheme:()=>{if(inited)theme()},hotkeys:{commands:P3CMD.map(({id
     for(let a=0;a<3;a++){const A=new THREE.Vector3();A.setComponent(a,1);o['a'+a]=P(c.clone().addScaledVector(A,90*k));o['v'+a]=gzAx[a].visible;
       const g=gzPl[a];g.updateMatrixWorld(true);o['p'+a]=P(g.getWorldPosition(new THREE.Vector3()));o['pv'+a]=g.visible}return o},
   _cursor:()=>c3?c3.toArray():null,_autoName:()=>autoName(),_clusters:()=>corpusClusters(panels.filter(p=>!p.hid)).map(c=>c.map(p=>p.id)),_pivot:()=>pivot,_act:()=>act?{k:act.k,con:act.con,typed:act.typed,hit:act.hit?act.hit.k:null}:null,_snap:()=>snapHit?{k:snapHit.k,T:snapHit.T.toArray()}:null,
-  _cnc:()=>cncSend(),_col:id=>{const p=panels.find(x=>x.id===id);return p?panelCol(p):null},_vsel:keys=>{if(keys){vsel=new Set(keys);dirtyR=true}return{keys:[...vsel],gz:!!(gz&&gz.visible)}},_group:()=>groupSel(),_ungroup:()=>ungroupSel(),_array:(n,d)=>arraySel(n,d),_dist:a=>distSel(a),_joints:()=>HW.jointLines(panels,hwOpts),_jointScr:k=>{const l=HW.jointLines(panels,hwOpts).find(x=>x.key===k);if(!l)return null;const r=cv.getBoundingClientRect(),s=scrOf(new THREE.Vector3((l.p0[0]+l.p1[0])/2,(l.p0[1]+l.p1[1])/2,(l.p0[2]+l.p1[2])/2));return{x:r.left+s.x,y:r.top+s.y}},_price:o=>{if(o){prices=PRC.merge(o);prSave()}return prCalc()},_prOpen:()=>{if(!prOpen)q('#p3prTab').click()},_guides:()=>drawnLines.filter(l=>l.p3g).map(l=>({k:l.kind,pts:l.points.map(o=>[+o.x.toFixed(2),+o.y.toFixed(2)])})),_edit:id=>{const p=panels.find(x=>x.id===id);return p?editInDrawing(p):false},_editApply:()=>editApply(),_editCancel:()=>editCancel(),_editing:()=>p3edit?{...p3edit}:null,_hw:{place:o=>{if(o)hwOpts=HW.merge(HW.DEF,o);return hwPlace()},clear:hwClear,dxf:()=>hwDxfData(),csv:()=>HW.csv(hwTargets()),check:hwCheck,open:hwOpen,opts:()=>hwOpts,ops:id=>{const p=panels.find(x=>x.id===id);return p&&p.ops?JSON.parse(JSON.stringify(p.ops)):[]},showOps:()=>showOps},_snapM:snapM,_keyw:id=>{const p=panels.find(x=>x.id===id);return p?KEYW(p):null},_guides3:()=>guides.map(g=>({p:g.p,d:gDir(g).toArray().map(v=>+v.toFixed(4))})),_gsel:()=>[...gsel],_ruler:()=>ruler?{A:ruler.A.toArray(),B:ruler.B?ruler.B.toArray():null,kA:ruler.kA,kB:ruler.kB||null}:null,_msel:()=>msel.slice(),_geo:id=>{const p=panels.find(x=>x.id===id);if(!p)return null;const G=geoOf(p),r=v=>v.toArray().map(x=>+x.toFixed(2));return{end:G.end.map(r),cen:G.cen.map(r)}},_cam:()=>({R,tg:tg.toArray().map(x=>+x.toFixed(2))}),_rtDeg:id=>{const p=panels.find(x=>x.id===id);return p?rtDeg(p):null},_wof:id=>{const p=panels.find(x=>x.id===id);return p?Wof(p).map(v=>+v.toFixed(4)):null},_ext:id=>{const p=panels.find(x=>x.id===id);return p?ext(p).map(v=>+v.toFixed(2)):null},
+  _cnc:()=>cncSend(),_col:id=>{const p=panels.find(x=>x.id===id);return p?panelCol(p):null},_vsel:keys=>{if(keys){vsel=new Set(keys);dirtyR=true}return{keys:[...vsel],gz:!!(gz&&gz.visible)}},_group:()=>groupSel(),_ungroup:()=>ungroupSel(),_array:(n,d)=>arraySel(n,d),_dist:a=>distSel(a),_joints:()=>HW.jointLines(panels,hwOpts),_jointScr:k=>{const l=HW.jointLines(panels,hwOpts).find(x=>x.key===k);if(!l)return null;const r=cv.getBoundingClientRect(),s=scrOf(new THREE.Vector3((l.p0[0]+l.p1[0])/2,(l.p0[1]+l.p1[1])/2,(l.p0[2]+l.p1[2])/2));return{x:r.left+s.x,y:r.top+s.y}},_price:o=>{if(o){prices=PRC.merge(o);prSave()}return prCalc()},_prOpen:()=>{if(!prOpen)q('#p3prTab').click()},_guides:()=>drawnLines.filter(l=>l.p3g).map(l=>({k:l.kind,pts:l.points.map(o=>[+o.x.toFixed(2),+o.y.toFixed(2)])})),_edit:id=>{const p=panels.find(x=>x.id===id);return p?editInDrawing(p):false},_editApply:()=>editApply(),_editCancel:()=>editCancel(),_editing:()=>p3edit?{...p3edit}:null,_hw:{place:o=>{if(o)hwOpts=HW.merge(HW.DEF,o);return hwPlace()},clear:hwClear,dxf:()=>hwDxfData(),csv:()=>HW.csv(hwTargets()),check:hwCheck,open:hwOpen,opts:()=>hwOpts,ops:id=>{const p=panels.find(x=>x.id===id);return p&&p.ops?JSON.parse(JSON.stringify(p.ops)):[]},showOps:()=>showOps},_snapM:snapM,_xlap:m=>xlapSel(m||'auto'),_clash:()=>clashCheck().map(x=>({...x})),_keyw:id=>{const p=panels.find(x=>x.id===id);return p?KEYW(p):null},_guides3:()=>guides.map(g=>({p:g.p,d:gDir(g).toArray().map(v=>+v.toFixed(4))})),_gsel:()=>[...gsel],_ruler:()=>ruler?{A:ruler.A.toArray(),B:ruler.B?ruler.B.toArray():null,kA:ruler.kA,kB:ruler.kB||null}:null,_msel:()=>msel.slice(),_geo:id=>{const p=panels.find(x=>x.id===id);if(!p)return null;const G=geoOf(p),r=v=>v.toArray().map(x=>+x.toFixed(2));return{end:G.end.map(r),cen:G.cen.map(r)}},_cam:()=>({R,tg:tg.toArray().map(x=>+x.toFixed(2))}),_rtDeg:id=>{const p=panels.find(x=>x.id===id);return p?rtDeg(p):null},_wof:id=>{const p=panels.find(x=>x.id===id);return p?Wof(p).map(v=>+v.toFixed(4)):null},_ext:id=>{const p=panels.find(x=>x.id===id);return p?ext(p).map(v=>+v.toFixed(2)):null},
   _rotDrag:(ax,deg,ctrl)=>{const ps=selected();if(!ps.length||!gzR)return null;const[mn,mx]=bboxOf(ps);gzR.position.set((mn[0]+mx[0])/2,(mn[1]+mx[1])/2,(mn[2]+mx[2])/2);
     const r=cv.getBoundingClientRect(),c=gzR.position.clone().project(cam),cx=r.left+(c.x+1)/2*r.width,cy=r.top+(1-c.y)/2*r.height,R0=120;
     startRotG({clientX:cx+R0,clientY:cy},ax);const f=act.facing,n=Math.max(2,Math.ceil(Math.abs(deg)/15));
