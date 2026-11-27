@@ -1,3 +1,11 @@
+# Yuqori Object menyusida Modeling bo'limi (Furnitura, O'zaro o'yiq) — 2026-11-27 (Linux)
+
+- `modeling-xlap` 6: Modeling ochiq — yuqori Object menyusida «Furnitura va teshiklar (sozlamalar)… Alt+F» ko'rinadi, bosilsa oyna
+  ochiladi (Ship-paz: zazor, freza Ø maydonlari bor); Drawing'da bu bo'lim yashirin. `npm test`, `modeling-cnc-price`, `panel3d-hw-ui`,
+  Electron `modeling-smoke`, `electron-smoke` o'tdi. Brauzerda Alt+F ni brauzerning o'zi ushlab qolishi mumkin — tekshirilmagan.
+
+---
+
 # O'zaro o'yiq (kiygizish) va kesishmalarni tekshirish — 2026-11-27 (Linux)
 
 - Yangi `app/js/tools/panel3d-xlap.js` + `tests/panel3d-xlap.cjs` (6, `npm test` ichida): to'g'ri burchakli X — har biriga 16.4×25

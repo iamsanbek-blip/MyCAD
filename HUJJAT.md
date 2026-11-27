@@ -1,5 +1,7 @@
 # Rugby 1.1.2 — CNC nesting, panelni Drawing'da tahrirlash, aralash ulagich, narx (2026-11-23)
 
+- **Furnitura sozlamalari yuqori menyuda ham.** Modeling ochiq bo'lsa yuqoridagi **Object** menyusida «Modeling» bo'limi: Furnitura va
+  teshiklar (sozlamalar)… (Alt+F), Kesishmalarni tekshirish, O'zaro o'yiq. Web versiyada Alt+F ni brauzer o'zi ushlab qolsa — shu menyudan.
 - **O'zaro o'yiq (kiygizish) va kesishmalarni tekshirish.** Object ▸ **Kesishmalarni tekshirish** — bir-biriga kirib qolgan panellarni
   topadi, juftlar va kirish uzunligini yozadi, ularni tanlaydi. Object ▸ **O'zaro o'yiq (kiygizish)** — tanlangan panellarning har bir
   kesishmasiga (qiya, erkin burchakli panel ham) o'yiq: X ko'rinishda kesishsa — ikkalasiga yarim-yarim (har biri o'z chekkasidan),

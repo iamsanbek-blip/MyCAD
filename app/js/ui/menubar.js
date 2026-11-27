@@ -12,7 +12,8 @@ function act(a){
   else if(a==='redo'){if(p3)window.Panel3D.redo();else if($('redoBtn'))$('redoBtn').click()}
   else if(a==='obj-m'&&window.Panel3D)window.Panel3D.exportOBJ(0.001);
   else if(a==='obj-mm'&&window.Panel3D)window.Panel3D.exportOBJ(1);
-  else if(a==='obj-in'&&window.Panel3D)window.Panel3D.importOBJ();}
+  else if(a==='obj-in'&&window.Panel3D)window.Panel3D.importOBJ();
+  else if(a.startsWith('p3:')&&p3){const b=$(a.slice(3));if(b)b.click()}}   // Modeling buyruqlari (Furnitura, O'zaro o'yiq …) — Modeling ichidagi tugma bosiladi
 function syncModes(){document.querySelectorAll('#menuBar .mbMode').forEach(b=>{const t=$(b.dataset.target);b.classList.toggle('active',!!t&&t.classList.contains('active'))})}
 function syncLang(){const b=$('langSwitchBtn'),k=$('mbLangKb');if(b&&k)k.textContent=b.textContent.trim()}
 function init(){

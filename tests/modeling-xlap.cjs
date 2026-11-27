@@ -62,6 +62,11 @@ const errors=[],passed=[];
     assert.equal(cn.length,5);assert.ok(cn.filter(c=>c.n==='Qovurga').every(c=>c.k>=90),JSON.stringify(cn));
     await page.locator('#mbModel').click();await page.waitForFunction(()=>Panel3D.isOpen());
     passed.push("CNC: 5 detal listga joylandi, qovurg'alar o'yiqli kontur bilan; DXF — CUT_Z16");
+    // 7. Yuqori Object menyusi: Modeling bo'limi — Furnitura (sozlamalar, Ship-paz zazor / freza Ø), O'zaro o'yiq, tekshirish
+    await page.locator('#mbObject .mbBtn').click();assert.ok(await page.locator('#mbObject [data-act="p3:p3oHw"]').isVisible());await page.locator('#mbObject [data-act="p3:p3oHw"]').click();
+    await page.waitForSelector('#p3hw:not([hidden])');assert.ok(await ev(()=>!!document.getElementById('p3hw_tab_cl')&&!!document.getElementById('p3hw_tab_d')),'Ship-paz: zazor va freza Ø maydonlari');
+    await page.keyboard.press('Escape');await page.locator('#mbDraw').click();await page.locator('#mbObject .mbBtn').click();assert.ok(await page.locator('#mbObject .mbP3').first().isHidden(),'Drawing\'da Modeling bo\'limi yashirin');await page.keyboard.press('Escape');
+    passed.push("Yuqori Object menyusi: Modeling ochiq bo'lsa — Furnitura (Ship-paz zazor, freza Ø), Kesishmalarni tekshirish, O'zaro o'yiq; Drawing'da yashirin");
     assert.deepEqual(errors,[]);
   }finally{await browser.close();fs.rmSync(tmp,{recursive:true,force:true})}
   console.log(passed.map(s=>'PASS '+s).join('\n'));console.log(`modeling-xlap: ${passed.length} checks passed`);
