@@ -41,6 +41,7 @@ haqiqatda o'tkazilgan sinovlar: `docs/TESTING.md`; umumiy arxitektura: `docs/ARC
 | Magnit: kesik/o'yiq/teshik markazi; g'ildirak — kursorga qarab zoom (min 2 mm) | Modeling | `geoOf()`, `zoomAt()` |
 | OBJ import: bir xil qalinlikdagi prizma (yoy, o'yiq, qiya, teshik) → panel | File ▸ Import ▸ OBJ | `parseOBJ()`, `objPrism()`, `objToPanels()` |
 | Nusxa (C) — kursorga ergashadi, bosilganda qotadi, Esc — bekor | C | `copySel()` (`xfStart`, `a.dup`), `xfCancel()` |
+| Yordamchi chiziq A→B (cheksiz), tanlash/Delete, kesishish magniti; lineyka nuqta turlari | Asboblar ▸ Yordamchi chiziq / Lineyka | `addGuide`, `guideMove`, `guidePick`, `guideDelSel`, `gDir` (guide `{p,d}`), `rulerClick`, `showSnap` (`seg`) |
 | Stretch tanlangan panelga qulflanadi; kursor ostidagi nuqta yoritiladi | W | `onDown` (stretch), `vHov`, `stretchPick()` |
 | Stretch: kesik/o'yiq nuqtalari (`id:cOI.J`), kontur surilsa teshiklar joyida (`opShift`) | W | `stretchCands()`, `applyStretchD()` |
 | O'yiq — haqiqiy chuqurcha (qatlamli jism), tekstura kesikda uziladi; qiya qo'shni izi (kesim, qavariq qobiq) | Modeling / Drawing tahriri | `panelGeo()`, `grainLines()`, `guideData()` (`polys`, `slant`), `hull2()` |
@@ -74,7 +75,7 @@ Brauzer sozlamalari (localStorage): `rugby.hw.v1` (furnitura), `rugby.price.v1` 
 | `npm run check` | sintaksis va asset (57 JS) |
 | `npm test` | 18 eski regressiya + workspace (24) + `tests/panel3d-hw.cjs` (18) |
 | `node tests/panel3d-hw-ui.cjs` | Furnitura oynasi, DXF/CSV (8) |
-| `node tests/modeling-cnc-price.cjs` | ulagich, J asbobi (ramka bilan ham), ship-paz, narx, CNC, birka, Drawing tahrir, guruh/massiv, Stretch, rang, material list o'lchami, kromka, nusxa, tanlovni ko'chirish, erkin aylantirish, Drawing'da kesik/o'yiq, ichki shakl magniti va zoom, o'yiq jismi, qiya iz, Stretch kesik nuqtalari, OBJ import, Duplicate, Stretch qulfi (26) |
+| `node tests/modeling-cnc-price.cjs` | ulagich, J asbobi (ramka bilan ham), ship-paz, narx, CNC, birka, Drawing tahrir, guruh/massiv, Stretch, rang, material list o'lchami, kromka, nusxa, tanlovni ko'chirish, erkin aylantirish, Drawing'da kesik/o'yiq, ichki shakl magniti va zoom, o'yiq jismi, qiya iz, Stretch kesik nuqtalari, OBJ import, Duplicate, Stretch qulfi, yordamchi chiziq/lineyka (27) |
 | `node tests/modeling-precision.cjs`, `node tests/smart-autoname.cjs` | magnit/gizmo, smart kiritish |
 | `npm run test:electron`, `xvfb-run -a node tests/modeling-smoke.cjs` va h.k. | haqiqiy Electron GUI |
 

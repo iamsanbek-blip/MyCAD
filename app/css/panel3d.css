@@ -134,6 +134,10 @@ body.lightTheme #p3wrap .p3seg button.on{color:#fff}
 #p3wrap .p3snap.edge i::before,#p3wrap .p3snap.edge i::after{content:'';position:absolute;left:6px;top:-1px;width:2px;height:16px;background:var(--ac2);transform:rotate(45deg)}
 #p3wrap .p3snap.edge i::after{transform:rotate(-45deg)}
 #p3wrap .p3snap span{position:absolute;left:11px;top:-24px;white-space:nowrap;font-size:11px;line-height:15px;padding:0 5px;border-radius:4px;background:var(--p);border:1px solid var(--ac2);color:var(--tx)}
+#p3wrap .p3snap.int i{border-color:#ffb454;background:rgba(255,180,84,.25);transform:rotate(45deg)}
+#p3wrap .p3snap.surf i,#p3wrap .p3snap.free i{border-style:dashed;border-color:#ff6b6b;background:none;border-radius:50%}
+#p3wrap .p3snap.p3rm i{border-color:#ffb454}#p3wrap .p3snap.p3rm.mid i{border-bottom-color:#ffb454;border-color:transparent transparent #ffb454}
+#p3wrap .p3snap.p3rm span{border-color:#ffb454;top:10px}
 /* Furnitura va teshiklar oynasi (Object ▸ Furnitura, Alt+F) */
 #p3wrap .p3hw{position:absolute;top:10px;right:10px;bottom:10px;width:min(560px,calc(100% - 20px));display:flex;flex-direction:column;background:var(--p);border:1px solid var(--bd);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.35);z-index:30}
 #p3wrap .p3hw[hidden]{display:none}

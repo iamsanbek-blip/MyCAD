@@ -1,5 +1,12 @@
 # Rugby 1.1.2 — CNC nesting, panelni Drawing'da tahrirlash, aralash ulagich, narx (2026-11-23)
 
+- **Yordamchi chiziq — SketchUp kabi.** Asbobda A nuqtani, keyin B nuqtani bosasiz — A va B dan o'tuvchi cheksiz chiziq qo'yiladi
+  (tik, gorizontal, chuqurlik bo'ylab yoki qiya). Ortho yoqilsa yo'nalish eng yaqin X/Y/Z o'qiga to'g'rilanadi. Magnit ikkala nuqtada
+  ishlaydi, ikki yordamchi chiziq kesishgan joy ham magnit nuqtasi. Select (V) da chiziqni bosib tanlaysiz (Shift — qo'shish),
+  Delete — o'chirish, Esc — bekor. Avval chiziq faqat ekran o'qi bo'ylab qo'yilardi va ba'zan ko'rinmasdi.
+- **Lineyka — nima o'lchanganini ko'rsatadi.** Nishon belgisi va nomi (Uch, O'rta, Markaz, Qirra, Kesishish; magnitsiz bo'lsa —
+  «Panel yuzasi» / «Bo'sh joy», qizil uzuk) A va B nuqtada o'lchovdan keyin ham qoladi; yozuvda «A: Uch → B: O'rta». Qirraga
+  yopishganda o'sha qirra yonadi.
 - **Stretch (W) — faqat tanlangan panel.** Panel tanlab W bosilsa asbob shu panelga «qulflanadi»: boshqa panel ustiga adashib bosish
   tanlovni almashtirmaydi (ramka belgilash boshlanadi), ramka va bosish faqat tanlangan panel nuqtalarini oladi, faqat u cho'ziladi.
   Kursor ostidagi nuqta oq bo'lib yonadi — bosilsa aynan o'sha belgilanadi (ustma-ust bo'lsa kameraga yaqini). Boshqa panelga o'tish:

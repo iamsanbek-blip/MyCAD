@@ -1,3 +1,15 @@
+# Yordamchi chiziq (SketchUp kabi A→B), tanlash/Delete; lineyka magnit belgilari — 2026-11-27 (Linux)
+
+- `modeling-cnc-price` 27 (haqiqiy sichqoncha, Front): yordamchi chiziq A(400;0)→B(400;600) — tik, A(0;0)→B(400;600) — qiya
+  (d ≈ 0.555; 0.832), magnit uchlarga yopishdi; Select'da chiziqni bosish uni tanladi, Delete o'chirdi (panel qoldi); lineyka
+  A — uch, B — o'rta: «200.0 mm … A: Uch → B: O'rta», nuqtalarda «A · Uch», «B · O'rta» belgilari qoldi.
+- Topilgan xato: yordamchi chiziq ±20 m chizilardi — Chromium/SwiftShader skrinshotida (Iso) umuman ko'rinmadi; endi uzunligi sahnaga mos
+  (gabarit diagonali ×2, kamida 2 m) — skrinshotda tik va qiya chiziqlar ko'rindi. Haqiqiy Windows videokartasida tekshirilmagan.
+- O'tdi: `npm run check`, `npm test`, `panel3d-hw`, `panel3d-hw-ui`, `modeling-precision`, `smart-autoname`, `panel3d`, `panel3d-export`,
+  Electron `modeling-smoke`, `electron-smoke`, `panel-types-smoke`, `stretch-select`. EXE qayta yig'ilmagan.
+
+---
+
 # Stretch (W) tanlangan panelga qulflanadi, nuqta aniq belgilanadi — 2026-11-27 (Linux)
 
 - `modeling-cnc-price` 26: A tanlangan, W — B panel ustiga haqiqiy sichqoncha bilan bosish tanlovni o'zgartirmadi; A va B ni qamragan

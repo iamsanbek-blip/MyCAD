@@ -17,7 +17,7 @@
 const TPL=[{n:'Panel',w:568,h:480}];   // bitta universal panel; yo'nalishi joriy ko'rinishdan olinadi
 const SHP={rect:"To'rtburchak",tri:'Uchburchak',pent:'Beshburchak',L:'L-simon',U:'U-simon'};
 const ORI={front:'Old (XY)',side:'Yon (ZY)',flat:'Gorizontal (XZ)'};
-let ruler=null,guides=[],Gg=null,rulerMat=null,vsel=new Set(),vH=null,vHov=null;
+let ruler=null,guides=[],Gg=null,rulerMat=null,vsel=new Set(),vH=null,vHov=null,gdraw=null,gsel=new Set(),gPrev=null,snapSeg=null;
 let pm=null,vname='iso',mag=true,snapMark=null,thick2d=true;   // snapMark — eski 3D belgi (endi DOM #p3snap ishlatiladi)
 let msel=[],tool='select',gz=null,gzR=null,gzS=null,planeMode='plan';
 let panels=[],uid=1,sel=null,T=16,lines=[],ortho=false,wire=false,grp=false,dr=null,act=null;
@@ -596,8 +596,10 @@ const offs=(e,m=snapM)=>{const nd=e.filter(v=>v>0).length,o=[],V=a=>e[a]>0?[-1,0
    Nishon kursor atrofida qidiriladi (ekranda SNAP_PX radiusda): panelning HAQIQIY geometriyasi — profil uchlari,
    qirra o'rtalari, markazlar va (yoqilsa) qirradagi eng yaqin nuqta. Bir nechta nomzod bo'lsa: uch > o'rta > markaz > qirra,
    teng bo'lsa kameraga yaqini. Tanlovning tayanch nuqtasi (bosilgan uch yoki nishonga eng yaqin nuqtasi) aynan nishonga tushadi. */
-const SNAP_PX=14,SNAP_PEN={end:0,mid:2,cen:3,edge:6,guide:7};
-const SNAP_NAME={end:'Uch',mid:"O'rta",cen:'Markaz',edge:'Qirra',guide:'Yordamchi chiziq'};
+const SNAP_PX=14,SNAP_PEN={end:0,int:1,mid:2,cen:3,edge:6,guide:7};
+const SNAP_NAME={end:'Uch',int:'Kesishish',mid:"O'rta",cen:'Markaz',edge:'Qirra',guide:'Yordamchi chiziq',surf:'Panel yuzasi (magnitsiz)',free:'Bo\'sh joy (magnitsiz)'};
+/* Yordamchi chiziq (SketchUp kabi): {p:[x,y,z], d:[dx,dy,dz]} — A va B nuqtalardan o'tuvchi cheksiz chiziq (eski fayllarda {p, a:o'q}) */
+const gDir=g=>{if(Array.isArray(g.d)&&g.d.length===3){const v=new THREE.Vector3(...g.d);if(v.lengthSq()>1e-12)return v.normalize()}const v=new THREE.Vector3();v.setComponent(g.a>=0&&g.a<3?g.a:0,1);return v};
 function geoOf(p){   // dunyo koordinatasida: uchlar, qirra o'rtalari (qalinlik qirralari ham), markazlar, qirralar
   const m=Wof(p),hz=flatV()?[0]:[-p.t/2,p.t/2],pr=prof(p).map(a=>[a[0]-p.w/2,a[1]-p.h/2]),n=pr.length;
   const W=(u,v,s)=>new THREE.Vector3(p.x+m[0]*u+m[1]*v+m[2]*s,p.y+m[3]*u+m[4]*v+m[5]*s,p.z+m[6]*u+m[7]*v+m[8]*s);
@@ -621,12 +623,15 @@ function raySegT(A,B){   // AB kesmaning kursor nuriga eng yaqin nuqtasi paramet
 function snapFind(e,excl){   // kursor atrofidagi eng yaqin magnit nishoni: {T,k}
   const[mx,my]=cpos(e),ex=excl||new Set();let best=null;ndc(e);
   const test=(T,k)=>{const s=scrOf(T);if(!s.ok)return;const d=Math.hypot(s.x-mx,s.y-my);if(d>SNAP_PX)return;
-    const c=d+SNAP_PEN[k]+s.z*.5;if(!best||c<best.c)best={T,k,c}};
+    const c=d+SNAP_PEN[k]+s.z*.5;if(!best||c<best.c)best={T,k,c,seg:test.seg||null}};
   for(const p of panels){if(p.hid||ex.has(p.id))continue;const G=geoOf(p);
     if(snapM.end)G.end.forEach(T=>test(T,'end'));if(snapM.mid)G.mid.forEach(T=>test(T,'mid'));if(snapM.cen)G.cen.forEach(T=>test(T,'cen'));
-    if(snapM.edge)for(const[A,B]of G.edge)test(A.clone().lerp(B,raySegT(A,B)),'edge')}
-  for(const g of guides){const G=new THREE.Vector3(...g.p),D=new THREE.Vector3();D.setComponent(g.a,1);
-    const A=G.clone().addScaledVector(D,-1e5),B=G.clone().addScaledVector(D,1e5);test(A.clone().lerp(B,raySegT(A,B)),'guide')}
+    if(snapM.edge)for(const[A,B]of G.edge){test.seg=[A,B];test(A.clone().lerp(B,raySegT(A,B)),'edge');test.seg=null}}
+  const GL=guides.map(g=>({G:new THREE.Vector3(...g.p),D:gDir(g)}));
+  for(const{G,D}of GL){const A=G.clone().addScaledVector(D,-1e5),B=G.clone().addScaledVector(D,1e5);test(A.clone().lerp(B,raySegT(A,B)),'guide')}
+  for(let i=0;i<GL.length;i++)for(let j=i+1;j<GL.length;j++){   // ikki yordamchi chiziq kesishgan nuqta
+    const a=GL[i],b=GL[j],w=a.G.clone().sub(b.G),B=a.D.dot(b.D),den=1-B*B;if(den<1e-9)continue;const D2=a.D.dot(w),E=b.D.dot(w),s1=(B*E-D2)/den,t1=(E-B*D2)/den;
+    const P1=a.G.clone().addScaledVector(a.D,s1),P2=b.G.clone().addScaledVector(b.D,t1);if(P1.distanceTo(P2)<.5)test(P1.add(P2).multiplyScalar(.5),'int')}
   return best}
 function srcPts(ps){   // tanlovning manba nuqtalari (yoqilgan turlar: uch/o'rta/markaz)
   const o=[],m=snapM.end||snapM.mid||snapM.cen?snapM:{end:true};
@@ -649,6 +654,8 @@ function snapShift(srcs,d,T,con){   // manba nuqtalardan nishonga eng mos siljis
   return best?d.clone().add(best.dd):d}
 let snapHit=null;
 function showSnap(h){snapHit=h||null;if(!wrap)return;const el=q('#p3snap');if(!el)return;
+  if(snapSeg){scene.remove(snapSeg);snapSeg.geometry.dispose();snapSeg=null;dirtyR=true}
+  if(h&&h.seg&&scene){snapSeg=new THREE.Line(new THREE.BufferGeometry().setFromPoints(h.seg),new THREE.LineBasicMaterial({color:0x5ee1ff,depthTest:false,transparent:true}));snapSeg.renderOrder=998;scene.add(snapSeg);dirtyR=true}   // ushlangan qirra yonadi
   if(!h){el.hidden=true;return}
   const s=scrOf(h.T);el.hidden=!s.ok;el.className='p3snap '+h.k;el.style.left=s.x+'px';el.style.top=s.y+'px';el.lastChild.textContent=SNAP_NAME[h.k]||''}
 function hideSnap(){showSnap(null);dirtyR=true}
@@ -662,8 +669,8 @@ function movePlace(e){
   if(mag){hit=snapFind(e,pm.p?new Set([pm.p.id]):null);if(hit)c.add(conApply(hit.T.clone().sub(c.clone().sub(new THREE.Vector3(...ex).multiplyScalar(.5))),null))}
   if(!pm.p){pm.p=add({n:'Panel',w:TPL[0].w,h:TPL[0].h,o,x:c.x,y:c.y,z:c.z});paint()}else{pm.p.x=c.x;pm.p.y=c.y;pm.p.z=c.z;place(pm.p)}
   showSnap(hit);dirtyR=true}
-const TOOLH={joint:"Furnitura: ulanish chiziqlari rangli (to'q sariq — yevrovint, yashil — ekssentrik, moviy — shkant, binafsha — polkaderjatel, kulrang — fasad/paz). Yuqoridan turni tanlab chiziqni bosing; ramka (bo'sh joydan sudrash) yoki Shift — bir nechtasini tanlab, keyin tur tugmasi (masalan «Yo'q»); Esc — tanlovni tozalash",edge:"Kromka: panel qirrasiga olib boring (moviy chiziq) va bosing — kromka qo'yiladi/olinadi. Qalinlik: Panel ▸ Kromka",stretch:"Stretch: burchak nuqtalarini ramka bilan (yoki bosib, Shift — qo'shish) belgilang, so'ng nuqtani sudrang yoki pastdagi X/Y/Z masofani kiriting. Panel tanlangan bo'lsa faqat shularning nuqtalari",ruler:"Lineyka: ikki nuqtani bosing (magnit uchlar/o'rta nuqta/markazga yopishadi). Esc — tozalash",guide:"Yordamchi chiziq: nuqtani bosing — ekrandagi gorizontal o'q bo'ylab chiziq (Shift — vertikal). Magnit shu chiziqqa yopishadi",select:"Tanlash: panelga bosing yoki bo'sh joyda ramka torting (chapdan o'ngga — to'liq ichida, o'ngdan chapga — tegib o'tgan). Shift — qo'shish",move:"Ko'chirish: strelka (o'q), rangli kvadrat (tekislik), oq markaz yoki panelni sudrang. Panelni uchidan ushlasangiz — shu uch nishonga aynan tushadi. Sudrayotganda: X/Y/Z — o'q, Shift+X/Y/Z — tekislik, raqam — aniq masofa, Enter — tasdiq, Esc / o'ng tugma — bekor",rotate:"Aylantirish: halqani sudrang — Free: erkin burchak (Ctrl — butun gradus 1°, 2° …; raqam yozib Enter — aniq burchak), Ortho (O): 90° qadam; panelga bosing — ko'rinish o'qi atrofida 90° (Shift — teskari)",scale:"Masshtab: o'q uchidagi kubni (bitta yo'nalish) yoki markaziy sariq kubni (hamma yo'nalish) sudrang. Qalinlik o'zgarmaydi"};
-function setTool(t){tool=t;hideSnap();[['Sel','select'],['Mov','move'],['Rot','rotate'],['Scl','scale'],['Str','stretch'],['Edg','edge'],['Jnt','joint']].forEach(([i,n])=>{const b=q('#p3t'+i);if(b)b.classList.toggle('on',n===t)});q('#p3mkRul').classList.toggle('on',t==='ruler');q('#p3mkGd').classList.toggle('on',t==='guide');if(t!=='ruler')clearRuler();if(t!=='edge')edgeClear();if(t==='joint')jointShow();else{jointClear();jSel.clear();jointBar()}if(!pm&&!dr)q('#p3hint').textContent=TOOLH[t];dirtyR=true}
+const TOOLH={joint:"Furnitura: ulanish chiziqlari rangli (to'q sariq — yevrovint, yashil — ekssentrik, moviy — shkant, binafsha — polkaderjatel, kulrang — fasad/paz). Yuqoridan turni tanlab chiziqni bosing; ramka (bo'sh joydan sudrash) yoki Shift — bir nechtasini tanlab, keyin tur tugmasi (masalan «Yo'q»); Esc — tanlovni tozalash",edge:"Kromka: panel qirrasiga olib boring (moviy chiziq) va bosing — kromka qo'yiladi/olinadi. Qalinlik: Panel ▸ Kromka",stretch:"Stretch: burchak nuqtalarini ramka bilan (yoki bosib, Shift — qo'shish) belgilang, so'ng nuqtani sudrang yoki pastdagi X/Y/Z masofani kiriting. Panel tanlangan bo'lsa faqat shularning nuqtalari",ruler:"Lineyka: A va B nuqtani bosing — magnit nimani ushlagani (Uch, O'rta, Markaz, Qirra — qirra yonadi) belgida yoziladi, o'lchangan nuqtalar belgisi qoladi. Esc — tozalash",guide:"Yordamchi chiziq (SketchUp kabi): A nuqtani, keyin B nuqtani bosing — chiziq A va B dan o'tib cheksiz davom etadi (Ortho — X/Y/Z o'qi bo'ylab, Free — istalgan yo'nalish). Magnit uchlar va kesishishlarga yopishadi. Tanlash — Select (V) da chiziqni bosing, Delete — o'chirish",select:"Tanlash: panelga bosing yoki bo'sh joyda ramka torting (chapdan o'ngga — to'liq ichida, o'ngdan chapga — tegib o'tgan). Shift — qo'shish",move:"Ko'chirish: strelka (o'q), rangli kvadrat (tekislik), oq markaz yoki panelni sudrang. Panelni uchidan ushlasangiz — shu uch nishonga aynan tushadi. Sudrayotganda: X/Y/Z — o'q, Shift+X/Y/Z — tekislik, raqam — aniq masofa, Enter — tasdiq, Esc / o'ng tugma — bekor",rotate:"Aylantirish: halqani sudrang — Free: erkin burchak (Ctrl — butun gradus 1°, 2° …; raqam yozib Enter — aniq burchak), Ortho (O): 90° qadam; panelga bosing — ko'rinish o'qi atrofida 90° (Shift — teskari)",scale:"Masshtab: o'q uchidagi kubni (bitta yo'nalish) yoki markaziy sariq kubni (hamma yo'nalish) sudrang. Qalinlik o'zgarmaydi"};
+function setTool(t){tool=t;hideSnap();[['Sel','select'],['Mov','move'],['Rot','rotate'],['Scl','scale'],['Str','stretch'],['Edg','edge'],['Jnt','joint']].forEach(([i,n])=>{const b=q('#p3t'+i);if(b)b.classList.toggle('on',n===t)});q('#p3mkRul').classList.toggle('on',t==='ruler');q('#p3mkGd').classList.toggle('on',t==='guide');if(t!=='ruler')clearRuler();if(t!=='guide'&&(gdraw||gPrev)){gdraw=null;gPrevClear()}if(t!=='edge')edgeClear();if(t==='joint')jointShow();else{jointClear();jSel.clear();jointBar()}if(!pm&&!dr)q('#p3hint').textContent=TOOLH[t];dirtyR=true}
 const viewAxis=()=>vname==='front'||vname==='back'?2:vname==='left'||vname==='right'?0:1;
 function screenBox(p){const r=cv.getBoundingClientRect();let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
   for(const o of offs(ext(p),{end:true,mid:false,cen:false})){const v=new THREE.Vector3(p.x+o[0],p.y+o[1],p.z+o[2]).project(cam),sx=(v.x+1)/2*r.width,sy=(1-v.y)/2*r.height;x0=Math.min(x0,sx);y0=Math.min(y0,sy);x1=Math.max(x1,sx);y1=Math.max(y1,sy)}
@@ -944,9 +951,9 @@ function zoomAt(e,f){
   let A=hs?hs.point.clone():null;if(!A){const v=new THREE.Vector3();A=ray.ray.intersectPlane(new THREE.Plane().setFromNormalAndCoplanarPoint(cam.getWorldDirection(new THREE.Vector3()),tg),v)?v:null}
   if(A){const d=tg.clone().sub(A).multiplyScalar(k);tg.copy(A).add(d)}R=nR;upd();dirtyR=true}
 function pickPoint(e){   // lineyka / yordamchi chiziq / 3D kursor: magnit nishoni, bo'lmasa panel yuzasi, bo'lmasa ko'rinish tekisligi
-  const h=mag?snapFind(e,null):null;showSnap(h);if(h)return h.T.clone();
-  ndc(e);const hs=ray.intersectObjects(P.children,true).find(x=>{const pp=panels.find(a=>a.id===x.object.userData.pid);return pp&&!pp.hid});if(hs)return hs.point.clone();
-  const v=new THREE.Vector3();return ray.ray.intersectPlane(new THREE.Plane().setFromNormalAndCoplanarPoint(cam.getWorldDirection(new THREE.Vector3()),c3||tg),v)?v:null}
+  const h=mag?snapFind(e,null):null;showSnap(h);if(h){const v=h.T.clone();v.k=h.k;return v}   // v.k — nima ushlandi (uch, o'rta, qirra …)
+  ndc(e);const hs=ray.intersectObjects(P.children,true).find(x=>{const pp=panels.find(a=>a.id===x.object.userData.pid);return pp&&!pp.hid});if(hs){const v=hs.point.clone();v.k='surf';return v}
+  const v=new THREE.Vector3();if(!ray.ray.intersectPlane(new THREE.Plane().setFromNormalAndCoplanarPoint(cam.getWorldDirection(new THREE.Vector3()),c3||tg),v))return null;v.k='free';return v}
 /* --- 3D kursor (Blender kabi): Shift + o'ng tugma — magnit nuqtasiga / panel yuzasiga qo'yish; pivot va "tanlangan ↔ kursor" --- */
 function c3Build(){
   c3=new THREE.Vector3();c3obj=new THREE.Group();const N=24,pos=[],col=[],r=10,red=[1,.25,.25],wht=[1,1,1];
@@ -963,21 +970,42 @@ function togglePivot(){pivot=pivot==='cursor'?'center':'cursor';if(wrap){const b
 function rulerDraw(){
   if(!ruler)return;const B=ruler.B||ruler.cur;if(ruler.line){scene.remove(ruler.line);ruler.line.geometry.dispose()}
   ruler.line=new THREE.Line(new THREE.BufferGeometry().setFromPoints([ruler.A,B]),rulerMat);ruler.line.renderOrder=997;scene.add(ruler.line);
-  const d=B.clone().sub(ruler.A),l=q('#p3rul');l.textContent=`${d.length().toFixed(1)} mm  (Δx ${d.x.toFixed(1)}, Δy ${d.y.toFixed(1)}, Δz ${d.z.toFixed(1)})`;l.hidden=false;rulerLabel();dirtyR=true}
+  const d=B.clone().sub(ruler.A),l=q('#p3rul'),kn=k=>SNAP_NAME[k]||'';
+  l.textContent=`${d.length().toFixed(1)} mm  (Δx ${d.x.toFixed(1)}, Δy ${d.y.toFixed(1)}, Δz ${d.z.toFixed(1)})  ·  A: ${kn(ruler.kA)} → B: ${kn(ruler.B?ruler.kB:ruler.kC)}`;l.hidden=false;rulerLabel();dirtyR=true}
 function rulerLabel(){if(!ruler)return;const r=cv.getBoundingClientRect(),m=ruler.A.clone().add(ruler.B||ruler.cur).multiplyScalar(.5).project(cam),l=q('#p3rul');
-  l.style.left=(m.x+1)/2*r.width+'px';l.style.top=(1-m.y)/2*r.height+'px'}
-function clearRuler(){if(!ruler)return;if(ruler.line){scene.remove(ruler.line);ruler.line.geometry.dispose()}ruler=null;if(wrap)q('#p3rul').hidden=true;dirtyR=true}
-function rulerClick(e){const a=pickPoint(e);if(!a)return;if(!ruler||ruler.B){clearRuler();ruler={A:a,B:null,cur:a.clone()}}else ruler.B=a;rulerDraw()}
-function rulerMove(e){if(!ruler||ruler.B)return;const a=pickPoint(e);if(a){ruler.cur=a;rulerDraw()}}
+  l.style.left=(m.x+1)/2*r.width+'px';l.style.top=(1-m.y)/2*r.height+'px';
+  for(const[id,P,k]of[['#p3rA',ruler.A,ruler.kA],['#p3rB',ruler.B,ruler.kB]]){const el=q(id);if(!el)continue;if(!P){el.hidden=true;continue}   // o'lchangan nuqtalar: magnit turi belgisi va nomi qoladi
+    const s=scrOf(P);el.hidden=!s.ok;el.className='p3snap p3rm '+(k||'free');el.style.left=s.x+'px';el.style.top=s.y+'px';el.lastChild.textContent=(id==='#p3rA'?'A · ':'B · ')+(SNAP_NAME[k]||'')}}
+function clearRuler(){if(!ruler)return;if(ruler.line){scene.remove(ruler.line);ruler.line.geometry.dispose()}ruler=null;if(wrap){q('#p3rul').hidden=true;for(const id of['#p3rA','#p3rB']){const el=q(id);if(el)el.hidden=true}}dirtyR=true}
+function rulerClick(e){const a=pickPoint(e);if(!a)return;if(!ruler||ruler.B){clearRuler();ruler={A:a,kA:a.k,B:null,cur:a.clone(),kC:a.k}}else{ruler.B=a;ruler.kB=a.k;hideSnap()}rulerDraw()}
+function rulerMove(e){if(!ruler||ruler.B){pickPoint(e);return}const a=pickPoint(e);if(a){ruler.cur=a;ruler.kC=a.k;rulerDraw()}}   // birinchi nuqtadan oldin ham magnit nishoni ko'rinadi
 function drawGuides(){
   if(!Gg)return;for(const c of[...Gg.children]){Gg.remove(c);c.geometry.dispose()}
-  for(const g of guides){const a=new THREE.Vector3(...g.p),b=a.clone(),c=a.clone();b.setComponent(g.a,a.getComponent(g.a)-20000);c.setComponent(g.a,a.getComponent(g.a)+20000);
-    const l=new THREE.Line(new THREE.BufferGeometry().setFromPoints([b,c]),new THREE.LineDashedMaterial({color:0x5ee1ff,dashSize:30,gapSize:20,depthTest:false,transparent:true,opacity:.75}));l.computeLineDistances();l.renderOrder=996;Gg.add(l)}
+  const GE=gExt();guides.forEach((g,i)=>{const a=new THREE.Vector3(...g.p),D=gDir(g),b=a.clone().addScaledVector(D,-GE),c=a.clone().addScaledVector(D,GE),on=gsel.has(i);
+    const l=new THREE.Line(new THREE.BufferGeometry().setFromPoints([b,c]),on?new THREE.LineBasicMaterial({color:0xffb454,depthTest:false,transparent:true}):new THREE.LineDashedMaterial({color:0x5ee1ff,dashSize:30,gapSize:20,depthTest:false,transparent:true,opacity:.75}));
+    if(!on)l.computeLineDistances();l.renderOrder=996;l.userData.gi=i;Gg.add(l)});
   dirtyR=true}
+/* Yordamchi chiziq (SketchUp kabi): 1-bosish — A nuqta, 2-bosish — B nuqta; chiziq A va B dan o'tib ikki tomonga cheksiz davom etadi.
+   Ortho — yo'nalish eng yaqin X/Y/Z o'qiga; Free — istalgan (qiya) yo'nalish. Magnit ikkala nuqtada ishlaydi. Esc — bekor. */
+function gAxisDir(A,B){const d=B.clone().sub(A);if(d.lengthSq()<1e-9)return null;if(ortho){const m=[d.x,d.y,d.z].map(Math.abs),k=m.indexOf(Math.max(...m)),v=new THREE.Vector3();v.setComponent(k,Math.sign(d.getComponent(k))||1);return v}return d.normalize()}
+function gExt(){const b=new THREE.Box3();for(const p of panels)if(p.g&&!p.hid)b.expandByObject(p.g);return b.isEmpty()?4000:Math.max(2000,b.getSize(new THREE.Vector3()).length()*2)}   // chiziq uzunligi sahnaga mos (juda uzun chiziq ba'zi videokartalarda chizilmaydi)
+function gPrevClear(){if(gPrev){scene.remove(gPrev);gPrev.geometry.dispose();gPrev=null;dirtyR=true}}
 function addGuide(e){
   const a=pickPoint(e);if(!a)return;
-  const ri=new THREE.Vector3().setFromMatrixColumn(cam.matrix,0).toArray().map(Math.abs),up=new THREE.Vector3().setFromMatrixColumn(cam.matrix,1).toArray().map(Math.abs),v=e.shiftKey?up:ri;
-  guides.push({p:a.toArray().map(x=>+x.toFixed(2)),a:v.indexOf(Math.max(...v))});drawGuides();markDirty()}
+  if(!gdraw){gdraw={A:a.clone(),k:a.k};say(`Yordamchi chiziq: A — ${SNAP_NAME[a.k]||''}. Endi yo'nalish uchun B nuqtani bosing${ortho?' (Ortho: o\'q bo\'ylab)':' (Free: istalgan yo\'nalish; O — Ortho)'} · Esc — bekor`);guideMove(e);return}
+  const D=gAxisDir(gdraw.A,a);if(!D){say('B nuqta A bilan bir joyda — boshqa nuqtani bosing');return}
+  guides.push({p:gdraw.A.toArray().map(x=>+x.toFixed(3)),d:D.toArray().map(x=>+x.toFixed(6))});gdraw=null;gPrevClear();hideSnap();drawGuides();markDirty();
+  say(`Yordamchi chiziq qo'shildi (${guides.length}). Tanlash — Select (V) da chiziqni bosing, Delete — o'chirish`)}
+function guideMove(e){
+  const a=pickPoint(e);if(!gdraw||!a){gPrevClear();return}gPrevClear();const D=gAxisDir(gdraw.A,a);if(!D)return;
+  const GE=gExt();gPrev=new THREE.Line(new THREE.BufferGeometry().setFromPoints([gdraw.A.clone().addScaledVector(D,-GE),gdraw.A.clone().addScaledVector(D,GE)]),new THREE.LineBasicMaterial({color:0x5ee1ff,depthTest:false,transparent:true,opacity:.9}));
+  gPrev.renderOrder=997;scene.add(gPrev);dirtyR=true}
+function guidePick(e){   // ekranda kursorga 6 px dan yaqin yordamchi chiziq indeksi
+  if(!guides.length)return -1;const[mx,my]=cpos(e);ndc(e);let best=-1,bd=6;
+  guides.forEach((g,i)=>{const G=new THREE.Vector3(...g.p),D=gDir(g),A=G.clone().addScaledVector(D,-1e5),B=G.clone().addScaledVector(D,1e5),T=A.clone().lerp(B,raySegT(A,B)),s=scrOf(T);
+    if(!s.ok)return;const d=Math.hypot(s.x-mx,s.y-my);if(d<bd){bd=d;best=i}});
+  return best}
+function guideDelSel(){if(!gsel.size)return false;guides=guides.filter((_,i)=>!gsel.has(i));const n=gsel.size;gsel.clear();drawGuides();markDirty();say(`${n} ta yordamchi chiziq o'chirildi`);return true}
 let navPts=[];
 function navDraw(){
   const c=q('#p3nav');if(!c||!cam)return;cam.updateMatrixWorld();const x=c.getContext('2d'),S=c.width,C=S/2,L=S*.33;x.clearRect(0,0,S,S);
@@ -1319,6 +1347,9 @@ function onDown(e){
     if(gh){const ax=gh.object.userData.ax;
       if(tool==='move')xfStart(e,selected(),{P0:gz.position,con:ax<3?{ax,n:-1}:ax<6?{ax:-1,n:ax-3}:{ax:-1,n:-1},auto:ax===6&&ortho});
       else if(tool==='rotate')startRotG(e,ax);else startScale(e,ax);return}}
+  if(e.button===0&&tool==='select'){const gi=guidePick(e);   // yordamchi chiziqni tanlash (Shift — qo'shish), Delete — o'chirish
+    if(gi>=0){if(!(e.shiftKey||e.ctrlKey))gsel.clear();gsel.has(gi)&&(e.shiftKey||e.ctrlKey)?gsel.delete(gi):gsel.add(gi);drawGuides();say(`Yordamchi chiziq tanlandi (${gsel.size}) — Delete: o'chirish, Esc: bekor`);return}
+    if(gsel.size&&!(e.shiftKey||e.ctrlKey)){gsel.clear();drawGuides()}}
   const id=pick(e);
   if(id){
     const add=(e.shiftKey||e.ctrlKey)&&tool!=='rotate';
@@ -1335,6 +1366,7 @@ function onDown(e){
 function onMove(e){
   if(pm&&!act){movePlace(e);return}
   if(tool==='ruler'&&!act&&!dr){rulerMove(e);return}
+  if(tool==='guide'&&!act&&!dr){guideMove(e);return}
   if(tool==='edge'&&!act&&!dr){edgeHover(e);return}
   if(tool==='joint'&&!act&&!dr){jointHover(e);return}
   if(dr&&!act){dr.cur=drawPt(e,dr.p);drawShow();return}
@@ -1424,6 +1456,8 @@ function onKey(e){
     if(k==='Escape'){stop();rotFree(0);act=null;say('Aylantirish bekor qilindi');return}}
   if((e.ctrlKey||e.metaKey)&&!e.altKey&&/^[zy]$/i.test(e.key)&&!inField){
     e.preventDefault();e.stopImmediatePropagation();(e.key.toLowerCase()==='y'||e.shiftKey)?histGo(1):histGo(-1);return}
+  if(!inField&&(e.key==='Delete'||e.key==='Backspace')&&gsel.size){e.preventDefault();e.stopImmediatePropagation();guideDelSel();return}
+  if(!inField&&e.key==='Escape'&&(gdraw||gsel.size)){gdraw=null;gPrevClear();hideSnap();if(gsel.size){gsel.clear();drawGuides()}if(tool==='guide'){e.preventDefault();e.stopImmediatePropagation();say('Yordamchi chiziq bekor qilindi');return}}
   {const c0=(!inField&&mode!=='cut'&&!dr&&(e.altKey||e.ctrlKey||e.metaKey||/^F\d+$/.test(e.key)))?P3CMD.find(c=>p3Keys[c.id]&&p3Keys[c.id]===p3combo(e)):null;   // Alt/Ctrl/F-tugmali Modeling buyruqlari (Ctrl+G guruh …)
     if(c0){e.preventDefault();e.stopImmediatePropagation();if(!e.repeat)c0.run();return}}
   if(e.ctrlKey||e.metaKey||e.altKey){   // Ctrl+S/O/N/I/E Rugby'ga o'tadi; Drawing'ning boshqa Ctrl-buyruqlari Modeling'da bloklanadi
@@ -1836,7 +1870,7 @@ function snapshot(){
 function load(d){
   if(act&&act.k==='xf')xfStop();act=null;   // faol sudrash eski panellarga bog'lanib qolmasin
   if(inited){for(const p of panels)if(p.g)P.remove(p.g)}
-  panels=[];sel=null;msel=[];lines=[];guides=[];dr=null;matCol={};matSheet={};if(d&&d.ms&&typeof d.ms==='object')for(const k in d.ms){const o=d.ms[k];if(o&&+o.L>0&&+o.W>0)matSheet[k]={L:+o.L,W:+o.W}}vsel.clear();if(d&&d.mc&&typeof d.mc==='object')for(const k in d.mc)if(/^#[0-9a-f]{6}$/i.test(d.mc[k]))matCol[k]=d.mc[k];
+  panels=[];sel=null;msel=[];lines=[];guides=[];gsel.clear();gdraw=null;dr=null;matCol={};matSheet={};if(d&&d.ms&&typeof d.ms==='object')for(const k in d.ms){const o=d.ms[k];if(o&&+o.L>0&&+o.W>0)matSheet[k]={L:+o.L,W:+o.W}}vsel.clear();if(d&&d.mc&&typeof d.mc==='object')for(const k in d.mc)if(/^#[0-9a-f]{6}$/i.test(d.mc[k]))matCol[k]=d.mc[k];
   if(d&&Array.isArray(d.panels)){T=d.T>0?d.T:16;uid=d.uid||1;
     panels=d.panels.filter(p=>p&&p.o&&p.w>0&&p.h>0&&p.t>0).map(p=>{const c=Object.assign({},p);if(c.rt&&!(Array.isArray(c.rt)&&c.rt.length===4&&c.rt.every(Number.isFinite)&&Math.hypot(...c.rt)>.5))delete c.rt;if(HW){const o=HW.sanitize(p.ops);if(o)c.ops=o;else delete c.ops}return c});
     uid=Math.max(uid,...panels.map(p=>p.id+1),1);
@@ -2009,7 +2043,7 @@ function initUI(){
   [['E','end'],['M','mid'],['C','cen'],['G','edge']].forEach(([i,k])=>q('#p3sn'+i).onchange=e=>{snapM[k]=e.target.checked;hideSnap()});
   qa('[data-v]').forEach(b=>b.onclick=()=>{ensure();setView(b.dataset.v)});
   [['Sel','select'],['Mov','move'],['Rot','rotate'],['Scl','scale'],['Str','stretch'],['Edg','edge'],['Jnt','joint']].forEach(([i,t])=>q('#p3t'+i).onclick=()=>setTool(t));
-  q('.p3view').insertAdjacentHTML('beforeend','<div class="p3snap" id="p3snap" hidden><i></i><span></span></div><div class="p3rect" id="p3rect" hidden></div><div class="p3rul" id="p3rul" hidden></div><div class="p3sd" id="p3sd" hidden>Nuqtalar: <b id="p3sdn">0</b> · Surish (mm): X <input id="p3sdx" type="text" inputmode="decimal" value="0"> Y <input id="p3sdy" type="text" inputmode="decimal" value="0"> Z <input id="p3sdz" type="text" inputmode="decimal" value="0"> <button id="p3sdb">Qo‘llash</button></div><canvas class="p3nav" id="p3nav" width="192" height="192" title="Yo‘nalish: o‘qni bosing"></canvas>');
+  q('.p3view').insertAdjacentHTML('beforeend','<div class="p3snap" id="p3snap" hidden><i></i><span></span></div><div class="p3snap p3rm" id="p3rA" hidden><i></i><span></span></div><div class="p3snap p3rm" id="p3rB" hidden><i></i><span></span></div><div class="p3rect" id="p3rect" hidden></div><div class="p3rul" id="p3rul" hidden></div><div class="p3sd" id="p3sd" hidden>Nuqtalar: <b id="p3sdn">0</b> · Surish (mm): X <input id="p3sdx" type="text" inputmode="decimal" value="0"> Y <input id="p3sdy" type="text" inputmode="decimal" value="0"> Z <input id="p3sdz" type="text" inputmode="decimal" value="0"> <button id="p3sdb">Qo‘llash</button></div><canvas class="p3nav" id="p3nav" width="192" height="192" title="Yo‘nalish: o‘qni bosing"></canvas>');
   q('#p3nav').onclick=navClick;
   q('#p3sdb').onclick=stretchNumeric;['x','y','z'].forEach(k=>q('#p3sd'+k).onkeydown=e=>{if(e.key==='Enter')stretchNumeric()});
   q('#p3bUndo').onclick=()=>histGo(-1);q('#p3bRedo').onclick=()=>histGo(1);
@@ -2040,7 +2074,7 @@ function initUI(){
   q('#p3c3Sel').onclick=cursorToSel;q('#p3c3Go').onclick=selToCursor;q('#p3c3O').onclick=()=>setCursor(new THREE.Vector3());q('#p3c3Piv').onclick=togglePivot;
   q('#p3mkRul').onclick=()=>setTool(tool==='ruler'?'select':'ruler');
   q('#p3mkGd').onclick=()=>setTool(tool==='guide'?'select':'guide');
-  q('#p3mkGc').onclick=()=>{guides=[];drawGuides();markDirty()};
+  q('#p3mkGc').onclick=()=>{guides=[];gsel.clear();gdraw=null;gPrevClear();drawGuides();markDirty()};
   // Object
   q('#p3oCopy').onclick=copySel;q('#p3oMx').onclick=()=>mirrorSel(0);q('#p3oMy').onclick=()=>mirrorSel(1);q('#p3oMz').onclick=()=>mirrorSel(2);
   q('#p3oDel').onclick=()=>selected().forEach(del);q('#p3oAuto').onclick=()=>autoName();q('#p3oGrp').onclick=()=>groupSel();q('#p3oUngrp').onclick=()=>ungroupSel();q('#p3oArr').onclick=()=>arrOpen();[0,1,2].forEach(a=>q('#p3oDist'+'XYZ'[a]).onclick=()=>distSel(a));q('#p3oHw').onclick=()=>hwOpen();hwWire();prWire();
@@ -2140,7 +2174,7 @@ window.Panel3D={retheme:()=>{if(inited)theme()},hotkeys:{commands:P3CMD.map(({id
     for(let a=0;a<3;a++){const A=new THREE.Vector3();A.setComponent(a,1);o['a'+a]=P(c.clone().addScaledVector(A,90*k));o['v'+a]=gzAx[a].visible;
       const g=gzPl[a];g.updateMatrixWorld(true);o['p'+a]=P(g.getWorldPosition(new THREE.Vector3()));o['pv'+a]=g.visible}return o},
   _cursor:()=>c3?c3.toArray():null,_autoName:()=>autoName(),_clusters:()=>corpusClusters(panels.filter(p=>!p.hid)).map(c=>c.map(p=>p.id)),_pivot:()=>pivot,_act:()=>act?{k:act.k,con:act.con,typed:act.typed,hit:act.hit?act.hit.k:null}:null,_snap:()=>snapHit?{k:snapHit.k,T:snapHit.T.toArray()}:null,
-  _cnc:()=>cncSend(),_col:id=>{const p=panels.find(x=>x.id===id);return p?panelCol(p):null},_vsel:keys=>{if(keys){vsel=new Set(keys);dirtyR=true}return{keys:[...vsel],gz:!!(gz&&gz.visible)}},_group:()=>groupSel(),_ungroup:()=>ungroupSel(),_array:(n,d)=>arraySel(n,d),_dist:a=>distSel(a),_joints:()=>HW.jointLines(panels,hwOpts),_jointScr:k=>{const l=HW.jointLines(panels,hwOpts).find(x=>x.key===k);if(!l)return null;const r=cv.getBoundingClientRect(),s=scrOf(new THREE.Vector3((l.p0[0]+l.p1[0])/2,(l.p0[1]+l.p1[1])/2,(l.p0[2]+l.p1[2])/2));return{x:r.left+s.x,y:r.top+s.y}},_price:o=>{if(o){prices=PRC.merge(o);prSave()}return prCalc()},_prOpen:()=>{if(!prOpen)q('#p3prTab').click()},_guides:()=>drawnLines.filter(l=>l.p3g).map(l=>({k:l.kind,pts:l.points.map(o=>[+o.x.toFixed(2),+o.y.toFixed(2)])})),_edit:id=>{const p=panels.find(x=>x.id===id);return p?editInDrawing(p):false},_editApply:()=>editApply(),_editCancel:()=>editCancel(),_editing:()=>p3edit?{...p3edit}:null,_hw:{place:o=>{if(o)hwOpts=HW.merge(HW.DEF,o);return hwPlace()},clear:hwClear,dxf:()=>hwDxfData(),csv:()=>HW.csv(hwTargets()),check:hwCheck,open:hwOpen,opts:()=>hwOpts,ops:id=>{const p=panels.find(x=>x.id===id);return p&&p.ops?JSON.parse(JSON.stringify(p.ops)):[]},showOps:()=>showOps},_snapM:snapM,_msel:()=>msel.slice(),_geo:id=>{const p=panels.find(x=>x.id===id);if(!p)return null;const G=geoOf(p),r=v=>v.toArray().map(x=>+x.toFixed(2));return{end:G.end.map(r),cen:G.cen.map(r)}},_cam:()=>({R,tg:tg.toArray().map(x=>+x.toFixed(2))}),_rtDeg:id=>{const p=panels.find(x=>x.id===id);return p?rtDeg(p):null},_wof:id=>{const p=panels.find(x=>x.id===id);return p?Wof(p).map(v=>+v.toFixed(4)):null},_ext:id=>{const p=panels.find(x=>x.id===id);return p?ext(p).map(v=>+v.toFixed(2)):null},
+  _cnc:()=>cncSend(),_col:id=>{const p=panels.find(x=>x.id===id);return p?panelCol(p):null},_vsel:keys=>{if(keys){vsel=new Set(keys);dirtyR=true}return{keys:[...vsel],gz:!!(gz&&gz.visible)}},_group:()=>groupSel(),_ungroup:()=>ungroupSel(),_array:(n,d)=>arraySel(n,d),_dist:a=>distSel(a),_joints:()=>HW.jointLines(panels,hwOpts),_jointScr:k=>{const l=HW.jointLines(panels,hwOpts).find(x=>x.key===k);if(!l)return null;const r=cv.getBoundingClientRect(),s=scrOf(new THREE.Vector3((l.p0[0]+l.p1[0])/2,(l.p0[1]+l.p1[1])/2,(l.p0[2]+l.p1[2])/2));return{x:r.left+s.x,y:r.top+s.y}},_price:o=>{if(o){prices=PRC.merge(o);prSave()}return prCalc()},_prOpen:()=>{if(!prOpen)q('#p3prTab').click()},_guides:()=>drawnLines.filter(l=>l.p3g).map(l=>({k:l.kind,pts:l.points.map(o=>[+o.x.toFixed(2),+o.y.toFixed(2)])})),_edit:id=>{const p=panels.find(x=>x.id===id);return p?editInDrawing(p):false},_editApply:()=>editApply(),_editCancel:()=>editCancel(),_editing:()=>p3edit?{...p3edit}:null,_hw:{place:o=>{if(o)hwOpts=HW.merge(HW.DEF,o);return hwPlace()},clear:hwClear,dxf:()=>hwDxfData(),csv:()=>HW.csv(hwTargets()),check:hwCheck,open:hwOpen,opts:()=>hwOpts,ops:id=>{const p=panels.find(x=>x.id===id);return p&&p.ops?JSON.parse(JSON.stringify(p.ops)):[]},showOps:()=>showOps},_snapM:snapM,_guides3:()=>guides.map(g=>({p:g.p,d:gDir(g).toArray().map(v=>+v.toFixed(4))})),_gsel:()=>[...gsel],_ruler:()=>ruler?{A:ruler.A.toArray(),B:ruler.B?ruler.B.toArray():null,kA:ruler.kA,kB:ruler.kB||null}:null,_msel:()=>msel.slice(),_geo:id=>{const p=panels.find(x=>x.id===id);if(!p)return null;const G=geoOf(p),r=v=>v.toArray().map(x=>+x.toFixed(2));return{end:G.end.map(r),cen:G.cen.map(r)}},_cam:()=>({R,tg:tg.toArray().map(x=>+x.toFixed(2))}),_rtDeg:id=>{const p=panels.find(x=>x.id===id);return p?rtDeg(p):null},_wof:id=>{const p=panels.find(x=>x.id===id);return p?Wof(p).map(v=>+v.toFixed(4)):null},_ext:id=>{const p=panels.find(x=>x.id===id);return p?ext(p).map(v=>+v.toFixed(2)):null},
   _rotDrag:(ax,deg,ctrl)=>{const ps=selected();if(!ps.length||!gzR)return null;const[mn,mx]=bboxOf(ps);gzR.position.set((mn[0]+mx[0])/2,(mn[1]+mx[1])/2,(mn[2]+mx[2])/2);
     const r=cv.getBoundingClientRect(),c=gzR.position.clone().project(cam),cx=r.left+(c.x+1)/2*r.width,cy=r.top+(1-c.y)/2*r.height,R0=120;
     startRotG({clientX:cx+R0,clientY:cy},ax);const f=act.facing,n=Math.max(2,Math.ceil(Math.abs(deg)/15));

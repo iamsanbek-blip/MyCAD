@@ -350,6 +350,22 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     const ph=await ev(()=>Panel3D._scr(-200,0,8));await page.mouse.move(ph.x+3,ph.y-2);await page.mouse.down();await page.mouse.up();
     {const kk=(await ev(()=>Panel3D._vsel())).keys;assert.deepEqual(kk,['1:0'],'bosilgan aynan shu nuqta '+JSON.stringify(kk))}
     await ev(()=>Panel3D._setTool('select'));
+    // Yordamchi chiziq (SketchUp kabi): A va B nuqtadan o'tuvchi cheksiz chiziq — tik, qiya; tanlash + Delete; lineyka — magnit turi belgilari
+    {await ev(()=>{Panel3D.load({T:16,uid:10,panels:[{id:1,n:'A',w:400,h:600,t:16,o:'front',x:200,y:300,z:0}]});Panel3D._view('front');Panel3D._select([])});
+      await ev(()=>document.getElementById('p3bFree').click());if(!(await ev(()=>document.getElementById('p3mkMag').classList.contains('chk'))))await page.keyboard.press('Space');
+      await ev(()=>Panel3D._setTool('guide'));await page.waitForTimeout(80);const S=(x,y)=>ev(a=>Panel3D._scr(a[0],a[1],8),[x,y]);
+      let p=await S(400,0);await page.mouse.move(p.x+2,p.y-1);await page.mouse.click(p.x+2,p.y-1);p=await S(400,600);await page.mouse.move(p.x-2,p.y+1);await page.mouse.click(p.x-2,p.y+1);
+      p=await S(0,0);await page.mouse.move(p.x,p.y);await page.mouse.click(p.x,p.y);p=await S(400,600);await page.mouse.move(p.x+1,p.y);await page.mouse.click(p.x+1,p.y);
+      const G=await ev(()=>Panel3D._guides3());assert.equal(G.length,2,JSON.stringify(G));
+      assert.deepEqual(G[0].p.map(Math.round),[400,0,8]);assert.ok(Math.abs(Math.abs(G[0].d[1])-1)<1e-4,'tik chiziq '+JSON.stringify(G[0]));
+      assert.ok(Math.abs(Math.abs(G[1].d[0])-.5547)<1e-3&&Math.abs(Math.abs(G[1].d[1])-.8321)<1e-3,'qiya chiziq A(0,0)→B(400,600) '+JSON.stringify(G[1]));
+      await ev(()=>Panel3D._setTool('select'));p=await S(400,450);await page.mouse.click(p.x,p.y);assert.deepEqual(await ev(()=>Panel3D._gsel()),[0],'tik chiziq tanlandi');
+      await page.keyboard.press('Delete');assert.equal((await ev(()=>Panel3D._guides3())).length,1,'Delete — o\'chdi');assert.equal((await ev(()=>Panel3D._state().panels)).length,1,'panel o\'chmadi');
+      await ev(()=>Panel3D._setTool('ruler'));p=await S(0,600);await page.mouse.move(p.x+3,p.y);await page.mouse.click(p.x+3,p.y);p=await S(200,600);await page.mouse.move(p.x,p.y+2);await page.mouse.click(p.x,p.y+2);
+      const RU=await ev(()=>({r:Panel3D._ruler(),a:document.getElementById('p3rA').textContent,b:document.getElementById('p3rB').textContent,ah:document.getElementById('p3rA').hidden,l:document.getElementById('p3rul').textContent}));
+      assert.equal(RU.r.kA,'end');assert.equal(RU.r.kB,'mid');assert.ok(!RU.ah&&/A · Uch/.test(RU.a)&&/B · O'rta/.test(RU.b),JSON.stringify(RU));assert.match(RU.l,/^200\.0 mm .*A: Uch → B: O'rta/);
+      await page.keyboard.press('Escape');await ev(()=>Panel3D._setTool('select'))}
+    passed.push("Yordamchi chiziq: A→B tik (400;0→400;600) va qiya (0;0→400;600) cheksiz chiziq magnit bilan aniq; Select'da bosib tanlandi, Delete o'chirdi; lineyka 200.0 mm — «A · Uch», «B · O'rta» belgilari qoldi");
     passed.push("Stretch (W): tanlangan panelga qulflanadi — B panel ustiga bosish tanlovni o'zgartirmadi, ramka faqat A ning 4 nuqtasini oldi, nuqta aniq belgilandi");
     passed.push("Stretch (W): kesik nuqtalari belgilanib 40 mm surildi; kontur chap qirrasi surilganda kesik va teshik joyidan qo'zg'almadi");
     passed.push("O'yiq 3D da haqiqiy chuqurcha (tubi 6 mm), panel chetida ortiqcha chiziq yo'q; tekstura chiziqlari kesik ustidan o'tmaydi; 10° qiya polka izi Drawing'da qiya ko'pburchak (yozuvsiz)");
