@@ -199,3 +199,6 @@ body.lightTheme #p3wrap .p3seg button.on{color:#fff}
 #p3wrap .p3lib{position:relative}
 #p3wrap .p3tplHelp{display:none;position:absolute;left:8px;right:8px;top:150px;z-index:20;margin:0;padding:8px 10px;background:var(--p);border:1px solid var(--on);border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,.35);pointer-events:none}
 #p3wrap .p3tplHelp.show{display:block}
+
+/* Uzun ochiluvchi menyular ekranga sig'sin: pastga tushib ketmaydi, ichida aylantiriladi */
+#p3wrap .p3ddm{max-height:calc(100vh - 140px);overflow-y:auto;overscroll-behavior:contain}

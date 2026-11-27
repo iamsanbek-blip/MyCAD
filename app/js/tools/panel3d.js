@@ -1986,6 +1986,11 @@ const HTML=`
     <button class="p3di" id="p3c3Piv" title="Aylantirish va Mirror markazi">Pivot: 3D kursor</button>
   </div></span>
   <span class="p3dd"><button class="p3ddb" aria-haspopup="true" aria-expanded="false">Object ▾</button><div class="p3ddm" hidden>
+    <div class="p3dh">Kesishma — bir-biriga kiygizish</div>
+    <button class="p3di" id="p3oClash" title="Tanlangan (yoki hamma) panellardan bir-biriga kirib qolganlarini topadi va belgilaydi">1. Kesishmalarni tekshirish (topib tanlaydi)</button>
+    <button class="p3di" id="p3oXlap" title="Tanlangan kesishgan panellar (qiya ham): X kesishmada har biriga yarim o'yiq, biri ikkinchisidan to'liq o'tsa — kattasiga yaqin chekkadan ochiq o'yiq. Zazor, freza Ø va dogbone — Furnitura ▸ Ship-paz sozlamalaridan">2. O'zaro o'yiq (kiygizish)</button>
+    <button class="p3di" id="p3oXlapH" title="O'tuvchi panel uchun kattasiga yopiq teshik (ochiq o'yiq o'rniga); X kesishma — yarim-yarim">O'zaro o'yiq — teshik bilan</button>
+    <div class="p3dsep"></div>
     <button class="p3di on" id="p3tSel" title="Tanlash: bosib yoki ramka bilan">Select<span class="kb">V</span></button>
     <button class="p3di" id="p3tMov" title="Ko'chirish">Move<span class="kb">M</span></button>
     <button class="p3di" id="p3tRot" title="Aylantirish: panelga bosing yoki halqani sudrang">Rotate<span class="kb">R</span></button>
@@ -2004,10 +2009,6 @@ const HTML=`
     <button class="p3di" id="p3oDistY" title="Tanlangan panellar: eng past va eng yuqori joyida, oradagilar teng oraliq bilan (masalan polkalar)">Teng taqsimlash — Y (yuqoriga)</button>
     <button class="p3di" id="p3oDistX">Teng taqsimlash — X</button>
     <button class="p3di" id="p3oDistZ">Teng taqsimlash — Z</button>
-    <div class="p3dsep"></div><div class="p3dh">Kesishma (kiygizish)</div>
-    <button class="p3di" id="p3oXlap" title="Tanlangan kesishgan panellar (qiya ham): X kesishmada har biriga yarim o'yiq, biri ikkinchisidan to'liq o'tsa — kattasiga yaqin chekkadan ochiq o'yiq. Zazor, freza Ø va dogbone — Furnitura ▸ Ship-paz sozlamalaridan">O'zaro o'yiq (kiygizish)</button>
-    <button class="p3di" id="p3oXlapH" title="O'tuvchi panel uchun kattasiga yopiq teshik (ochiq o'yiq o'rniga); X kesishma — yarim-yarim">O'zaro o'yiq — teshik bilan</button>
-    <button class="p3di" id="p3oClash" title="Tanlangan (yoki hamma) panellardan bir-biriga kirib qolganlarini topadi va belgilaydi">Kesishmalarni tekshirish</button>
     <div class="p3dsep"></div>
     <button class="p3di" id="p3oAuto" title="Ro'para ko'rinishda: chap/o'ng boka, krisha, dno, polka, oraliq boka, orqa devor, fasad; bir nechta korpus — A., B., …">Avto-nom (korpus detallari)</button>
     <button class="p3di" id="p3oHw" title="Yevrovint, ekssentrik, shkant, polkaderjatel, petlya, ruchka, orqa devor pazi — korpus ulanishlaridan avtomatik; teshikli DXF (CNC)">Furnitura va teshiklar (CNC DXF)…</button>

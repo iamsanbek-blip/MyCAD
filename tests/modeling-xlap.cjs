@@ -78,6 +78,13 @@ const errors=[],passed=[];
     passed.push("Furnitura oynasi akkordeon (bitta bo'lim ochiq), «Ship-paz va O'zaro o'yiq» bo'limida zazor; yo'riqnoma faqat Panel ustida ko'rinadi; 2D chizma / DXF tepada");
     await page.keyboard.press('Escape');await page.locator('#mbDraw').click();await page.locator('#mbObject .mbBtn').click();assert.ok(await page.locator('#mbObject .mbP3').first().isHidden(),'Drawing\'da Modeling bo\'limi yashirin');await page.keyboard.press('Escape');
     passed.push("Yuqori Object menyusi: Modeling ochiq bo'lsa — Furnitura (Ship-paz zazor, freza Ø), Kesishmalarni tekshirish, O'zaro o'yiq; Drawing'da yashirin");
+    // Object ▾ menyusi kichik ekranda: «Kesishma» bo'limi eng tepada, menyu ekrandan chiqmaydi (ichida aylanadi)
+    await page.locator('#mbModel').click();await page.waitForFunction(()=>Panel3D.isOpen());await page.setViewportSize({width:1280,height:640});
+    await page.locator('#p3wrap .p3ddb',{hasText:'Object'}).click();
+    const mb=await ev(()=>{const m=document.getElementById('p3oXlap').closest('.p3ddm'),r=m.getBoundingClientRect(),x=document.getElementById('p3oXlap').getBoundingClientRect(),c=document.getElementById('p3oClash').getBoundingClientRect();return{bottom:r.bottom,h:innerHeight,xb:x.bottom,first:m.querySelector('.p3dh').textContent,order:c.top<x.top,scroll:m.scrollHeight>m.clientHeight}});
+    assert.ok(mb.bottom<=mb.h&&mb.xb<=mb.h&&mb.first==='Kesishma — bir-biriga kiygizish'&&mb.order&&mb.scroll,JSON.stringify(mb));
+    await page.keyboard.press('Escape');await page.setViewportSize({width:1500,height:950});
+    passed.push("Object ▾ (1280×640): «Kesishma — bir-biriga kiygizish» eng tepada (1. tekshirish, 2. O'zaro o'yiq), menyu ekranga sig'adi va ichida aylanadi");
     assert.deepEqual(errors,[]);
   }finally{await browser.close();fs.rmSync(tmp,{recursive:true,force:true})}
   console.log(passed.map(s=>'PASS '+s).join('\n'));console.log(`modeling-xlap: ${passed.length} checks passed`);

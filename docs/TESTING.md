@@ -1,3 +1,11 @@
+# Object ▾ menyusi: «Kesishma» tepada, menyu ekranga sig'adi — 2026-11-27 (Linux)
+
+- `modeling-xlap` 8: 1280×640 da Object ▾ ochilganda birinchi bo'lim «Kesishma — bir-biriga kiygizish» (1. tekshirish, 2. O'zaro o'yiq,
+  teshik bilan), menyu pastki chegarasi oynadan chiqmaydi, ortig'i menyu ichida g'ildirak bilan aylanadi. Qolgan to'plamlar bu
+  o'zgarishdan keyin qayta ishga tushirilmagan (foydalanuvchi to'xtatdi).
+
+---
+
 # Chap panel ixcham, Furnitura oynasi akkordeon — 2026-11-27 (Linux)
 
 - `modeling-xlap` 7: Shablonlar yo'riqnomasi yashirin, Panel ustiga olib borilganda suzuvchi oynada chiqadi va kursor ketgach yo'qoladi;
