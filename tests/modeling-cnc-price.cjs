@@ -231,12 +231,42 @@ const PRICES={mat:{'LDSP oq|16':450000,'XDF|4':120000,'MDF|16':900000},eb:{'1':3
     // 11. Nusxa (C) / massiv: ulanish tanlovi nusxa sheriklariga o'tadi, guruh — yangi guruh
     const cp=await ev(()=>{Panel3D.load({T:16,uid:10,panels:[{id:1,n:'boka',w:500,h:720,t:16,o:'side',x:8,y:360,z:0,grp:'gA'},{id:2,n:'boka2',w:500,h:720,t:16,o:'side',x:592,y:360,z:0,grp:'gA'},{id:4,n:'krisha',w:568,h:500,t:16,o:'flat',x:300,y:712,z:0,jc:{1:'ekss'},jf:{1:1},grp:'gA'}]});
       return null});
-    await page.locator('#p3wrap .p3view canvas').first().click({position:{x:5,y:5}});await ev(()=>Panel3D._select([1,2,4]));await page.keyboard.press('c');await page.keyboard.press('Escape');
+    await page.locator('#p3wrap .p3view canvas').first().click({position:{x:5,y:5}});await ev(()=>Panel3D._select([1,2,4]));
+    {const cb=await page.locator('#p3wrap .p3view canvas').first().boundingBox();await page.mouse.move(cb.x+cb.width/2,cb.y+cb.height/2);await page.keyboard.press('c');
+      await page.mouse.move(cb.x+cb.width/2+60,cb.y+cb.height/2,{steps:4});await page.mouse.click(cb.x+cb.width/2+60,cb.y+cb.height/2)}   // Blender Duplicate: ergashadi, bosilganda qotadi
     const cps=await ev(()=>Panel3D._state().panels.map(p=>({id:p.id,grp:p.grp,jc:p.jc||null,jf:p.jf||null})));
     const orig=cps.filter(p=>p.id<=4),cop=cps.filter(p=>p.id>4);assert.equal(cop.length,3);
     assert.ok(cop.every(c=>c.grp&&c.grp!=='gA')&&new Set(cop.map(c=>c.grp)).size===1,'nusxa — o\'z guruhi');
     const kc=cop.find(c=>c.jc);assert.deepEqual(Object.keys(kc.jc).map(Number),[cop.find(c=>!c.jc&&c.id!==kc.id&&c.id===Math.min(...cop.map(x=>x.id))).id]);assert.deepEqual(Object.keys(kc.jf).map(Number),Object.keys(kc.jc).map(Number));
     assert.deepEqual(orig.find(o=>o.id===4).jc,{1:'ekss'});
+    // Duplicate: kursorga ergashadi, bosilgan joyda qotadi; Esc — nusxa o'chadi, tanlov aslga qaytadi
+    {const cb=await page.locator('#p3wrap .p3view canvas').first().boundingBox(),cx=cb.x+cb.width/2,cy=cb.y+cb.height/2;
+      await ev(()=>{Panel3D.load({T:16,uid:10,panels:[{id:1,n:'boka',w:500,h:720,t:16,o:'side',x:8,y:360,z:0}]});Panel3D._view('front');Panel3D._select([1])});
+      if(await ev(()=>document.getElementById('p3bOrtho').classList.contains('on')))await ev(()=>document.getElementById('p3bFree').click());
+      await page.mouse.move(cx,cy);await page.keyboard.press('c');assert.equal(await ev(()=>Panel3D._state().panels.length),2);
+      await page.mouse.move(cx+120,cy,{steps:5});const mid=await ev(()=>Panel3D._state().panels.map(p=>Math.round(p.x)));assert.ok(mid[1]>mid[0]+20,'nusxa kursorga ergashdi '+mid);
+      await page.mouse.move(cx+160,cy,{steps:3});const before=await ev(()=>Panel3D._state().panels[1].x);await page.mouse.click(cx+160,cy);
+      await page.mouse.move(cx+300,cy,{steps:3});const after=await ev(()=>Panel3D._state().panels.map(p=>p.x));assert.ok(Math.abs(after[1]-before)<.01&&after[0]===8,'bosilgan joyda qotdi '+after);
+      await page.keyboard.press('c');await page.mouse.move(cx+350,cy,{steps:3});await page.keyboard.press('Escape');
+      const ce=await ev(()=>({n:Panel3D._state().panels.length,sel:Panel3D._state().msel||null}));assert.equal(ce.n,2,'Esc — nusxa bekor');
+      await page.keyboard.press('Control+z');assert.equal(await ev(()=>Panel3D._state().panels.length),1,'Ctrl+Z — birinchi nusxa qaytarildi')}
+    // OBJ import (File ▸ Import ▸ OBJ): yoysimon o'yiqli qovurg'a + ustun (metr, Y yuqoriga — Blender) → panellar; CNC sahifasida kontur bilan
+    {const O=[],v=(x,y,z)=>O.push('v '+[x,y,z].map(a=>(a/1000).toFixed(6)).join(' '));const arc=[];
+      for(let i=0;i<=30;i++){const a=i/30*Math.PI;arc.push([400*Math.cos(a),400*Math.sin(a)])}for(let i=30;i>=0;i--){const a=i/30*Math.PI;arc.push([330*Math.cos(a),330*Math.sin(a)])}
+      O.push('o Qovurga');for(const y of[300,316])for(const q of arc)v(q[0],y,-q[1]);const n=arc.length;
+      for(let i=0;i<n;i++)O.push(`f ${i+1} ${(i+1)%n+1} ${n+(i+1)%n+1} ${n+i+1}`);O.push('f '+arc.map((_,i)=>i+1).join(' '),'f '+arc.map((_,i)=>n+i+1).reverse().join(' '));
+      O.push('o Ustun');for(const x of[-8,8])for(const y of[0,700])for(const z of[-25,25])v(x+365,y,z);
+      for(const f of[[1,2,4,3],[5,7,8,6],[1,5,6,2],[3,4,8,7],[1,3,7,5],[2,6,8,4]])O.push('f '+f.map(i=>i+2*n).join(' '));
+      const fp=require('node:path').join(tmp,'kreslo.obj');fs.writeFileSync(fp,O.join('\n'));
+      await ev(()=>Panel3D.load({T:16,uid:10,panels:[]}));const [fc]=await Promise.all([page.waitForEvent('filechooser'),ev(()=>Panel3D.importOBJ())]);await fc.setFiles(fp);
+      await page.waitForFunction(()=>Panel3D._state().panels.length===2);const ip=await ev(()=>Panel3D._state().panels.map(p=>({n:p.n,o:p.o,t:p.t,w:Math.round(p.w),h:Math.round(p.h),pts:p.pts?p.pts.length:0})));
+      const qv=ip.find(p=>p.n==='Qovurga'),us=ip.find(p=>p.n==='Ustun');assert.ok(qv&&qv.o==='flat'&&qv.t===16&&qv.pts>=40&&qv.w===800&&qv.h===400,JSON.stringify(ip));assert.ok(us&&us.o==='side'&&us.t===16&&us.w===50&&us.h===700,JSON.stringify(ip));
+      assert.match(await page.locator('#p3hint').textContent(),/2 ta panel \(qalinlik: 16 mm ×2\)/);
+      await ev(()=>Panel3D._cnc());const cq=await ev(()=>drawnLines.filter(l=>l.p3).map(l=>({n:l.p3.n,k:l.points.length})));
+      assert.equal(cq.length,2);assert.ok(cq.find(c=>c.n==='Qovurga').k>=40,'CNC: yoy konturi '+JSON.stringify(cq));
+      await page.locator('#mbModel').click();await page.waitForFunction(()=>Panel3D.isOpen())}
+    passed.push("OBJ import: yoysimon qovurg'a (62 nuqtali kontur, 800×400×16) va ustun (50×700×16) panelga aylandi, CNC sahifasida yoy konturi bilan joylandi");
+    passed.push("Nusxa (C) — Blender Duplicate: kursorga ergashdi, bosilgan joyda qotdi; Esc — nusxa o'chdi; Ctrl+Z qaytaradi");
     passed.push("Nusxa (C): krishaning ulanish tanlovi (ekss, ⇅) nusxa bokasiga bog'landi, nusxalar alohida yangi guruhda");
     // 12. «Butun korpus ▸ Ko'chirish»: tanlov bo'lsa — faqat tanlangan panel, bo'lmasa — hammasi
     await ev(()=>{Panel3D.load({T:16,uid:10,panels:[{id:1,n:'boka',w:500,h:720,t:16,o:'side',x:8,y:360,z:0},{id:2,n:'polka',w:568,h:480,t:16,o:'flat',x:300,y:360,z:0}]});Panel3D._select([2])});

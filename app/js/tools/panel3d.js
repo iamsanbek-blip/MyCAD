@@ -786,7 +786,7 @@ function xfUpdate(e){
 const AXN=['X','Y','Z'],f1=v=>(Math.abs(v)<.005?0:+v.toFixed(2));
 function xfHud(){const a=act;if(!a||a.k!=='xf'||!wrap)return;const c=a.con;
   const cn=c.ax>=0?AXN[c.ax]+" o'qi":c.n>=0?AXN.filter((_,i)=>i!==c.n).join('')+' tekisligi':a.auto?'Ortho':'erkin (ekran tekisligi)';
-  q('#p3hint').textContent=`Ko'chirish  ΔX ${f1(a.d.x)}  ΔY ${f1(a.d.y)}  ΔZ ${f1(a.d.z)} mm  ·  ${cn}`+
+  q('#p3hint').textContent=`${a.dup?'Nusxa ('+a.dup.length+') — bosib joyiga qo\'ying · ':''}Ko'chirish  ΔX ${f1(a.d.x)}  ΔY ${f1(a.d.y)}  ΔZ ${f1(a.d.z)} mm  ·  ${cn}`+
     (a.typed!==''?`  ·  qiymat: ${a.typed}▏ (${AXN[c.ax>=0?c.ax:(a.tax!=null?a.tax:xfDomAx(a))]})`:'')+(a.hit?`  ·  magnit: ${SNAP_NAME[a.hit.k]}`:'')+
     "  ·  X/Y/Z — o'q, Shift+X/Y/Z — tekislik, raqam — masofa, Enter — tasdiq, Esc / o'ng tugma — bekor"}
 function xfLineShow(){
@@ -796,8 +796,11 @@ function xfLineShow(){
     new THREE.LineBasicMaterial({color:GZ_COL[a.con.ax],depthTest:false,transparent:true,opacity:.8}));xfLine.renderOrder=995;scene.add(xfLine);dirtyR=true}
 function xfSetCon(con){const a=act;a.con=con;a.tax=null;xfRebase(a);xfLineShow();xfUpdate()}
 function xfStop(){act=null;xfLineShow();hideSnap();if(wrap)q('#p3hint').textContent=TOOLH[tool]||HINT}
-function xfEnd(){const a=act;xfStop();if(a.d.lengthSq()>1e-12)changed();props()}
-function xfCancel(){const a=act;for(const b of a.base){b.p.x=b.x;b.p.y=b.y;b.p.z=b.z;place(b.p)}xfStop();{const cc=cur();if(cc)syncPos(cc)}dirtyR=true}
+function xfEnd(){const a=act;xfStop();if(a.dup||a.d.lengthSq()>1e-12)changed();props()}
+function xfCancel(){const a=act;
+  if(a.dup){const del=new Set(a.dup);for(const p of panels)if(del.has(p.id)&&p.g&&P)P.remove(p.g);panels=panels.filter(p=>!del.has(p.id));   // nusxa bekor — o'chadi
+    xfStop();msel=a.orig.filter(id=>panels.some(p=>p.id===id));sel=msel[msel.length-1]||null;paint();props();list();say('Nusxa bekor qilindi');dirtyR=true;return}
+  for(const b of a.base){b.p.x=b.x;b.p.y=b.y;b.p.z=b.z;place(b.p)}xfStop();{const cc=cur();if(cc)syncPos(cc)}dirtyR=true}
 function xfKey(e){   // sudrash davomida klaviatura (Blender kabi)
   const a=act,k=e.key;
   if(/^[0-9]$/.test(k))a.typed+=k;
@@ -854,10 +857,19 @@ function remapCopies(pairs){
   const idm=new Map(pairs.map(([o,c])=>[o.id,c.id])),gm=new Map(),mk=m=>{const r={};for(const k in m)r[idm.has(+k)?idm.get(+k):k]=m[k];return r};
   for(const[o,c]of pairs){if(o.jc)c.jc=mk(o.jc);if(o.jf)c.jf=mk(o.jf);
     if(o.grp){if(!gm.has(o.grp))gm.set(o.grp,'g'+Date.now().toString(36)+Math.random().toString(36).slice(2,6));c.grp=gm.get(o.grp)}}}
+/* Nusxa (C) — Blender «Duplicate» kabi: nusxa asl joyida paydo bo'lib darhol kursorga ergashadi (magnit, X/Y/Z, raqam ishlaydi),
+   sichqoncha bosilgan joyda qotadi; Esc / o'ng tugma — nusxa bekor (o'chadi), tanlov aslga qaytadi. */
+let mLast=null;
+if(typeof document!=='undefined'&&document.addEventListener)document.addEventListener('pointermove',e=>{mLast={clientX:e.clientX,clientY:e.clientY}},true);
 function copySel(){const ps=selected();if(!ps.length)return;const ids=[],pairs=[];
-  for(const p of ps){const c=clonePanel(p);c.x+=50;pairs.push([p,c]);panels.push(c);build(c);ids.push(c.id)}
+  if(act&&act.k==='xf')xfEnd();
+  for(const p of ps){const c=clonePanel(p);pairs.push([p,c]);panels.push(c);build(c);ids.push(c.id)}
   remapCopies(pairs);
-  msel=ids;sel=ids[ids.length-1];paint();props();list();setTool('move');changed()}
+  msel=ids;sel=ids[ids.length-1];paint();props();list();
+  if(!inited||!cv||!isOpen){changed();return}
+  const cs=ids.map(id=>panels.find(p=>p.id===id)),[mn,mx]=bboxOf(cs),P0=new THREE.Vector3((mn[0]+mx[0])/2,(mn[1]+mx[1])/2,(mn[2]+mx[2])/2),r=cv.getBoundingClientRect();
+  const a=xfStart(mLast||{clientX:r.left+r.width/2,clientY:r.top+r.height/2},cs,{P0,auto:ortho});
+  if(!a){changed();return}a.dup=ids;a.orig=ps.map(p=>p.id);xfHud()}
 function mirrorSel(a){   // nusxa: tekislik — butun model markazi (hammasi tanlangan bo'lsa — tashqi yuzasi); Pivot = 3D kursor bo'lsa — kursor orqali
   const ps=selected();if(!ps.length)return;const[mn,mx]=bbox(),[sn,sx]=bboxOf(ps);let plane=(mn[a]+mx[a])/2;
   if(sn[a]<=mn[a]+1e-6&&sx[a]>=mx[a]-1e-6)plane=sx[a];
@@ -1086,32 +1098,66 @@ function exportOBJ(unit){
   const text=objText(unit),name=unit===1?'rugby-panels-mm.obj':'rugby-panels.obj';
   try{if(typeof downloadFile==='function'){downloadFile(text,name,'text/plain');say(`OBJ eksport: ${name} (${panels.filter(p=>!p.hid).length} panel, ${unit===1?'mm':'metr'})`);return}}catch(e){}
   try{navigator.clipboard.writeText(text);say("OBJ matni nusxalandi")}catch(e){say("OBJ eksport bajarilmadi")}}
-function parseOBJ(text){
+function parseOBJ(text){   // ob'ektlar: nomi, uchlari (pts) va yuzalari (f — umumiy V indekslari)
   const V=[],objs=[];let cur=null;
   for(const raw of text.split(/\r?\n/)){const l=raw.trim();if(!l||l[0]==='#')continue;const t=l.split(/\s+/);
     if(t[0]==='v')V.push([+t[1],+t[2],+t[3]]);
-    else if(t[0]==='o'||t[0]==='g'){cur={name:t.slice(1).join(' ')||'Obyekt',idx:new Set()};objs.push(cur)}
-    else if(t[0]==='f'){if(!cur){cur={name:'Obyekt',idx:new Set()};objs.push(cur)}
-      for(let i=1;i<t.length;i++){let k=parseInt(t[i].split('/')[0]);if(k<0)k=V.length+k+1;cur.idx.add(k-1)}}}
-  return objs.filter(o=>o.idx.size).map(o=>({name:o.name,pts:[...o.idx].map(i=>V[i]).filter(Boolean)}))}
-function objToPanels(objs){   // faqat quti (8 uchli) shakllar panelga aylanadi: eng kichik o'lcham qalinlik
-  let made=0,skipped=0;if(!objs.length)return{made,skipped};
+    else if(t[0]==='o'||t[0]==='g'){cur={name:t.slice(1).join(' ')||'Obyekt',f:[]};objs.push(cur)}
+    else if(t[0]==='f'){if(!cur){cur={name:'Obyekt',f:[]};objs.push(cur)}const f=[];
+      for(let i=1;i<t.length;i++){let k=parseInt(t[i].split('/')[0]);if(k<0)k=V.length+k+1;if(V[k-1])f.push(k-1)}if(f.length>=3)cur.f.push(f)}}
+  return objs.filter(o=>o.f.length).map(o=>({name:o.name,f:o.f,V,pts:[...new Set(o.f.flat())].map(i=>V[i])}))}
+/* OBJ ob'ekti → panel: bir xil qalinlikdagi har qanday prizma (to'g'ri, yoysimon, o'yiqli, qiya). Qalinlik o'qi — eng katta umumiy maydonli
+   parallel yuzalar normali; hamma uch shu o'q bo'yicha ikki sathda bo'lishi kerak. Profil — ustki qopqoq yuzalarining chegara qirralari:
+   eng katta halqa — kontur, qolganlari — kesik (k:'c', th). Yo'nalish: o'qqa mos bo'lsa butun (o), aks holda erkin burchak (rt). k — mm koeffitsienti. */
+function objPrism(o,k){
+  const keyOf=new Map(),P=[],idx=i=>{const v=o.V[i],s=v.map(x=>Math.round(x*k*1e3)).join(',');let j=keyOf.get(s);if(j===undefined){j=P.length;P.push(v.map(x=>x*k));keyOf.set(s,j)}return j};
+  const F=o.f.map(f=>{const r=[];for(const i of f){const j=idx(i);if(r[r.length-1]!==j)r.push(j)}if(r.length>1&&r[0]===r[r.length-1])r.pop();return r}).filter(f=>f.length>=3);
+  if(!F.length)return null;
+  const nrm=f=>{let x=0,y=0,z=0;for(let i=0;i<f.length;i++){const a=P[f[i]],b=P[f[(i+1)%f.length]];x+=(a[1]-b[1])*(a[2]+b[2]);y+=(a[2]-b[2])*(a[0]+b[0]);z+=(a[0]-b[0])*(a[1]+b[1])}const L=Math.hypot(x,y,z);return L>1e-12?{n:[x/L,y/L,z/L],a:L/2}:null};
+  const cl=[];for(const f of F){const r=nrm(f);if(!r)continue;const c=cl.find(c=>Math.abs(c.n[0]*r.n[0]+c.n[1]*r.n[1]+c.n[2]*r.n[2])>.9995);if(c)c.a+=r.a;else cl.push({n:r.n,a:r.a})}
+  if(!cl.length)return null;const n=cl.sort((a,b)=>b.a-a.a)[0].n.slice(),big=n.map(Math.abs).indexOf(Math.max(...n.map(Math.abs)));if(n[big]<0)for(let a=0;a<3;a++)n[a]=-n[a];
+  const used=[...new Set(F.flat())],dot=v=>v[0]*n[0]+v[1]*n[1]+v[2]*n[2],ds=used.map(i=>dot(P[i])),d0=Math.min(...ds),d1=Math.max(...ds),t=d1-d0,tol=Math.max(.05,t*.003);
+  if(!(t>.1)||ds.some(d=>Math.abs(d-d0)>tol&&Math.abs(d-d1)>tol))return null;   // bir xil qalinlik emas
+  const lv=i=>Math.abs(dot(P[i])-d1)<=tol?1:Math.abs(dot(P[i])-d0)<=tol?0:-1;
+  const loopsAt=L=>{const cnt=new Map(),ek=(a,b)=>a<b?a+'_'+b:b+'_'+a;
+      for(const f of F){if(!f.every(i=>lv(i)===L))continue;for(let i=0;i<f.length;i++){const a=f[i],b=f[(i+1)%f.length],kk=ek(a,b);cnt.set(kk,(cnt.get(kk)||0)+1)}}
+      if(!cnt.size)for(const f of F)for(let i=0;i<f.length;i++){const a=f[i],b=f[(i+1)%f.length];if(lv(a)===L&&lv(b)===L){const kk=ek(a,b);cnt.set(kk,(cnt.get(kk)||0)+1)}}   // qopqoq yo'q — yon devorlar qirrasidan
+      const adj=new Map(),E=[...cnt].filter(([,c])=>c===1).map(([kk])=>kk.split('_').map(Number));
+      for(const[a,b]of E){(adj.get(a)||adj.set(a,[]).get(a)).push(b);(adj.get(b)||adj.set(b,[]).get(b)).push(a)}
+      const seen=new Set(),loops=[];
+      for(const[a,b]of E){if(seen.has(a+'_'+b)||seen.has(b+'_'+a))continue;const lp=[a];let prev=a,cur=b;seen.add(a+'_'+b);
+        for(let g=0;g<1e6&&cur!==a;g++){lp.push(cur);const nx=(adj.get(cur)||[]).find(x=>x!==prev&&!seen.has(cur+'_'+x)&&!seen.has(x+'_'+cur));if(nx===undefined)break;seen.add(cur+'_'+nx);prev=cur;cur=nx}
+        if(cur===a&&lp.length>=3)loops.push(lp)}
+      return loops};
+  let loops=loopsAt(1);if(!loops.length)loops=loopsAt(0);if(!loops.length)return null;
+  const ax=n.map(Math.abs).indexOf(Math.max(...n.map(Math.abs))),ori=['side','flat','front'][ax],q={o:ori,w:1,h:1,t:1},m0=Mof(q),tb=[m0[2],m0[5],m0[8]],td=tb[0]*n[0]+tb[1]*n[1]+tb[2]*n[2];
+  if(Math.abs(td)<.99999){const nn=td<0?n.map(v=>-v):n,Q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(...tb),new THREE.Vector3(...nn));q.rt=[Q.x,Q.y,Q.z,Q.w]}
+  const W=Wof(q),loc=v=>[0,1].map(l=>W[l]*v[0]+W[3+l]*v[1]+W[6+l]*v[2]);
+  const area=pts=>{let s=0;for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length];s+=a[0]*b[1]-b[0]*a[1]}return s/2};
+  const clean=pts=>{let r=pts.filter((a,i)=>{const b=pts[(i+1)%pts.length];return Math.hypot(a[0]-b[0],a[1]-b[1])>.01});   // takror va bir chiziqdagi nuqtalar olib tashlanadi
+    for(let ch=true;ch&&r.length>3;){ch=false;for(let i=0;i<r.length&&r.length>3;i++){const a=r[(i+r.length-1)%r.length],b=r[i],c=r[(i+1)%r.length],cr=(b[0]-a[0])*(c[1]-b[1])-(b[1]-a[1])*(c[0]-b[0]),l=Math.hypot(c[0]-a[0],c[1]-a[1]);
+      if(Math.abs(cr)<=1e-4*l*l){r.splice(i,1);ch=true;i--}}}return r};
+  const L2=loops.map(lp=>clean(lp.map(i=>loc(P[i])))).filter(l=>l.length>=3&&Math.abs(area(l))>.5).sort((a,b)=>Math.abs(area(b))-Math.abs(area(a)));if(!L2.length)return null;
+  const out=L2[0],us=out.map(a=>a[0]),vs=out.map(a=>a[1]),u0=Math.min(...us),v0=Math.min(...vs),w=Math.max(...us)-u0,h=Math.max(...vs)-v0;if(w<1||h<1)return null;
+  const r3=x=>+x.toFixed(3),sh=l=>{const r=l.map(a=>[r3(a[0]-u0),r3(a[1]-v0)]);return area(r)<0?r.reverse():r};
+  const dc=(d0+d1)/2,uc=u0+w/2,vc=v0+h/2,C=[0,1,2].map(a=>W[a*3]*uc+W[a*3+1]*vc+n[a]*dc);   // n o'qidagi o'rta tekislik (W ning t ustuni n ga parallel)
+  const pts=sh(out),rect=pts.length===4&&pts.every(a=>(Math.abs(a[0])<.01||Math.abs(a[0]-w)<.01)&&(Math.abs(a[1])<.01||Math.abs(a[1]-h)<.01));
+  const pn={n:o.name.replace(/_\d+$/,'').replace(/_/g,' '),w:r3(w),h:r3(h),t:+t.toFixed(2),o:ori,x:r3(C[0]),y:r3(C[1]),z:r3(C[2])};
+  if(q.rt)pn.rt=q.rt;if(rect)pn.shape='rect';else{pn.shape='poly';pn.pts=pts;pn.bw=pn.w;pn.bh=pn.h}
+  const holes=L2.slice(1).map(sh).filter(l=>l.every(a=>a[0]>-.01&&a[0]<w+.01&&a[1]>-.01&&a[1]<h+.01));if(holes.length)pn.ops=holes.map(l=>({k:'c',th:1,pts:l,t:'man'}));
+  return pn}
+function objToPanels(objs){   // bir xil qalinlikdagi har qanday prizma panelga aylanadi; boshqasi o'tkazib yuboriladi (nomi bilan)
+  let made=0,skipped=0;const skip=[],ts=new Map();if(!objs.length)return{made,skipped,skip,ts:[]};
   const all=objs.flatMap(o=>o.pts),span=Math.max(...[0,1,2].map(a=>Math.max(...all.map(p=>p[a]))-Math.min(...all.map(p=>p[a])))),k=span>0&&span<30?1000:1;   // metrda bo'lsa mm ga o'tkaziladi
-  for(const o of objs){
-    const mn=[0,1,2].map(a=>Math.min(...o.pts.map(p=>p[a]))),mx=[0,1,2].map(a=>Math.max(...o.pts.map(p=>p[a]))),eps=1e-4*Math.max(1e-9,...mx.map((v,a)=>v-mn[a]));
-    const uniq=new Set(o.pts.map(p=>p.map(v=>Math.round(v/eps)).join(',')));
-    if(!(uniq.size===8&&o.pts.every(p=>[0,1,2].every(a=>Math.abs(p[a]-mn[a])<eps||Math.abs(p[a]-mx[a])<eps)))){skipped++;continue}
-    const d=[0,1,2].map(a=>(mx[a]-mn[a])*k),c=[0,1,2].map(a=>(mx[a]+mn[a])/2*k),th=d.indexOf(Math.min(...d));
-    if(!(d[th]>0)){skipped++;continue}
-    const ori=th===0?'side':th===1?'flat':'front',dm=th===0?{w:d[2],h:d[1]}:th===1?{w:d[0],h:d[2]}:{w:d[0],h:d[1]};
-    add({n:o.name.replace(/_\d+$/,'').replace(/_/g,' '),w:dm.w,h:dm.h,t:d[th],o:ori,x:c[0],y:c[1],z:c[2]});made++}
-  return{made,skipped}}
+  for(const o of objs){let pn=null;try{pn=objPrism(o,k)}catch(e){pn=null}
+    if(!pn){skipped++;skip.push(o.name);continue}add(pn);made++;ts.set(pn.t,(ts.get(pn.t)||0)+1)}
+  return{made,skipped,skip,ts:[...ts].sort((a,b)=>b[1]-a[1])}}
 function importOBJ(){
   if(!wrap)initUI();
   const i=document.createElement('input');i.type='file';i.accept='.obj';
   i.onchange=async()=>{const f=i.files[0];if(!f)return;const r=objToPanels(parseOBJ(await f.text()));
     if(r.made){list();props();if(inited)frame();changed()}
-    say(r.made?`OBJ import: ${r.made} ta panel qo'shildi${r.skipped?`, ${r.skipped} ta quti bo'lmagan ob'ekt o'tkazib yuborildi`:''}`:"OBJ import: quti shaklidagi (panel) ob'ekt topilmadi")};
+    say(r.made?`OBJ import: ${r.made} ta panel (qalinlik: ${r.ts.map(([t,c])=>t+' mm ×'+c).join(', ')})${r.skipped?` · ${r.skipped} ta ob'ekt bir xil qalinlikda emas — o'tkazib yuborildi: ${r.skip.slice(0,5).join(', ')}${r.skip.length>5?' …':''}`:''}`:"OBJ import: bir xil qalinlikdagi (panel) ob'ekt topilmadi")};
   i.click()}
 function packSheets(items,SW,SH,K){   // MaxRects (best short side fit), aylantirish ruxsat; tola yo'nalishi hisobga olinmaydi
   const sheets=[],unfit=[],place=(sh,iw,ih,it)=>{

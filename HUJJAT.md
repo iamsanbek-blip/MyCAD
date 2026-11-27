@@ -1,5 +1,12 @@
 # Rugby 1.1.2 — CNC nesting, panelni Drawing'da tahrirlash, aralash ulagich, narx (2026-11-23)
 
+- **OBJ import — yoysimon va har qanday shakl.** File ▸ Import ▸ OBJ (Blender va b.) endi faqat to'g'ri qutilarni emas, bir xil
+  qalinlikdagi har qanday ob'ektni panelga aylantiradi: yoysimon qovurg'a, o'yiqli, burchakli, qiya (erkin burchak) plita. Ichidagi
+  teshik — kesik bo'ladi. Metrdagi fayl avtomatik mm ga o'tadi, Y — yuqoriga (Blender eksporti standarti). Qalinligi bir xil bo'lmagan
+  ob'ektlar nomi bilan xabarda ko'rsatiladi. Import qilingan panelni Stretch, 2 marta bosib Drawing'da tahrirlash va CNC'ga yuborib
+  listga joylash mumkin (kontur yoy bo'yicha).
+- **Nusxa (C) — Blender Duplicate kabi.** Nusxa asl joyida paydo bo'lib darhol kursorga ergashadi (magnit, X/Y/Z, raqam bilan masofa
+  ishlaydi); sichqoncha bosilgan joyda qotadi; Esc yoki o'ng tugma — nusxa bekor bo'ladi. Avval nusxa o'ng tomonga 50 mm surilib qolardi.
 - **Stretch (W) kesik va o'yiq nuqtalarini ham tahrirlaydi.** Panel tanlanib W bosilsa kontur bilan birga kesik/o'yiq burchaklari ham
   nuqta bo'lib chiqadi (ramka bilan hammasi belgilanadi) — surib teshik joyini/o'lchamini o'zgartirasiz. Kontur qirrasi surilganda teshik,
   kesik va pazlar joyidan qo'zg'almaydi. Teshik chetida jism qirrasidan tashqari ortiqcha chiziq yo'q.

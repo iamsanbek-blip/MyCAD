@@ -1,3 +1,19 @@
+# OBJ import — har qanday bir xil qalinlikdagi shakl; Nusxa (C) Blender Duplicate kabi — 2026-11-27 (Linux)
+
+- Foydalanuvchi fayli (Blender 4.2, 14 ob'ekt: 7 yoysimon «Section» qovurg'a, 7 «Cube» ustun) — avval faqat 8 uchli qutilar (7 ta)
+  kirardi. Endi brauzerda (fayl tanlash orqali) 14 ta panel, hammasi 16 mm, qovurg'alar 52–247 nuqtali kontur bilan; skrinshotda
+  stul Blender'dagidek; CNC'ga yuborilganda 14 detal 1 listga joylandi (material 52%). Fayl repoga qo'shilmadi (shaxsiy).
+- `panel3d-export`: sintetik OBJ — yoysimon qovurg'a (o'rtasida o'yiq), Y atrofida 30° qiya plita (18 mm, `rt`), teshikli plita
+  (ichki kvadrat → `k:'c'` kesik), uchburchak prizma (endi panel), qalinligi o'zgaruvchan «Pona» o'tkazib yuborildi (nomi bilan).
+- `modeling-cnc-price` 25: File ▸ Import ▸ OBJ (haqiqiy `filechooser`) — yoy 800×400×16 (62 nuqta) va ustun 50×700×16, xabar
+  «2 ta panel (qalinlik: 16 mm ×2)», CNC sahifasida yoy konturi. Nusxa: C — nusxa kursorga ergashdi, bosilgan joyda qotdi, keyin
+  sichqoncha harakati uni siljitmadi; C + Esc — nusxa o'chdi; Ctrl+Z birinchi nusxani qaytardi. `modeling-smoke` (Electron) — C,
+  sichqoncha bilan bosib qo'yish.
+- O'tdi: `npm run check`, `npm test`, `panel3d-hw`, `panel3d-hw-ui`, `modeling-precision`, `smart-autoname`, `panel3d`, `panel3d-export`,
+  Electron `modeling-smoke`, `electron-smoke`, `panel-types-smoke`, `stretch-select`. EXE qayta yig'ilmagan.
+
+---
+
 # Stretch kesik nuqtalariga, teshik joyida qoladi, teshik chetida ortiqcha chiziq yo'q — 2026-11-27 (Linux)
 
 - `modeling-cnc-price` 23: Stretch (W) — kesikning o'ng ikki nuqtasi raqamli Δx=40 bilan surildi; kontur chap qirrasi −30 surilganda

@@ -33,7 +33,31 @@ const yon=back.find(p=>p.n==='Yon chap');assert.ok(Math.abs(yon.w-500)<1e-3&&Mat
 assert.ok(Math.abs(yon.x+292)<1e-3&&Math.abs(yon.y-360)<1e-3);
 // 3. Quti bo'lmagan (uchburchak prizma) o'tkazib yuboriladi
 const L=[ 'o Uchburchak','v 0 0 0','v 1 0 0','v 0 1 0','v 0 0 1','v 1 0 1','v 0 1 1','f 1 2 3','f 4 6 5' ].join('\n');
-const r2=P._objToPanels(P._parseOBJ(L));assert.equal(r2.made,0);assert.equal(r2.skipped,1);
+const r2=P._objToPanels(P._parseOBJ(L));assert.equal(r2.made,1,'uchburchak prizma — panel');assert.equal(P._state().panels.slice(-1)[0].pts.length,3);
+// 3b. Bir xil qalinlikdagi har qanday prizma: yoysimon qovurg'a (o'yiq bilan), qiya plita, teshikli plita; qalinligi o'zgaruvchan — o'tkaziladi
+{const V=[],F=[],O=[];let base=0;const obj=(name,vs,fs)=>{O.push('o '+name);vs.forEach(v=>O.push('v '+v.map(x=>(x/1000).toFixed(6)).join(' ')));fs.forEach(f=>O.push('f '+f.map(i=>i+1+base).join(' ')));base+=vs.length};
+  const prism=(name,loop,t,map,holes=[])=>{const n=loop.length,vs=[],fs=[];const all=[loop,...holes];
+    for(const z of[0,t])for(const l of all)for(const q of l)vs.push(map(q[0],q[1],z));
+    const N=all.reduce((a,l)=>a+l.length,0);let o=0;
+    for(const l of all){const m=l.length;for(let i=0;i<m;i++)fs.push([o+i,o+(i+1)%m,N+o+(i+1)%m,N+o+i]);o+=m}
+    if(!holes.length){fs.push(loop.map((_,i)=>i));fs.push(loop.map((_,i)=>N+i).reverse())}
+    else{const H=holes[0],hb=n;for(const z of[0,N])for(let i=0;i<4;i++)fs.push([z+i,z+(i+1)%4,z+hb+(i+1)%4,z+hb+i])}   // kvadrat va ichki kvadrat orasidagi 4 to'rtburchak qopqoq
+    obj(name,vs,fs)};
+  const arc=[];for(let i=0;i<=24;i++){const a=i/24*Math.PI*2/3;arc.push([380*Math.cos(a),380*Math.sin(a)])}arc.push([300*Math.cos(Math.PI*2/3),300*Math.sin(Math.PI*2/3)]);
+  for(let i=24;i>=0;i--){const a=i/24*Math.PI*2/3;if(i===12){const c=Math.cos(a),s2=Math.sin(a);arc.push([300*c+8*s2,300*s2-8*c],[330*c+8*s2,330*s2-8*c],[330*c-8*s2,330*s2+8*c],[300*c-8*s2,300*s2+8*c]);continue}arc.push([300*Math.cos(a),300*Math.sin(a)])}   // o'rtada 16×30 o'yiq (ustun uchun)
+  prism('Qovurga',arc,16,(u,v,z)=>[u,500+z,-v]);
+  const c=Math.cos(Math.PI/6),s3=Math.sin(Math.PI/6);prism('Qiya',[[0,0],[400,0],[400,300],[0,300]],18,(u,v,z)=>[u*c-z*s3+1000,v,u*s3+z*c]);   // Y atrofida 30°
+  prism('Teshikli',[[0,0],[400,0],[400,400],[0,400]],16,(u,v,z)=>[u,v,z+2000],[[[150,150],[250,150],[250,250],[150,250]]]);
+  O.push('o Pona','v 0 0 0','v 0.1 0 0','v 0.1 0.1 0','v 0 0.1 0','v 0 0 0.01','v 0.1 0 0.03','v 0.1 0.1 0.03','v 0 0.1 0.01','f 1 2 3 4','f 5 8 7 6','f 1 5 6 2','f 2 6 7 3','f 3 7 8 4','f 4 8 5 1');   // qalinligi 10..30 — panel emas
+  P.load({panels:[]});const r3=P._objToPanels(P._parseOBJ(O.join('\n')));
+  assert.equal(r3.made,3,JSON.stringify(r3));assert.equal(r3.skip.join(),'Pona');
+  const ps=P._state().panels,Q=ps.find(p=>p.n==='Qovurga'),T2=ps.find(p=>p.n==='Qiya'),H=ps.find(p=>p.n==='Teshikli');
+  assert.equal(Q.o,'flat');assert.equal(Q.t,16);assert.ok(Q.pts&&Q.pts.length>=50,'yoy konturi saqlanadi');assert.ok(Math.abs(Q.y-508)<.01);
+  assert.ok(Math.abs(T2.t-18)<.01&&T2.rt,'qiya plita — erkin burchak');assert.ok(Math.abs(T2.w-400)<.01&&Math.abs(T2.h-300)<.01);
+  const ang=2*Math.acos(Math.abs(T2.rt[3]))*180/Math.PI;assert.ok(Math.abs(ang-30)<.01||Math.abs(ang-60)<.01,'burchak '+ang);
+  assert.equal(H.shape,'rect');assert.equal(H.ops.length,1);assert.equal(H.ops[0].k,'c');assert.equal(H.ops[0].pts.map(q=>q.map(Math.round).join(',')).sort().join(' '),'150,150 150,250 250,150 250,250');
+  // markaz: teshikli plita 0..400 × 0..400, z 2000..2016
+  assert.ok(Math.abs(H.x-200)<.01&&Math.abs(H.y-200)<.01&&Math.abs(H.z-2008)<.01,JSON.stringify([H.x,H.y,H.z]))}
 // 4. List hisobi: 2800x2070, kerf 4, chekka 10
 const SW=2800-20,SH=2070-20;
 const items=[];for(let i=0;i<12;i++)items.push({w:500,h:500});

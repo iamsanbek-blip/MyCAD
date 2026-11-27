@@ -82,7 +82,9 @@ const errors=[],passed=[];
     await page.keyboard.press('Control+z');passed.push('select, Delete, Ctrl+Z / Ctrl+Y');
     // 7. Copy, Mirror, Stretch (W) asbobi
     await page.locator('#p3pl .p3it').first().click();
-    await page.keyboard.press('c');assert.equal(await page.evaluate(()=>Panel3D._state().panels.length),n1+1);
+    {const cb=await page.locator('#p3wrap .p3view canvas').first().boundingBox();await page.mouse.move(cb.x+cb.width/2,cb.y+cb.height/2);
+      await page.keyboard.press('c');await page.mouse.move(cb.x+cb.width/2+80,cb.y+cb.height/2,{steps:4});await page.mouse.click(cb.x+cb.width/2+80,cb.y+cb.height/2)}   // Duplicate: bosilgan joyda qotadi
+    assert.equal(await page.evaluate(()=>Panel3D._state().panels.length),n1+1);
     await page.locator('#p3wrap .p3ddb',{hasText:'Object'}).click();await page.locator('#p3oMx').click();
     assert.equal(await page.evaluate(()=>Panel3D._state().panels.length),n1+2);
     await page.keyboard.press('w');passed.push('Copy, Mirror X, Stretch tool');
