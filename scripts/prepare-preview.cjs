@@ -40,7 +40,10 @@ fs.writeFileSync('dist/RELEASE-NOTES.md', `Windows x64 uchun Rugby ${pkg.version
   '- Yangi (preview.4): O\'zaro o\'yiq — kesishgan panellarni (qiya ham) bir-biriga kiygizish: yarim-yarim yoki to\'liq o\'tish o\'yig\'i, dogbone; Kesishmalarni tekshirish.\n' +
   '- Erkin burchakda aylantirish (Ctrl — butun gradus), Drawing tahririda kesik va o\'yiq (3D da haqiqiy teshik/chuqurcha), OBJ import — yoysimon va har qanday bir xil qalinlikdagi shakl.\n' +
   '- Nusxa (C) Blender Duplicate kabi; yordamchi chiziq SketchUp kabi (A→B); lineyka magnit turini ko\'rsatadi; g\'ildirak kursorga qarab zoom (2 mm gacha).\n' +
-  '- Stretch (W): tanlovsiz ramka hamma panellarga, kesik nuqtalari ham, aniq ushlash; qiya qo\'shni panel izi; furnitura oynasi akkordeon; menyular ekranga sig\'adi.\n\n' +
+  '- Stretch (W): tanlovsiz ramka hamma panellarga, kesik nuqtalari ham, aniq ushlash; qiya qo\'shni panel izi; furnitura oynasi akkordeon; menyular ekranga sig\'adi.\n' +
+  '- Yangi (preview.5): Move barqaror — panel uchidan ushlab surish har zoomda ishlaydi, qotmaydi; yo\'nalish qulfi (strelkani bir marta bosish, 3ds Max kabi); yoyning bo\'sh ichi tanlanmaydi.\n' +
+  '- Raqam maydonlari qotmaydi (Modeling amali paytida va dialoglardan keyin); oyna tashqarisida qo\'yilgan tugma, Alt+Tab — amal to\'g\'ri yakunlanadi.\n' +
+  '- Drawing: assotsiativ o\'lcham — shkaf Stretch bilan cho\'zilsa o\'lchov o\'zi yangilanadi (300 → 400); Stretch chizish asbobi faol bo\'lsa ham ishlaydi.\n\n' +
   '**Imzosiz sinov versiyasi:** SmartScreen tugma ko‘rsatsa, More info → Run anyway. ' +
   'Smart App Control uni bloklashi mumkin; kod imzolash hali hal qilinmagan.\n\n' +
   'Windows Server 2022 muhitida kod testlari, manba va paketlangan dastur GUI sinovi, ' +
