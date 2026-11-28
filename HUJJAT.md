@@ -1,5 +1,9 @@
 # Rugby 1.1.2 — CNC nesting, panelni Drawing'da tahrirlash, aralash ulagich, narx (2026-11-23)
 
+- **Zoomga bog'liq «surilmaslik» tuzatildi.** Top/Front ko'rinishda yaqinlashganda baland panelni uchidan ushlab surish ishlamay
+  qolardi (ΔX 0). Endi istalgan masshtabda ishlaydi. Yoysimon/egri panelning bo'sh ichki qismini bosish uni tanlamaydi — faqat panelning o'zi.
+- **Raqam maydonlari qotmaydi.** Modeling'da ko'chirish/nusxa paytida maydonga bosilsa amal yakunlanadi va raqam maydonga yoziladi.
+  Desktop (Windows): fayl dialogi yoki ogohlantirish oynasidan keyin klaviatura fokusi oynaga qaytariladi.
 - **Ko'chirish (Move) barqarorligi.** Tanlangan panelni o'z uchidan ushlab boshqa panel uchiga olib borish endi «qotmaydi»: boshlang'ich
   joydagi (va Front/Top da uning orqasidagi) nuqtalar nishon bo'lmaydi. Ostida/yonida ingichka panel bo'lsa ham tanlangan obyekt ushlanadi.
   Magnit nishonlari keshlanadi — ko'p panelli faylda ham sudrash tez (400 panel: ~14 → ~2 ms). **Yo'nalish qulfi** (3ds Max kabi):

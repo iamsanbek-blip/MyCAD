@@ -162,6 +162,34 @@ const B={id:2,n:'B',w:300,h:200,t:16,o:'front',x:600,y:100,z:0};  // x[450,750] 
       assert.equal(await ev(()=>Panel3D._act()),null,'tugmasiz harakat — ramka yakunlandi');await page.mouse.up();
       await page.mouse.move(c.x,c.y);await page.mouse.down();await page.mouse.move(c.x+50,c.y,{steps:4});await page.mouse.up();b=await pb();assert.ok(b.x>600,'keyingi sudrash ishlaydi '+JSON.stringify(b));
       passed.push("Barqarorlik: Alt+Tab (blur) sudrashni bekor qiladi, oyna tashqarisida qo'yilgan tugma ramkani yakunlaydi — keyingi sudrash darhol ishlaydi")}
+    // Video holati: Top ko'rinish, kuchli zoom — baland (987 mm) panel ustki uchidan ushlab surish har masshtabda ishlaydi
+    {const tall=[{id:1,n:'oyoq',w:50,h:987,t:16,o:'side',x:0,y:493.5,z:0},{id:2,n:'oyoq2',w:50,h:987,t:16,o:'side',x:300,y:493.5,z:0}];
+      const pt=()=>ev(()=>{const p=Panel3D._state().panels.find(x=>x.id===1);return{x:p.x,y:p.y,z:p.z}});
+      for(const clicks of[0,3,6,9]){await ev(t=>{Panel3D.load({T:16,uid:10,panels:t});Panel3D._select([1]);Panel3D._setTool('move');Panel3D._view('top')},tall);
+        if(await ev(()=>document.getElementById('p3bOrtho').classList.contains('on')))await ev(()=>document.getElementById('p3bFree').click());
+        await page.waitForTimeout(60);let c=await scr(22,987,36);await page.mouse.move(c.x,c.y);for(let i=0;i<clicks;i++){await page.mouse.wheel(0,-400);await page.waitForTimeout(20)}   // bo'sh joyda zoom (videodagidek) — kamera nishoni pastda qoladi
+        c=await scr(8,987,25);const R=await ev(()=>Panel3D._cam().R);
+        {const rr=await ev(()=>{const r=document.querySelector('#p3wrap .p3view canvas').getBoundingClientRect();return{l:r.left,t:r.top,r:r.right,b:r.bottom}});assert.ok(c.x>rr.l+5&&c.x<rr.r-60&&c.y>rr.t+5&&c.y<rr.b-50,'nuqta ekranda R='+R)}await page.mouse.move(c.x,c.y);await page.mouse.down();await page.mouse.move(c.x+12,c.y+9,{steps:3});await page.mouse.move(c.x+40,c.y+30,{steps:4});
+        const m=await pt();await page.mouse.up();assert.ok(Math.hypot(m.x,m.z)>1&&m.y===493.5,'zoom R='+R+': surilmadi '+JSON.stringify(m))}
+      passed.push("Top ko'rinish, 4 xil zoom (yaqin ham): 987 mm baland panel ustki uchidan ushlanib suriladi (oldin yaqinlashganda ΔX 0 bo'lib qolardi)")}
+    // Yoysimon panelning bo'sh ichki qismini bosish — panel tanlanmaydi; yoyning o'zini bosish — tanlanadi
+    {const pts=[];for(let i=0;i<=24;i++){const a=(20+i*140/24)*Math.PI/180;pts.push([500+500*Math.cos(a),500*Math.sin(a)])}for(let i=24;i>=0;i--){const a=(20+i*140/24)*Math.PI/180;pts.push([500+450*Math.cos(a),450*Math.sin(a)])}
+      const y0=Math.min(...pts.map(q=>q[1]));for(const q of pts)q[1]-=y0;const bh=Math.max(...pts.map(q=>q[1]));
+      await ev(([pts,bh])=>{Panel3D.load({T:16,uid:10,panels:[{id:1,n:'yoy',w:1000,h:bh,bw:1000,bh,t:16,o:'flat',x:0,y:700,z:0,shape:'poly',pts}]});Panel3D._select([]);Panel3D._setTool('move');Panel3D._view('top')},[pts,bh]);
+      await page.waitForTimeout(60);
+      for(const dz of[-100,-40,40,100]){const c=await scr(0,708,dz);await page.mouse.click(c.x,c.y);}   // markazda yoy tasmasi v∈[279,329]; bu nuqtalar v=65…265 — bo'sh
+      const s1=await ev(()=>Panel3D._msel());assert.deepEqual(s1,[],'bo\'sh ichki qism tanlandi: '+JSON.stringify(s1));
+      {const v=(bh/2)-((279+329)/2);let c=await scr(0,708,v);await page.mouse.click(c.x,c.y);let s2=await ev(()=>Panel3D._msel());
+        if(!s2.length){c=await scr(0,708,-v);await page.mouse.click(c.x,c.y);s2=await ev(()=>Panel3D._msel())}assert.deepEqual(s2,[1],'yoyning o\'zi tanlanadi')}
+      passed.push("Yoysimon panel: ichki bo'sh joyni bosish (4 nuqta) hech narsani tanlamaydi, yoy tasmasini bosish — tanlaydi")}
+    // Maydon qotmasin: C (nusxa) kursorga ergashib turganda Eni maydoniga bosib raqam yozish — yoziladi, nusxa joyiga qo'yiladi
+    {await reset('front');await ev(()=>Panel3D._select([2]));const c=await scr(600,100,8);await page.mouse.move(c.x,c.y);await page.keyboard.press('c');
+      await page.mouse.move(c.x+40,c.y,{steps:3});assert.equal((await ev(()=>Panel3D._act())||{}).k,'xf','nusxa rejimi');
+      await page.click('#p3f_w');await page.keyboard.press('Control+a');await page.keyboard.type('450');
+      const v=await ev(()=>document.getElementById('p3f_w').value);assert.equal(v,'450','maydonga yozildi');assert.equal(await ev(()=>Panel3D._act()),null,'amal yakunlandi');
+      await page.keyboard.press('Tab');await page.waitForTimeout(40);
+      const n=await ev(()=>Panel3D._state().panels);assert.equal(n.length,3,'nusxa qo\'yildi');assert.equal(n[2].w,450,'Eni 450 qo\'llandi');
+      passed.push("Maydon qotmaydi: C nusxa rejimida Eni maydoniga bosib «450» yozildi (raqamlar ko'chirishga yutilmadi), nusxa joyiga qo'yildi")}
     assert.deepEqual(errors,[],'No page errors');
     console.log(JSON.stringify({status:'passed',checks:passed},null,2));
   }catch(e){console.error(e&&e.stack||e);console.error('ERRORS:',JSON.stringify(errors));console.error('PASSED:',JSON.stringify(passed,null,1));process.exitCode=1}

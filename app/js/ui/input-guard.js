@@ -13,6 +13,19 @@ function isTextInputTarget(el){
   return !!(el && (['INPUT','SELECT','TEXTAREA'].includes(el.tagName) || el.isContentEditable));
 }
 function guardIsField(el){ return isTextInputTarget(el); }
+
+// Brauzerning alert/confirm/prompt oynasi yopilgach (Electron, Windows) sahifa klaviatura fokusini yo'qotadi —
+// maydonlar bosiladi, lekin raqam yozilmaydi. Har biridan keyin asosiy oynaga fokus qaytariladi va oldingi maydon tiklanadi.
+(function wrapNativeDialogs(){
+  if(typeof window==='undefined'||!window.desktop||typeof window.desktop.refocus!=='function')return;
+  for(const k of ['alert','confirm','prompt']){
+    const orig=window[k];if(typeof orig!=='function')continue;
+    window[k]=function(){const el=document.activeElement;const r=orig.apply(window,arguments);
+      try{window.desktop.refocus()}catch(_){}
+      setTimeout(()=>{try{if(el&&el.isConnected&&isTextInputTarget(el))el.focus()}catch(_){}},0);
+      return r};
+  }
+})();
 function inInputField(){ return isTextInputTarget(document.activeElement); }
 
 // ---------------------------------------------------------------------------

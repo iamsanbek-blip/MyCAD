@@ -205,6 +205,7 @@ ipcMain.handle('confirm-quit', async (_e, isDirty) => {
     message: 'Loyihada saqlanmagan o\'zgarishlar bor.',
     detail: 'Baribir chiqasizmi?',
   });
+  if(response!==1)refocusMain();
   return response === 1;
 });
 
@@ -229,6 +230,7 @@ ipcMain.handle('project:saveAs', async (_e, content, suggestedName) => {
     filters: [{ name: 'Rugby loyihasi', extensions: ['dbe'] }],
     properties: ['createDirectory', 'showOverwriteConfirmation'],
   });
+  refocusMain();
   if (canceled || !filePath) return null;
   const result=writeProjectAtomic(filePath,content);
   authorizedProjectPaths.add(filePath);
@@ -248,6 +250,7 @@ ipcMain.handle('project:open', async (_e) => {
     filters: [{ name: 'Rugby loyihasi', extensions: ['dbe', 'json'] }],
     properties: ['openFile'],
   });
+  refocusMain();
   if (canceled || !filePaths || !filePaths[0]) return null;
   const fp = filePaths[0];
   authorizedProjectPaths.add(fp);
@@ -291,6 +294,9 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
 
+// Windows'da Electron: native dialog (yoki sahifadagi alert/confirm) yopilgach sahifa klaviatura fokusini olmay qolishi mumkin —
+// shunda input maydonlari «qotgandek» bo'ladi (bosiladi, lekin yozilmaydi). Har dialogdan keyin fokus aniq qaytariladi.
+function refocusMain(){if(!mainWin||mainWin.isDestroyed())return;try{if(process.platform==='win32')mainWin.blur();mainWin.focus();mainWin.webContents.focus()}catch(_){}}
 function assertRenderer(event){
   if(!mainWin || event.sender!==mainWin.webContents || !event.senderFrame?.url.startsWith('app://local/'))
     throw new Error('Noma’lum oynadan so‘rov.');
@@ -300,7 +306,9 @@ ipcMain.handle('project:confirm-replace',async(event)=>{
   const {response}=await dialog.showMessageBox(mainWin,{type:'question',
     buttons:['Bekor','Saqlamay davom etish','Saqlash'],defaultId:2,cancelId:0,
     message:'Loyihada saqlanmagan o‘zgarishlar bor.',detail:'Barcha sahifalarni saqlaysizmi?'});
+  refocusMain();
   return ['cancel','discard','save'][response]||'cancel';
 });
+ipcMain.on('app:refocus',event=>{assertRenderer(event);refocusMain();});
 ipcMain.on('app:renderer-ready',event=>{assertRenderer(event);rendererReady=true;deliverFile(queuedOpenFile);});
 ipcMain.on('app:close-after-save',event=>{assertRenderer(event);mainWin.close();});

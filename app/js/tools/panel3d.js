@@ -261,8 +261,10 @@ function multiProps(ps){
   q('#p3m_copy').onclick=()=>copySel();
   q('#p3m_del').onclick=()=>ps.forEach(del);
 }
+let propsKeep=false;   // true — xossalar paneli qayta qurilmaydi (foydalanuvchi hozir maydonni bosyapti: qayta qurilsa bosilgan maydon yo'qolib, fokus tushmasdi)
 function props(){
   if(!wrap)return;
+  if(propsKeep){const p=cur();if(p)syncPos(p);pmFill();return}
   {const ps=selected();if(ps.length>1){multiProps(ps);return}}
   const p=cur(),b=q('#p3pp');
   if(!p){b.innerHTML='<p class="p3mu">Panel tanlang yoki shablondan qo\'shing.</p>';return}
@@ -561,17 +563,25 @@ function dxfToPanels(){   // yopiq konturlarni extrude qilib 3D panelga aylantir
 
 /* ---------------- sichqoncha / klaviatura ---------------- */
 const ray=new THREE.Raycaster(),m2=new THREE.Vector2();
-function ndc(e){const r=cv.getBoundingClientRect();m2.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(m2,cam)}
+/* Ortho (Top/Front/…) nuri three.js da kamera tekisligidan boshlanadi; zoom bilan yaqinlashganda (R kichik) baland panelning yuqori qismi
+   kamera «orqasida» qolib, nur uni ham, sudrash tekisligini ham topmasdi — panel goh surilar, goh surilmasdi. Nur sahna chuqurligi bo'yicha
+   orqaga suriladi: istalgan masshtabda hamma narsa nur oldida. */
+function ndc(e){const r=cv.getBoundingClientRect();m2.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(m2,cam);
+  if(cam===ocam)ray.ray.origin.addScaledVector(ray.ray.direction,-Math.abs(cam.far||1e5))}
 function pick(e){
   ndc(e);const h=ray.intersectObjects(P.children,true).find(x=>{const pp=panels.find(a=>a.id===x.object.userData.pid);return pp&&!pp.hid}),hid=h?h.object.userData.pid:null;
-  const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,pad=6;let thin=null,any=null;
-  for(const p of panels){if(p.hid)continue;let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
-    for(const o of offs(extS(p),{end:true,mid:false,cen:false})){const v=new THREE.Vector3(p.x+o[0],p.y+o[1],p.z+o[2]).project(cam),sx=(v.x+1)/2*r.width,sy=(1-v.y)/2*r.height;x0=Math.min(x0,sx);y0=Math.min(y0,sy);x1=Math.max(x1,sx);y1=Math.max(y1,sy)}
+  // Nur tegmagan bo'lsa (masalan, qirrasidan ko'rinayotgan yupqa panel) — kursor panelning HAQIQIY konturi qirrasiga ≤ pad px yaqin bo'lsa.
+  // Avval ekrandagi to'rtburchak chegarasi olinardi: yoysimon/egri panelning bo'sh ichki qismini bosganda ham shu panel tanlanib ketardi.
+  const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,pad=6,W=r.width,H=r.height,v=new THREE.Vector3();let thin=null,near=null;
+  const pr=T=>{v.copy(T).project(cam);return[(v.x+1)/2*W,(1-v.y)/2*H]};
+  for(const p of panels){if(p.hid)continue;const G=geoOfC(p);let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;const S=[];
+    for(const[A,B]of G.edge){const a=pr(A),b=pr(B);S.push([a,b]);x0=Math.min(x0,a[0],b[0]);y0=Math.min(y0,a[1],b[1]);x1=Math.max(x1,a[0],b[0]);y1=Math.max(y1,a[1],b[1])}
     if(mx<x0-pad||mx>x1+pad||my<y0-pad||my>y1+pad)continue;
-    const w=x1-x0,hh=y1-y0,area=(w+2*pad)*(hh+2*pad);
+    let d=1e9;for(const[a,b]of S){const ex=b[0]-a[0],ey=b[1]-a[1],L=ex*ex+ey*ey;let t=L>1e-9?((mx-a[0])*ex+(my-a[1])*ey)/L:0;t=Math.max(0,Math.min(1,t));d=Math.min(d,Math.hypot(a[0]+ex*t-mx,a[1]+ey*t-my))}
+    if(d>pad)continue;const w=x1-x0,hh=y1-y0,area=(w+2*pad)*(hh+2*pad);
     if(Math.min(w,hh)<14&&(!thin||area<thin.area))thin={id:p.id,area};   // ingichka panel (qirrasi bilan ko'rinayotgan) tanlashga ustun
-    if(!any||area<any.area)any={id:p.id,area}}
-  return thin?thin.id:hid||(any?any.id:null)}
+    if(!near||d<near.d)near={id:p.id,d}}
+  return thin?thin.id:hid||(near?near.id:null)}
 function drawPlane(p){p.g.updateMatrixWorld(true);return new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(0,0,1).applyQuaternion(p.g.quaternion),p.g.position)}
 function drawPt(e,p){ndc(e);const v=new THREE.Vector3();if(!ray.ray.intersectPlane(drawPlane(p),v))return null;const l=p.g.worldToLocal(v),st=num(q('#p3step').value),r=a=>st?Math.round(a/st)*st:a;return[r(l.x),r(l.y)]}
 function drawShow(){const d=dr,a=d.pts.concat(d.cur?[d.cur]:[]);if(d.line)d.p.g.remove(d.line);
@@ -1553,9 +1563,9 @@ function p3validate(combo,id,draft){
 function onKey(e){
   if(!isOpen)return;
   const t=e.target,inField=!!t&&/INPUT|SELECT|TEXTAREA/.test(t.tagName||'');
-  if(act&&act.k==='xf'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){   // sudrash davomida: raqam, X/Y/Z, Enter, Esc (hotkeylar o'rniga)
+  if(act&&act.k==='xf'&&!inField&&!e.ctrlKey&&!e.metaKey&&!e.altKey){   // sudrash davomida: raqam, X/Y/Z, Enter, Esc (hotkeylar o'rniga)
     if(xfKey(e)){e.preventDefault();e.stopImmediatePropagation();return}}
-  if(act&&act.k==='rotg'&&act.free&&!e.metaKey&&!e.altKey){   // erkin aylantirish davomida: burchakni raqam bilan yozish, Enter, Esc
+  if(act&&act.k==='rotg'&&act.free&&!inField&&!e.metaKey&&!e.altKey){   // erkin aylantirish davomida: burchakni raqam bilan yozish, Enter, Esc
     const k=e.key,stop=()=>{e.preventDefault();e.stopImmediatePropagation()};
     if(/^[0-9.,-]$/.test(k)&&!e.ctrlKey){stop();act.typed=(act.typed||'')+(k===','?'.':k);rotFree(num(act.typed));say(`Burchak: ${act.typed}° — Enter: tayyor, Esc: bekor`);return}
     if(k==='Backspace'){stop();act.typed=(act.typed||'').slice(0,-1);rotFree(num(act.typed));return}
@@ -2238,6 +2248,10 @@ function ensure(){
   cv.oncontextmenu=e=>e.preventDefault();cv.onpointerdown=onDown;cv.onpointermove=onMove;cv.onpointerup=onUp;
   cv.onpointercancel=()=>{if(act&&act.btn)abortAct()};cv.onlostpointercapture=()=>{if(act&&act.btn)onUp()};
   window.addEventListener('blur',()=>{if(act&&act.btn)abortAct()});
+  // Faol amal paytida kanvasdan tashqariga (maydon, menyu, tugma) bosilsa — amal yakunlanadi; maydonga yozish erkin
+  const softAbort=()=>{propsKeep=true;try{abortAct()}finally{propsKeep=false}};   // panel DOM i saqlanadi — bosilgan maydon fokus oladi
+  document.addEventListener('pointerdown',e=>{if(act&&isOpen&&e.target!==cv)softAbort()},true);
+  document.addEventListener('focusin',e=>{if(act&&isOpen&&/INPUT|SELECT|TEXTAREA/.test((e.target||{}).tagName||''))softAbort()},true);
   cv.onwheel=e=>{e.preventDefault();zoomAt(e,Math.exp(e.deltaY*.001));if(act&&act.k==='xf')xfRezoom()};
   cv.ondblclick=e=>{if(tool==='rotate'||tool==='scale')return;const id=pick(e),p=panels.find(a=>a.id===id);if(p&&!dr){if(e.altKey)startDraw(p);else editInDrawing(p)}};   // 2 marta — Drawing'da tahrirlash; Alt+2 marta — 3D da tez chizish
   c3Build();   // 3D kursor; magnit belgisi — DOM (#p3snap): tur shakli + nomi

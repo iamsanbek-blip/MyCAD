@@ -5,6 +5,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('desktop', {
   isDesktop: true,
   ready:()=>ipcRenderer.send('app:renderer-ready'),
+  refocus:()=>ipcRenderer.send('app:refocus'),
   confirmReplace:()=>ipcRenderer.invoke('project:confirm-replace'),
   closeAfterSave:()=>ipcRenderer.send('app:close-after-save'),
   onSaveAndClose:fn=>ipcRenderer.on('project:save-and-close',()=>fn()),

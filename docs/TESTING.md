@@ -1,3 +1,17 @@
+# Video bo'yicha: zoomda surilmaslik, yoy ichini tanlash, maydon qotishi — 2026-11-28 (Linux)
+
+- Foydalanuvchi videosi (Top ko'rinish, stul, «ΔX 0 ΔZ 0»): sabab — Ortho nuri kamera tekisligidan boshlanardi; bo'sh joyda zoom
+  qilinganda baland panel ustki uchi kamera «orqasida» qolardi. `modeling-precision.cjs` yangi tekshiruvi (987 mm panel, 4 xil zoom)
+  eski kodda R=141 mm da **yiqildi**, yangi kodda o'tdi.
+- Yoysimon panel bo'sh ichini bosish: eski kodda tanlanardi (test yiqildi), yangi kodda tanlanmaydi; yoy tasmasi — tanlanadi.
+- C nusxa rejimida «Eni» maydoniga bosib 450 yozish — yoziladi va qo'llanadi (avval raqamlar ko'chirishga yutilardi, panel qayta qurilib fokus tushmasdi).
+- Electron: native dialog va alert/confirm/prompt'dan keyin fokus qaytarish (`refocusMain`, `desktop.refocus`) — Linux'da `electron-smoke`
+  o'tdi; **Windows'da maydon qotishi tuzalgani tekshirilmagan** (xato Windows'ga xos).
+- `npm run check`, `npm test`, `modeling-cnc-price` (31), `modeling-xlap` (8), `panel3d-hw-ui` (8), `smart-autoname`, `modeling-smoke`,
+  `electron-smoke`, `panel-types-smoke`, `stretch-select` — o'tdi.
+
+---
+
 # Move barqarorligi: magnit, qulflangan yo'nalish, osilib qolgan sudrash — 2026-11-28 (Linux)
 
 - `node tests/modeling-precision.cjs` (Playwright Chromium, SwiftShader WebGL, haqiqiy sichqoncha): o'tdi — yangi tekshiruvlar:

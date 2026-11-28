@@ -20,6 +20,9 @@ haqiqatda o'tkazilgan sinovlar: `docs/TESTING.md`; umumiy arxitektura: `docs/ARC
 - Qulf: `mvLock`, `setLock`, `lockUsable`; dastani bosish (<4 px) `xfEnd` da qulflaydi; `a.lk` — X/Y/Z tugmasi qulfni o'chirmaydi.
 - `xfRezoom` — g'ildirak sudrash paytida `r0` ni qayta hisoblaydi. `gizmoHits` — Move'da markaz > tekislik > strelka.
 - `onDown` → `onDown0` o'rami: `act.btn`; `abortAct` — blur, pointercancel, lostpointercapture, tugmasiz pointermove, `close()`.
+- `ndc()` — Ortho nuri sahna chuqurligi bo'yicha orqaga suriladi (zoomda nur panel ustini topadi). `pick()` — to'rtburchak chegara o'rniga
+  haqiqiy kontur qirrasiga masofa. `propsKeep` + `softAbort` — maydon bosilganda xossalar paneli qayta qurilmaydi.
+- `main.js refocusMain`, `preload desktop.refocus`, `input-guard.js wrapNativeDialogs` — dialogdan keyin fokus (Windows'da tekshirish kerak).
 - **Navbatda (foydalanuvchi so'radi):** Drawing'da assotsiativ o'lcham — Stretch/ko'chirishda dimension o'zi yangilansin (30 → 40 sm).
 
 ## 2026-11-23 da qo'shilganlar (Modeling / CNC)
