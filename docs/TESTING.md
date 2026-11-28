@@ -1,3 +1,13 @@
+# Reliz 1.1.2-preview.5 — 2026-11-28
+
+- EXE: GitHub Actions «Windows portable preview» run 46130508310 (Windows Server 2022, commit 03865a1) — **muvaffaqiyatli**: `npm run check`,
+  `npm test`, manba va paketlangan dastur GUI sinovi (pageErrors bo'sh), portable launcher ochilishi. Reliz `v1.1.2-preview.5`:
+  `Rugby-Portable.exe` 65 845 717 bayt, SHA256 `89e800478770673377eadbea1e7b74636ee1462656ae1182958f4bfe0fecd7f6` (yuklab olingan fayl
+  bilan `sha256sum` mos). Windows 10/11 da qo'lda sinov (ayniqsa dialogdan keyin maydon fokusi), SmartScreen/SAC hali tekshirilmagan.
+- Umumiy hujjat: `docs/OZGARISHLAR-1.1.2-preview.5.md`.
+
+---
+
 # Drawing: assotsiativ o'lchov; Stretch rect asbobi bilan; Modeling pick barqarorligi — 2026-11-28 (Linux)
 
 - `node --test tests/workspace.test.cjs` (DOM dubllari): 28 test o'tdi, 4 tasi yangi — Stretch 300 → 400 (jonli, Esc, undo/redo,

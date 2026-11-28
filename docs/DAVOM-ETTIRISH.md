@@ -1,11 +1,12 @@
-# Rugby — ishni davom ettirish uchun to'plam (2026-11-24)
+# Rugby — ishni davom ettirish uchun to'plam (2026-11-28)
 
 Bu hujjat — rezerv va keyingi ish uchun yagona kirish nuqtasi. Foydalanuvchi uchun yangiliklar: `HUJJAT.md`;
-haqiqatda o'tkazilgan sinovlar: `docs/TESTING.md`; umumiy arxitektura: `docs/ARCHITECTURE.md`; qoidalar: `AGENTS.md`.
+haqiqatda o'tkazilgan sinovlar: `docs/TESTING.md`;
+Oxirgi reliz bo'yicha umumiy hujjat: `docs/OZGARISHLAR-1.1.2-preview.5.md`; umumiy arxitektura: `docs/ARCHITECTURE.md`; qoidalar: `AGENTS.md`.
 
 ## Holat
 
-- Versiya: **1.1.2-preview.4** (branch `claude/vigilant-goodall-nvrvty`). EXE — GitHub Actions «Windows portable preview»
+- Versiya: **1.1.2-preview.5** (branch `claude/vigilant-goodall-nvrvty`). EXE — GitHub Actions «Windows portable preview»
   (`.github/workflows/windows-portable.yml`, workflow_dispatch) Windows Server 2022 da yig'adi, testlaydi va
   `v<versiya>` prerelease sifatida chiqaradi (`Rugby-Portable.exe`, `SHA256.txt`, `BUILD-REPORT.json`).
   Bir versiya ikki marta chiqarilmaydi — har yangi EXE uchun `package.json` va `package-lock.json` versiyasini oshiring.
