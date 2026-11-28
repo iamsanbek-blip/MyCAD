@@ -108,6 +108,7 @@ function dimClickAt(p){
     }
     // complete
     dimensions.push({kind:'angular', center:dimPts[0], a:dimPts[1], b:dimPts[2], place:dimPts[3], textSize:dimTextSize(), prec:dimPrecision()});
+    if(typeof dimAssocBind==='function') dimAssocBind(dimensions[dimensions.length-1]);   // shaklga bog'lash (assotsiativ)
     pushHistory(); dimPts=[]; dimStep=1;
     document.getElementById('hint').innerHTML='Burchak o\'lchovi qo\'shildi. Yana bosing yoki Esc.';
     renderDrawnList(); draw();
@@ -119,6 +120,7 @@ function dimClickAt(p){
   if(dimPts.length===2){ dimStep=3; document.getElementById('hint').innerHTML='O\'lchov: chiziq joyini (masofa/balandlik) bosing'; return true; }
   // 3rd click sets the offset/placement
   dimensions.push({kind:dimTool, p1:dimPts[0], p2:dimPts[1], place:dimPts[2], textSize:dimTextSize(), prec:dimPrecision(), unit:dimUnit()});
+  if(typeof dimAssocBind==='function') dimAssocBind(dimensions[dimensions.length-1]);   // shaklga bog'lash (assotsiativ)
   pushHistory(); dimPts=[]; dimStep=1;
   document.getElementById('hint').innerHTML='O\'lchov qo\'shildi. Yana ikki nuqta bosing yoki Esc.';
   renderDrawnList(); draw();

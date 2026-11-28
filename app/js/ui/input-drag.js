@@ -138,6 +138,7 @@ window.addEventListener('mousemove',(e)=>{
     const snapped = hoverSnap ? hoverSnap.point : raw;
     const line = drawnLines[draggingGrip.li];
     if(line) updateShapeFromGrip(line, draggingGrip.gi, snapped);
+    if(gripDimBase && typeof dimAssocLive==='function') dimAssocLive(gripDimBase);
     dragMoved=true;
     draw();
     return;
@@ -180,6 +181,7 @@ window.addEventListener('mouseup',(e)=>{
 
   if(draggingGrip){
     if(dragMoved){ detectCorners(); pushHistory(); renderList(); renderDrawnList(); }
+    if(gripDimBase){ gripDimBase=null; if(typeof dimAssocLiveEnd==='function') dimAssocLiveEnd(); }
     draggingGrip=null; dragMoved=false; hoverSnap=null;
     draw();
     return;

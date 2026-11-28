@@ -152,3 +152,50 @@ test('PNG region cancel and page switching preserve drawing geometry',()=>{
  h.run('startPNGRegionExport();addPage()');assert.equal(h.run('pngRegionSelection'),null);
  h.run('nextPage(-1)');assert.deepEqual(JSON.parse(h.run('JSON.stringify(drawnLines)')),JSON.parse(before));
 });
+// ---- Assotsiativ o'lchov: shkaf Stretch bilan 300 → 400 mm cho'zilsa o'lchov ham 400 bo'ladi ----
+function cab(h,x0=0,w=300){h.run(`setAppMode('draw');setDrawTool('rect');addDrawPoint({x:${x0},y:0});addDrawPoint({x:${x0+w},y:500});`);}
+function hdim(h,a,b,py=-40){h.run(`startDim('h');dimClickAt({x:${a},y:0});dimClickAt({x:${b},y:0});dimClickAt({x:${(a+b)/2},y:${py}});finishDim();`);}
+const J=(h,e)=>JSON.parse(h.run(`JSON.stringify(${e})`));
+const dimLen=(h,i=0)=>h.run(`Math.abs(dimensions[${i}].p2.x-dimensions[${i}].p1.x)`);
+function stretchRight(h,li,xAt,dx,commit=true){   // Stretch: ramkaga x=xAt dagi uchlar tushgan, dx ga suriladi
+  h.run(`startStretch();stretchPicks=[];drawnLines[${li}].grips.forEach((g,gi)=>{if(Math.abs(g.x-${xAt})<1e-6)stretchPicks.push({li:${li},gi})});
+    stretchSnap=drawnLines.map(l=>JSON.parse(JSON.stringify(l)));stretchBase={x:${xAt},y:0};stretchMode='move';applyStretch({x:${dx},y:0});`);
+  if(commit)h.run('detectCorners();pushHistory();finishStretch();');}
+test('associative dimension follows Stretch, live preview, Esc, undo/redo',()=>{
+ const h=createHarness();cab(h);hdim(h,0,300);
+ assert.equal(dimLen(h),300);assert.ok(h.run('!!dimensions[0].b1&&dimensions[0].b1===drawnLines[0].uid'),'o\'lchov shkafga bog\'landi');
+ stretchRight(h,0,300,100,false);assert.equal(dimLen(h),400,'sudrash paytida jonli');
+ h.run("drawnLines=stretchSnap.map(l=>JSON.parse(JSON.stringify(l)));detectCorners();finishStretch();");assert.equal(dimLen(h),300,'Esc — joyiga qaytdi');
+ stretchRight(h,0,300,100);assert.equal(dimLen(h),400);assert.deepEqual(J(h,'dimensions[0].place'),{x:150,y:-40},'o\'lchov chizig\'i joyida');
+ h.run('undo()');assert.equal(dimLen(h),300,'undo');h.run('redo()');assert.equal(dimLen(h),400,'redo');
+ stretchRight(h,0,0,-50);assert.equal(dimLen(h),450,'chap tomon ham');assert.equal(h.run('dimensions[0].p1.x'),-50);
+ assert.deepEqual(h.errors,[]);
+});
+test('associative dimension: whole move carries the dimension line, edge midpoint follows, unsnapped point stays',()=>{
+ const h=createHarness();cab(h);hdim(h,0,300);
+ h.run(`startDim('aligned');dimClickAt({x:0,y:250});dimClickAt({x:300,y:250});dimClickAt({x:150,y:600});finishDim();`);   // qirra o'rtalari
+ h.run(`startDim('h');dimClickAt({x:-80,y:0});dimClickAt({x:300,y:0});dimClickAt({x:100,y:-90});finishDim();`);   // birinchi nuqta bo'sh joyda (magnitsiz)
+ stretchRight(h,0,300,100);
+ assert.deepEqual(J(h,'dimensions[1].p2'),{x:400,y:250},'qirra o\'rtasi ergashdi');assert.equal(h.run('dimensions[2].p1.x'),-80,'bog\'lanmagan nuqta joyida');assert.equal(h.run('dimensions[2].p2.x'),400);
+ h.run('drawnLines[0].grips=drawnLines[0].grips.map(g=>({x:g.x+1000,y:g.y+200}));drawnLines[0].points=drawnLines[0].grips.map(g=>({...g}));pushHistory();');   // butun shkafni ko'chirish
+ assert.equal(dimLen(h),400);assert.deepEqual(J(h,'dimensions[0].p1'),{x:1000,y:200});assert.deepEqual(J(h,'dimensions[0].place'),{x:1150,y:160},'o\'lchov chizig\'i birga ko\'chdi');
+ assert.deepEqual(h.errors,[]);
+});
+test('associative dimension: side-by-side cabinets share a corner — only the measured one drives it; survives save/open',()=>{
+ const h=createHarness();cab(h,0,300);cab(h,300,300);hdim(h,0,300);hdim(h,300,600,-80);
+ assert.equal(h.run('dimensions[0].b2'),h.run('drawnLines[0].uid'));assert.equal(h.run('dimensions[1].b1'),h.run('drawnLines[1].uid'));
+ h.run('drawnLines[1].grips=drawnLines[1].grips.map(g=>({x:g.x+50,y:g.y}));drawnLines[1].points=drawnLines[1].grips.map(g=>({...g}));pushHistory();');   // o'ng shkaf 50 mm o'ngga
+ assert.equal(dimLen(h,0),300,'chap shkaf o\'lchovi o\'zgarmadi');assert.equal(dimLen(h,1),300);assert.equal(h.run('dimensions[1].p1.x'),350);
+ const saved=h.run('projectText()');const r=createHarness();r.sb.saved=saved;assert.equal(r.run("loadProject(saved,'cab.dbe')"),true);
+ assert.equal(r.run('dimensions[0].b1'),r.run('drawnLines[0].uid'),'bog\'lanish saqlandi');
+ stretchRight(r,0,300,100);assert.equal(dimLen(r,0),400,'ochilgan faylda ham ergashadi');
+ assert.deepEqual(h.errors,[]);assert.deepEqual(r.errors,[]);
+});
+test('associative dimension follows a grip drag live and on release',()=>{
+ const h=createHarness();cab(h);hdim(h,0,300);
+ h.run("gripDimBase=drawnLines.map(l=>JSON.parse(JSON.stringify(l)));const gi=drawnLines[0].grips.findIndex(g=>g.x===300&&g.y===0);updateShapeFromGrip(drawnLines[0],gi,{x:350,y:0});dimAssocLive(gripDimBase);");
+ assert.equal(J(h,'dimensions[0].p2').x,350,'jonli');
+ h.run("detectCorners();pushHistory();gripDimBase=null;dimAssocLiveEnd();");
+ assert.equal(J(h,'dimensions[0].p2').x,350);h.run('undo()');assert.equal(J(h,'dimensions[0].p2').x,300);
+ assert.deepEqual(h.errors,[]);
+});

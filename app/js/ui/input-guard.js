@@ -64,6 +64,7 @@ function wireDragSafetyNet(){
 // ---------------------------------------------------------------------------
 function resetInteractionState(reason){
   const cleared = [];
+  if(typeof gripDimBase!=='undefined' && gripDimBase){ gripDimBase=null; if(typeof dimAssocLiveEnd==='function') dimAssocLiveEnd(); }
 
   // Sudrash / pan / tanlash ramkasi
   if(typeof panning!=='undefined' && panning){ panning=false; cleared.push('panning'); }

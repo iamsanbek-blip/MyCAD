@@ -18,6 +18,7 @@
     "test:electron": "node tests/electron-smoke.cjs",
     "test:precision": "node tests/modeling-precision.cjs",
     "test:smart": "node tests/smart-autoname.cjs",
+    "test:dim": "node tests/dim-assoc-ui.cjs",
     "test:hw": "node tests/panel3d-hw.cjs && node tests/panel3d-hw-ui.cjs && node tests/modeling-cnc-price.cjs && node tests/panel3d-xlap.cjs && node tests/modeling-xlap.cjs",
     "dist:portable": "node scripts/release-portable.cjs",
     "dist:both": "electron-builder --win nsis portable --x64",

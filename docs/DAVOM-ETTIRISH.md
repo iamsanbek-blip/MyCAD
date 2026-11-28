@@ -23,7 +23,9 @@ haqiqatda o'tkazilgan sinovlar: `docs/TESTING.md`; umumiy arxitektura: `docs/ARC
 - `ndc()` — Ortho nuri sahna chuqurligi bo'yicha orqaga suriladi (zoomda nur panel ustini topadi). `pick()` — to'rtburchak chegara o'rniga
   haqiqiy kontur qirrasiga masofa. `propsKeep` + `softAbort` — maydon bosilganda xossalar paneli qayta qurilmaydi.
 - `main.js refocusMain`, `preload desktop.refocus`, `input-guard.js wrapNativeDialogs` — dialogdan keyin fokus (Windows'da tekshirish kerak).
-- **Navbatda (foydalanuvchi so'radi):** Drawing'da assotsiativ o'lcham — Stretch/ko'chirishda dimension o'zi yangilansin (30 → 40 sm).
+- **Bajarildi:** Drawing'da assotsiativ o'lcham — `app/js/tools/dim-assoc.js` (tafsilot: docs/ARCHITECTURE.md «Sahifa modeli»).
+  Cheklov: yoy/aylana segmenti ustidagi ixtiyoriy nuqta (uchi yoki markazi emas) ergashmaydi; Trim/Offset kabi shakl sonini
+  o'zgartiradigan amallar — faqat `uid` li shakllar bo'yicha.
 
 ## 2026-11-23 da qo'shilganlar (Modeling / CNC)
 

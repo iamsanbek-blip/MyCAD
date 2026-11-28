@@ -33,6 +33,14 @@ Yangi saqlanadigan xususiyat uchun codec, capturePageData/applyPageData va
 kerak bo'lsa snapshot/restore ni birga yangilang. Formatni o'zgartirganda v1/v2
 o'qish mosligini tekshiring. Hozirgi cheklov: 1–500 sahifa; bu tezlik kafolati emas.
 
+Assotsiativ o'lchov (`app/js/tools/dim-assoc.js`): o'lchov nuqtasi shakl uchi yoki
+to'g'ri qirrasida bo'lsa ergashadi. Bog'lanish `dimension.b1/b2/b3` (shakl `uid`)
+— oddiy maydon sifatida `dimensions` va `shapes` bilan saqlanadi. `pushHistory()`
+oldingi tarix holati bilan solishtiradi (`dimAssocSync`); Stretch va grip sudrash
+jonli (`dimAssocLive` / `dimAssocLiveEnd`). Shakllarni o'zgartiradigan yangi asbob
+`pushHistory()` chaqirsa, o'lchovlar o'zi ergashadi; shakl soni o'zgarsa juftlash
+faqat `uid` bo'yicha.
+
 ## Buyruq qo'shish
 
 `RUGBY_COMMANDS` qatori: `[id, label, defaultKey, run, buttonId, inField]`.

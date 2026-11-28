@@ -135,6 +135,7 @@ function stretchWindowHint(){
            : 'Stretch: ko\'chiriladigan NUQTALAR ustidan ramka torting — tanlov yo\'q, hamma obyekt (Esc: bekor)';
 }
 function finishStretch(){
+  if(typeof dimAssocLiveEnd==='function') dimAssocLiveEnd();   // tasdiq — yangi qiymat; Esc — o'lchovlar joyiga qaytadi
   stretchMode=null; stretchPicks=[]; stretchSnap=null; stretchBase=null; stretchTyped=''; stretchBoxing=false;
   const b=document.getElementById('stretchBtn'); if(b) b.classList.remove('active');
   draw();
@@ -206,6 +207,7 @@ function applyStretch(delta){
     rebuildStretched(shape, snapShape, delta, gset);
   });
   detectCorners();   // Stretch'da ham relief yangi joyga ergashsin
+  if(typeof dimAssocLive==='function') dimAssocLive(stretchSnap);   // o'lchovlar sudrash paytida jonli yangilanadi
 }
 function stretchDelta(worldPt){
   if(!stretchBase) return {x:0,y:0};

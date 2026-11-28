@@ -197,23 +197,9 @@ canvas.addEventListener('mousedown', (e)=>{
     }
   }
 
-  if(appMode==='draw' && drawTool!=='none'){
-    const raw = toWorld(sx,sy);
-    const snapped = computeDrawPoint(raw);
-    addDrawPoint(snapped);
-    typedLen=''; typedLen2=''; typingSecond=false;
-    updateTypedBadge();
-    updateDrawActionButtons();
-    draw();
-    return;
-  }
-
-  // From here on: 'edit' mode, or 'draw' mode with no tool selected — both are
-  // selection/grip contexts and share the same click / drag / box-select rules.
-  mouseDownPos={x:sx,y:sy};
-  mouseDownModKey = e.ctrlKey || e.shiftKey || e.metaKey;
-
   // ---- Stretch tool intercepts clicks in all of its stages ----
+  // Chizish asbobidan (rect, line …) OLDIN: aks holda rect faol qolib W bosilsa, ramka o'rniga yangi to'rtburchak chizilardi
+  // («Stretch ba'zan ishlamaydi»). Move/Rotate va O'lchov ham shu tarmoqdan oldin turadi.
   if(stretchMode==='window'){
     stretchBoxing=true; stretchBox={x0:sx,y0:sy,x1:sx,y1:sy}; draw(); return;
   }
@@ -234,6 +220,22 @@ canvas.addEventListener('mousedown', (e)=>{
     document.getElementById('hint').innerHTML='Stretch bajarildi.';
     return;
   }
+
+  if(appMode==='draw' && drawTool!=='none'){
+    const raw = toWorld(sx,sy);
+    const snapped = computeDrawPoint(raw);
+    addDrawPoint(snapped);
+    typedLen=''; typedLen2=''; typingSecond=false;
+    updateTypedBadge();
+    updateDrawActionButtons();
+    draw();
+    return;
+  }
+
+  // From here on: 'edit' mode, or 'draw' mode with no tool selected — both are
+  // selection/grip contexts and share the same click / drag / box-select rules.
+  mouseDownPos={x:sx,y:sy};
+  mouseDownModKey = e.ctrlKey || e.shiftKey || e.metaKey;
 
   // Array: while the polar mode is open, a click sets the rotation centre
   if(arrayMode && (document.getElementById('arrayType')||{}).value==='polar'){
@@ -277,7 +279,9 @@ canvas.addEventListener('mousedown', (e)=>{
       if(d<gripD){ gripD=d; gripHit={li,gi}; }
     });
   });
-  if(gripHit){ draggingGrip=gripHit; dragMoved=false; return; }
+  if(gripHit){ draggingGrip=gripHit; dragMoved=false;
+    gripDimBase=(typeof dimensions!=='undefined'&&dimensions.length)?drawnLines.map(l=>JSON.parse(JSON.stringify(l))):null;   // assotsiativ o'lchov — jonli
+    return; }
 
   // 2) corner hit-test (Bone Edit mode only — click cycles Ignore/Dogbone/etc).
   // All corners are visible and clickable in Bone-edit mode.

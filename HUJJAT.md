@@ -1,5 +1,10 @@
 # Rugby 1.1.2 — CNC nesting, panelni Drawing'da tahrirlash, aralash ulagich, narx (2026-11-23)
 
+- **Assotsiativ o'lcham (Drawing).** O'lchov nuqtalari shakl uchi yoki qirrasiga (masalan, o'rtasiga) magnit bilan qo'yilsa — shaklga
+  bog'lanadi. Shkaf Stretch bilan 300 → 400 mm cho'zilsa, o'lchov ham o'zi 400 bo'ladi (sudrash paytida jonli; Esc — joyiga). Grip
+  bilan sudrash, ko'chirish, burish ham ergashadi; butun shakl ko'chsa o'lchov chizig'i birga ko'chadi. Yonma-yon shkaflarning umumiy
+  burchagida o'lchov aynan o'lchangan shkafga bog'lanadi. Faylda saqlanadi. Bo'sh joyga (magnitsiz) qo'yilgan nuqta bog'lanmaydi.
+- **Stretch (W) chizish asbobi faol bo'lsa ham ishlaydi** — avval ramka o'rniga yangi to'rtburchak chizilib qolardi.
 - **Zoomga bog'liq «surilmaslik» tuzatildi.** Top/Front ko'rinishda yaqinlashganda baland panelni uchidan ushlab surish ishlamay
   qolardi (ΔX 0). Endi istalgan masshtabda ishlaydi. Yoysimon/egri panelning bo'sh ichki qismini bosish uni tanlamaydi — faqat panelning o'zi.
 - **Raqam maydonlari qotmaydi.** Modeling'da ko'chirish/nusxa paytida maydonga bosilsa amal yakunlanadi va raqam maydonga yoziladi.

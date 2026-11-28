@@ -85,6 +85,8 @@ function snapshot(){
 }
 function pushHistory(){
   if(typeof markProjectDirty==='function') markProjectDirty();
+  // Assotsiativ o'lchovlar: shakl o'zgargan bo'lsa (Stretch, grip, ko'chirish …) — o'lchov nuqtalari ergashadi
+  if(typeof dimAssocSync==='function') dimAssocSync(history[historyIndex]);
   let snap;
   try{ snap = snapshot(); }
   catch(err){ console.warn('snapshot failed:', err.message); return; }

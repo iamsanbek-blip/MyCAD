@@ -1,3 +1,20 @@
+# Drawing: assotsiativ o'lchov; Stretch rect asbobi bilan; Modeling pick barqarorligi — 2026-11-28 (Linux)
+
+- `node --test tests/workspace.test.cjs` (DOM dubllari): 28 test o'tdi, 4 tasi yangi — Stretch 300 → 400 (jonli, Esc, undo/redo,
+  chap tomon), butun shaklni ko'chirish (o'lchov chizig'i birga), qirra o'rtasi ergashadi, magnitsiz nuqta joyida, yonma-yon ikki
+  shkafning umumiy burchagi (faqat o'lchangan shkaf), saqlash/ochishdan keyin bog'lanish ishlaydi, grip sudrash jonli.
+- `node tests/dim-assoc-ui.cjs` (haqiqiy Chromium, web build, sichqoncha/klaviatura): o'tdi — burchak yonidan bosilgan o'lchov magnit
+  bilan aynan uchga, Stretch ramka + «100» Enter → o'lchov 400 (sudrash paytida jonli), Esc bekor, Ctrl+Z/Ctrl+Y.
+- Topilgan haqiqiy xato: Drawing'da chizish asbobi (rect) faol qolsa W (Stretch) ramkasi o'rniga yangi to'rtburchak chizilardi —
+  Stretch bosish tarmog'i chizishdan oldinga ko'chirildi.
+- Oldingi commit (ee8566e) dagi regressiya: Ctrl+Z dan keyin panel matritsasi kadr chizilguncha eski bo'lib, `pick()` ba'zan panelni
+  topmasdi (`modeling-cnc-price` da ikki marta bosish goh ishlamasdi). Tuzatildi: `ndc()` da `P.updateMatrixWorld()` + kontur ichi
+  zaxirasi. `modeling-cnc-price` ketma-ket 3 marta o'tdi.
+- `npm run check` (59 fayl), `npm test`, `modeling-precision`, `modeling-cnc-price` (31), `modeling-xlap` (8), `panel3d-hw-ui` (8),
+  `smart-autoname`, `xvfb-run`: `modeling-smoke`, `electron-smoke`, `panel-types-smoke`, `stretch-select` — o'tdi. EXE qayta yig'ilmadi.
+
+---
+
 # Video bo'yicha: zoomda surilmaslik, yoy ichini tanlash, maydon qotishi — 2026-11-28 (Linux)
 
 - Foydalanuvchi videosi (Top ko'rinish, stul, «ΔX 0 ΔZ 0»): sabab — Ortho nuri kamera tekisligidan boshlanardi; bo'sh joyda zoom

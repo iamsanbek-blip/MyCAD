@@ -566,22 +566,26 @@ const ray=new THREE.Raycaster(),m2=new THREE.Vector2();
 /* Ortho (Top/Front/…) nuri three.js da kamera tekisligidan boshlanadi; zoom bilan yaqinlashganda (R kichik) baland panelning yuqori qismi
    kamera «orqasida» qolib, nur uni ham, sudrash tekisligini ham topmasdi — panel goh surilar, goh surilmasdi. Nur sahna chuqurligi bo'yicha
    orqaga suriladi: istalgan masshtabda hamma narsa nur oldida. */
-function ndc(e){const r=cv.getBoundingClientRect();m2.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(m2,cam);
+function ndc(e){if(P)P.updateMatrixWorld();   // yangi qurilgan panel (undo, nusxa …) matritsasi keyingi kadrni kutmasin — aks holda nur uni «ko'rmaydi»
+  const r=cv.getBoundingClientRect();m2.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(m2,cam);
   if(cam===ocam)ray.ray.origin.addScaledVector(ray.ray.direction,-Math.abs(cam.far||1e5))}
 function pick(e){
   ndc(e);const h=ray.intersectObjects(P.children,true).find(x=>{const pp=panels.find(a=>a.id===x.object.userData.pid);return pp&&!pp.hid}),hid=h?h.object.userData.pid:null;
   // Nur tegmagan bo'lsa (masalan, qirrasidan ko'rinayotgan yupqa panel) — kursor panelning HAQIQIY konturi qirrasiga ≤ pad px yaqin bo'lsa.
   // Avval ekrandagi to'rtburchak chegarasi olinardi: yoysimon/egri panelning bo'sh ichki qismini bosganda ham shu panel tanlanib ketardi.
   const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,pad=6,W=r.width,H=r.height,v=new THREE.Vector3();let thin=null,near=null;
-  const pr=T=>{v.copy(T).project(cam);return[(v.x+1)/2*W,(1-v.y)/2*H]};
+  const pr=T=>{v.copy(T).project(cam);return[(v.x+1)/2*W,(1-v.y)/2*H]};let inside=null;
+  const inPoly=(Q)=>{let c=false;for(let i=0,j=Q.length-1;i<Q.length;j=i++){const a=Q[i],b=Q[j];if((a[1]>my)!==(b[1]>my)&&mx<(b[0]-a[0])*(my-a[1])/(b[1]-a[1])+a[0])c=!c}return c};
   for(const p of panels){if(p.hid)continue;const G=geoOfC(p);let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;const S=[];
     for(const[A,B]of G.edge){const a=pr(A),b=pr(B);S.push([a,b]);x0=Math.min(x0,a[0],b[0]);y0=Math.min(y0,a[1],b[1]);x1=Math.max(x1,a[0],b[0]);y1=Math.max(y1,a[1],b[1])}
     if(mx<x0-pad||mx>x1+pad||my<y0-pad||my>y1+pad)continue;
     let d=1e9;for(const[a,b]of S){const ex=b[0]-a[0],ey=b[1]-a[1],L=ex*ex+ey*ey;let t=L>1e-9?((mx-a[0])*ex+(my-a[1])*ey)/L:0;t=Math.max(0,Math.min(1,t));d=Math.min(d,Math.hypot(a[0]+ex*t-mx,a[1]+ey*t-my))}
-    if(d>pad)continue;const w=x1-x0,hh=y1-y0,area=(w+2*pad)*(hh+2*pad);
+    const w=x1-x0,hh=y1-y0,area=(w+2*pad)*(hh+2*pad);
+    if(d>pad){   // zaxira: kursor panelning HAQIQIY konturi ichida (yoyning bo'sh ichi emas) — nur biror sabab bilan tegmasa ham
+      if(!hid){const n=prof(p).length,Q=G.end.slice(0,n).map(pr);if(n>=3&&inPoly(Q)&&(!inside||area<inside.area))inside={id:p.id,area}}continue}
     if(Math.min(w,hh)<14&&(!thin||area<thin.area))thin={id:p.id,area};   // ingichka panel (qirrasi bilan ko'rinayotgan) tanlashga ustun
     if(!near||d<near.d)near={id:p.id,d}}
-  return thin?thin.id:hid||(near?near.id:null)}
+  return thin?thin.id:hid||(near?near.id:inside?inside.id:null)}
 function drawPlane(p){p.g.updateMatrixWorld(true);return new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(0,0,1).applyQuaternion(p.g.quaternion),p.g.position)}
 function drawPt(e,p){ndc(e);const v=new THREE.Vector3();if(!ray.ray.intersectPlane(drawPlane(p),v))return null;const l=p.g.worldToLocal(v),st=num(q('#p3step').value),r=a=>st?Math.round(a/st)*st:a;return[r(l.x),r(l.y)]}
 function drawShow(){const d=dr,a=d.pts.concat(d.cur?[d.cur]:[]);if(d.line)d.p.g.remove(d.line);
