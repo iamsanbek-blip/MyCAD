@@ -112,6 +112,56 @@ const B={id:2,n:'B',w:300,h:200,t:16,o:'front',x:600,y:100,z:0};  // x[450,750] 
     await reset('front');await ev(()=>Panel3D._select([2]));g=await ev(()=>Panel3D._gz());assert.equal(g.v2,false,'Front: Z strelkasi yashirin');
     await drag(await scr(450,200,8),await scr(200,300,-8));assert.equal((await pb()).z,0);passed.push('Front: Z strelkasi yashirin, magnit chuqurlikni o\'zgartirmaydi');
 
+    // Qotmaslik: tanlangan krishani qo'shni boka burchagi bilan ustma-ust turgan o'z burchagidan ushlab 10 px sursa — ergashadi
+    {await ev(()=>{Panel3D.load({T:16,uid:10,panels:[{id:1,n:'boka',w:500,h:720,t:16,o:'side',x:8,y:360,z:0},{id:2,n:'krisha',w:568,h:500,t:16,o:'flat',x:300,y:728,z:0},{id:3,n:"boka o'ng",w:500,h:720,t:16,o:'side',x:592,y:360,z:0}]});
+        Panel3D._select([2]);Panel3D._setTool('move');Panel3D._view('front')});
+      if(await ev(()=>document.getElementById('p3bOrtho').classList.contains('on')))await ev(()=>document.getElementById('p3bFree').click());
+      await page.waitForTimeout(80);const c=await scr(16,720,250);   // krisha chap-past-old burchagi = boka yuqori-o'ng-old burchagi
+      await page.mouse.move(c.x,c.y);await page.mouse.down();await page.mouse.move(c.x+5,c.y-4,{steps:2});await page.mouse.move(c.x+10,c.y-8,{steps:2});
+      const mid=await pb();await page.mouse.move(c.x+25,c.y-20,{steps:3});const mid2=await pb();await page.keyboard.press('Escape');await page.mouse.up();
+      assert.ok(mid.x!==300||mid.y!==728,'10 px da ergashdi (qotmadi): '+JSON.stringify(mid));assert.ok(mid2.x>mid.x,'davom etdi '+JSON.stringify([mid,mid2]));
+      passed.push("Move: o'z burchagidan (qo'shni panel burchagi bilan ustma-ust) ushlangan krisha 10 px da ergashadi — joyiga «yopishib» qolmaydi")}
+    // Tanlov ustun: tanlangan katta panel chetini bosish — yonidagi ingichka panel tanlanmaydi, tanlangan suriladi
+    {await ev(()=>{Panel3D.load({T:16,uid:10,panels:[{id:1,n:'polka',w:568,h:480,t:16,o:'flat',x:300,y:400,z:0},{id:2,n:'yupqa',w:500,h:720,t:16,o:'side',x:592,y:360,z:0}]});
+        Panel3D._select([1]);Panel3D._setTool('move');Panel3D._view('top')});await page.waitForTimeout(80);
+      const e=await scr(580,408,0);await page.mouse.move(e.x,e.y);await page.mouse.down();await page.mouse.move(e.x-30,e.y,{steps:4});await page.mouse.up();
+      const r=await ev(()=>({sel:Panel3D._msel(),x:Panel3D._state().panels.map(p=>Math.round(p.x))}));assert.deepEqual(r.sel,[1]);assert.ok(r.x[0]<300&&r.x[1]===592,JSON.stringify(r));
+      passed.push("Move: tanlangan polka chetida (yonida ingichka boka) bosildi — tanlov o'zgarmadi, polka surildi, boka joyida")}
+    // Strelka uchlari sichqoncha ostida yonadi (Top va Iso)
+    for(const v of['top','iso']){await ev(v=>{Panel3D.load({T:16,uid:10,panels:[{id:1,n:'A',w:400,h:300,t:16,o:'front',x:0,y:150,z:0}]});Panel3D._select([1]);Panel3D._setTool('move');Panel3D._view(v)},v);await page.waitForTimeout(80);
+      const g=await ev(()=>Panel3D._gz());for(const k of['a0','a1','a2']){if(!g['v'+k[1]])continue;await page.mouse.move(g.c.x,g.c.y+200);await page.mouse.move(g[k].x,g[k].y,{steps:3});
+        assert.equal(await ev(()=>document.querySelector('#p3wrap .p3view canvas').style.cursor),'pointer',v+' '+k+' uchi yonmadi')}}
+    passed.push("Move strelkalari uchida (Top va Iso) dasta yonadi — kursor «pointer»");
+    const pa=()=>ev(()=>{const p=Panel3D._state().panels.find(x=>x.id===1);return{x:p.x,y:p.y,z:p.z}});
+    // Qulflangan yo'nalish: X strelkasini bir marta bosish — keyin panelni (uchidan) qiyshiq sudrash faqat X bo'yicha; zoom sudrash paytida siljishni buzmaydi
+    {await ev(()=>{Panel3D.load({T:16,uid:10,panels:[{id:1,n:'A',w:400,h:300,t:16,o:'front',x:0,y:150,z:0},{id:2,n:'B',w:300,h:200,t:16,o:'front',x:600,y:100,z:0}]});Panel3D._select([1]);Panel3D._setTool('move');Panel3D._view('front')});
+      if(await ev(()=>document.getElementById('p3bOrtho').classList.contains('on')))await ev(()=>document.getElementById('p3bFree').click());
+      await page.waitForTimeout(80);let g=await ev(()=>Panel3D._gz());await page.mouse.move(g.a0.x,g.a0.y);await page.mouse.down();await page.mouse.up();
+      assert.deepEqual(await ev(()=>Panel3D._lock()),{ax:0,n:-1},'X qulflandi');
+      const c=await scr(-200,300,8);await page.mouse.move(c.x,c.y);await page.mouse.down();await page.mouse.move(c.x+40,c.y+35,{steps:4});await page.mouse.move(c.x+80,c.y+70,{steps:4});
+      const m1=await pa();assert.ok(m1.x>0&&m1.y===150&&m1.z===0,'faqat X: '+JSON.stringify(m1));
+      await page.mouse.wheel(0,-300);await page.waitForTimeout(60);const m2=await pa();assert.ok(Math.abs(m2.x-m1.x)<.01&&m2.y===150,'zoom siljishni saqlaydi '+JSON.stringify([m1,m2]));
+      await page.mouse.move(c.x+100,c.y+90,{steps:3});const m3=await pa();assert.ok(m3.x>m2.x&&m3.y===150,'zoomdan keyin X bo\'yicha davom '+JSON.stringify([m2,m3]));await page.mouse.up();
+      g=await ev(()=>Panel3D._gz());await page.mouse.move(g.c.x,g.c.y);await page.mouse.down();await page.mouse.up();assert.equal(await ev(()=>Panel3D._lock()),null,'oq markaz — qulf olindi');
+      passed.push("Qulf: X strelkasi bir marta bosildi — panel uchidan qiyshiq sudralsa ham faqat X bo'yicha; sudrash paytida zoom siljishni saqlaydi; oq markaz — erkin")}
+    // Magnit turlari Free rejimda: uch, o'rta, markaz — tanlangan nuqta aniq nishonga tushadi
+    for(const[k,tgt,exp]of[['end',[750,200,8],[750,200]],['mid',[600,200,8],[600,200]],['cen',[600,100,8],[600,100]]]){
+      await ev(k=>{Panel3D.load({T:16,uid:10,panels:[{id:1,n:'A',w:400,h:300,t:16,o:'front',x:0,y:150,z:0},{id:2,n:'B',w:300,h:200,t:16,o:'front',x:600,y:100,z:0}]});Panel3D._select([1]);Panel3D._setTool('move');Panel3D._view('front');Panel3D._setLock(null);
+        for(const b of document.querySelectorAll('[data-snap]')){const on=b.classList.contains('chk'),want=b.dataset.snap===k||b.dataset.snap==='end';if(on!==want)b.click()}},k);await page.waitForTimeout(60);
+      const a=await scr(200,300,8),b=await scr(...tgt);await page.mouse.move(a.x,a.y);await page.mouse.down();await page.mouse.move((a.x+b.x)/2,(a.y+b.y)/2,{steps:3});await page.mouse.move(b.x+3,b.y-2,{steps:5});
+      const h=await ev(()=>Panel3D._act());await page.mouse.up();const r=await pa();
+      assert.deepEqual([r.x+200,r.y+150],exp,k+' magnit: '+JSON.stringify([r,h]));assert.equal(h.hit,k)}
+    await ev(()=>{for(const b of document.querySelectorAll('[data-snap]')){const on=b.classList.contains('chk'),want=b.dataset.snap==='end'||b.dataset.snap==='mid';if(on!==want)b.click()}});
+    passed.push("Magnit (Free): A ning yuqori-o'ng uchi B ning uchi / qirra o'rtasi / markaziga aynan tushadi (uch, o'rta, markaz)");
+    // Barqarorlik: sudrash paytida oyna fokusni yo'qotsa (Alt+Tab) — bekor; tugma oyna tashqarisida qo'yilsa — keyingi harakatda yakunlanadi; keyingi bosish ishlaydi
+    {await reset('front');await ev(()=>Panel3D._select([2]));const c=await scr(600,100,8);
+      await page.mouse.move(c.x,c.y);await page.mouse.down();await page.mouse.move(c.x+60,c.y,{steps:4});assert.equal((await ev(()=>Panel3D._act())).k,'xf');
+      await ev(()=>window.dispatchEvent(new Event('blur')));assert.equal(await ev(()=>Panel3D._act()),null,'blur — amal tozalandi');let b=await pb();assert.equal(b.x,600,'blur — joyiga qaytdi');await page.mouse.up();
+      const e0=await ev(()=>{const r=document.querySelector('#p3wrap .p3view canvas').getBoundingClientRect();return{x:r.left+r.width*.5,y:r.top+30}});await page.mouse.move(e0.x,e0.y);await page.mouse.down();await page.mouse.move(e0.x+30,e0.y+20,{steps:3});assert.equal((await ev(()=>Panel3D._act())).k,'rect');
+      await ev(()=>{const cv=document.querySelector('#p3wrap .p3view canvas');cv.dispatchEvent(new PointerEvent('pointermove',{clientX:10,clientY:10,buttons:0,pointerType:'mouse',bubbles:true}))});
+      assert.equal(await ev(()=>Panel3D._act()),null,'tugmasiz harakat — ramka yakunlandi');await page.mouse.up();
+      await page.mouse.move(c.x,c.y);await page.mouse.down();await page.mouse.move(c.x+50,c.y,{steps:4});await page.mouse.up();b=await pb();assert.ok(b.x>600,'keyingi sudrash ishlaydi '+JSON.stringify(b));
+      passed.push("Barqarorlik: Alt+Tab (blur) sudrashni bekor qiladi, oyna tashqarisida qo'yilgan tugma ramkani yakunlaydi — keyingi sudrash darhol ishlaydi")}
     assert.deepEqual(errors,[],'No page errors');
     console.log(JSON.stringify({status:'passed',checks:passed},null,2));
   }catch(e){console.error(e&&e.stack||e);console.error('ERRORS:',JSON.stringify(errors));console.error('PASSED:',JSON.stringify(passed,null,1));process.exitCode=1}

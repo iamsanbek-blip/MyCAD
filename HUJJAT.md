@@ -1,5 +1,12 @@
 # Rugby 1.1.2 — CNC nesting, panelni Drawing'da tahrirlash, aralash ulagich, narx (2026-11-23)
 
+- **Ko'chirish (Move) barqarorligi.** Tanlangan panelni o'z uchidan ushlab boshqa panel uchiga olib borish endi «qotmaydi»: boshlang'ich
+  joydagi (va Front/Top da uning orqasidagi) nuqtalar nishon bo'lmaydi. Ostida/yonida ingichka panel bo'lsa ham tanlangan obyekt ushlanadi.
+  Magnit nishonlari keshlanadi — ko'p panelli faylda ham sudrash tez (400 panel: ~14 → ~2 ms). **Yo'nalish qulfi** (3ds Max kabi):
+  strelka yoki rangli kvadratni bir marta bosing — dasta sariq bo'lib qoladi va keyingi sudrashlar shu o'q/tekislikda; zoom yoki
+  ko'rinish almashsa ham o'zgarmaydi; oq markaz yoki o'sha dastani qayta bosish — erkin. Sudrash paytida g'ildirak obyektni sakratmaydi.
+  Gizmo dastalari ustma-ust tushsa tartib barqaror (markaz > tekislik > strelka). Tugma oyna tashqarisida qo'yilsa, Alt+Tab yoki dialog
+  ochilsa faol amal to'g'ri yakunlanadi — keyingi bosish «unutilmaydi».
 - **Modeling chap paneli ixcham.** Shablonlar ostidagi uzun yo'riqnoma endi doim turmaydi — Panel/Magnit ustiga olib borilganda
   suzuvchi oynada vaqtincha chiqadi. «2D chizma / DXF» (chizmadan/DXF dan panel) bo'limi tepaga — Shablonlar ostiga ko'tarildi.
 - **Furnitura oynasi — akkordeon.** Har bo'lim (Ulanish, Ship-paz va O'zaro o'yiq, Polka, Fasad, Orqa devor, DXF) sarlavhasidagi

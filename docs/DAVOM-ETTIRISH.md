@@ -13,6 +13,15 @@ haqiqatda o'tkazilgan sinovlar: `docs/TESTING.md`; umumiy arxitektura: `docs/ARC
   orqali, `.dxf` → `.dxf.txt` (shim `scripts/build-web.py`), desktop (EXE) da to'g'ridan-to'g'ri `.dxf`.
 - Windows 10/11 da qo'lda qabul sinovi va haqiqiy CNC dastgohda sinov **hali o'tkazilmagan**.
 
+## 2026-11-28 — Move barqarorligi (panel3d.js)
+
+- Magnit: `geoCache`/`geoOfC` (imzo bo'yicha), `snapPool` + `poolProject` (sudrash boshida bir marta, kamera o'zgarsa qayta proyeksiya),
+  `snapFind(e,excl,pool,skip)` — `skip` funksiya: `conApply` dan keyin siljish nol bo'ladigan nishon tashlanadi.
+- Qulf: `mvLock`, `setLock`, `lockUsable`; dastani bosish (<4 px) `xfEnd` da qulflaydi; `a.lk` — X/Y/Z tugmasi qulfni o'chirmaydi.
+- `xfRezoom` — g'ildirak sudrash paytida `r0` ni qayta hisoblaydi. `gizmoHits` — Move'da markaz > tekislik > strelka.
+- `onDown` → `onDown0` o'rami: `act.btn`; `abortAct` — blur, pointercancel, lostpointercapture, tugmasiz pointermove, `close()`.
+- **Navbatda (foydalanuvchi so'radi):** Drawing'da assotsiativ o'lcham — Stretch/ko'chirishda dimension o'zi yangilansin (30 → 40 sm).
+
 ## 2026-11-23 da qo'shilganlar (Modeling / CNC)
 
 | Imkoniyat | Qayerda | Asosiy kod |

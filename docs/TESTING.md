@@ -1,3 +1,18 @@
+# Move barqarorligi: magnit, qulflangan yo'nalish, osilib qolgan sudrash — 2026-11-28 (Linux)
+
+- `node tests/modeling-precision.cjs` (Playwright Chromium, SwiftShader WebGL, haqiqiy sichqoncha): o'tdi — yangi tekshiruvlar:
+  shkaf krishasi o'z burchagidan (boka burchagi bilan ustma-ust, Front ko'rinish) ushlanib 10 px da ergashadi (oldin joyida qotib qolardi);
+  tanlangan polka cheti yonida ingichka boka bo'lsa ham tanlov o'zgarmaydi; Move strelka uchlari Top va Iso da yonadi; X strelkasini bir
+  marta bosish — qulf, panel uchidan qiyshiq sudralsa faqat X, sudrash paytida g'ildirak (zoom) siljishni saqlaydi, oq markaz — qulf olinadi;
+  magnit turlari (uch, o'rta, markaz) Free rejimda aynan nishonga; oyna fokusni yo'qotsa (blur) sudrash bekor, tugmasiz pointermove — ramka
+  yakunlanadi, keyingi sudrash darhol ishlaydi.
+- `npm run check` (58 fayl), `npm test`, `modeling-cnc-price` (31), `modeling-xlap` (8), `panel3d-hw-ui` (8), `smart-autoname`,
+  `xvfb-run`: `modeling-smoke`, `electron-smoke`, `panel-types-smoke`, `stretch-select` — o'tdi.
+- Tezlik (sahna JS vaqti, sudrashdagi har harakat): 100 panel 4.0 → 0.68 ms, 400 panel 14.0 → 1.84 ms (magnit nishonlari keshi).
+  SwiftShader kadr vaqti test muhitiga xos; haqiqiy Windows GPU'da sinalmagan. EXE qayta yig'ilmadi.
+
+---
+
 # Reliz 1.1.2-preview.4 — 2026-11-27
 
 - EXE: GitHub Actions «Windows portable preview» run 45957358660 (Windows Server 2022, commit 8822d5e) — **muvaffaqiyatli**: `npm run check`,

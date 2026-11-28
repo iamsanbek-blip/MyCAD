@@ -623,13 +623,35 @@ function scrOf(v){const a=v.clone().project(cam);return{x:(a.x+1)/2*cv.clientWid
 function raySegT(A,B){   // AB kesmaning kursor nuriga eng yaqin nuqtasi parametri (0..1)
   const O=ray.ray.origin,D=ray.ray.direction,u=B.clone().sub(A),w=A.clone().sub(O),a=u.dot(u),b=u.dot(D),d=u.dot(w),e=D.dot(w),den=a-b*b;
   if(a<1e-9||den<1e-9*a)return 0;return Math.max(0,Math.min(1,(b*e-d)/den))}
-function snapFind(e,excl){   // kursor atrofidagi eng yaqin magnit nishoni: {T,k}
-  const[mx,my]=cpos(e),ex=excl||new Set();let best=null;ndc(e);
-  const test=(T,k)=>{const s=scrOf(T);if(!s.ok)return;const d=Math.hypot(s.x-mx,s.y-my);if(d>SNAP_PX)return;
-    const c=d+SNAP_PEN[k]+s.z*.5;if(!best||c<best.c)best={T,k,c,seg:test.seg||null}};
-  for(const p of panels){if(p.hid||ex.has(p.id))continue;const G=geoOf(p);
-    if(snapM.end)G.end.forEach(T=>test(T,'end'));if(snapM.mid)G.mid.forEach(T=>test(T,'mid'));if(snapM.cen)G.cen.forEach(T=>test(T,'cen'));
-    if(snapM.edge)for(const[A,B]of G.edge){test.seg=[A,B];test(A.clone().lerp(B,raySegT(A,B)),'edge');test.seg=null}}
+/* Magnit nishonlari — tez va barqaror (ko'p panelli faylda ham):
+   • panel geometriyasi (geoOf) imzo bo'yicha keshlanadi — panel o'zgarmasa qayta hisoblanmaydi;
+   • sudrash boshida nishonlar «pool» ga bir marta yig'iladi va ekran koordinatasiga o'tkaziladi (kamera o'zgarsa — faqat qayta proyeksiya);
+   • skip — tanlovning BOSHLANG'ICH joyidagi nuqtalar: qo'shni panel burchagi ushlangan uch bilan ustma-ust bo'lsa, obyekt joyiga «yopishib»
+     qolmaydi (avval shu sababli sudrash qotib qolgandek bo'lardi). */
+const geoCache=new Map();
+function geoSig(p){return[p.x,p.y,p.z,p.w,p.h,p.t,p.o,p.m?p.m.join():'',p.rt?p.rt.join():'',p.ry||0,p.shape||'',p.c||0,p.pts?p.pts.join(';'):'',p.bw||0,p.bh||0,
+  p.ops?p.ops.filter(o=>o.k==='c'||o.k==='d').map(o=>o.k==='c'?o.pts.join(';')+(o.th?'t':o.z):o.u+','+o.v+o.f+(o.th?'t':'')).join('/'):'',flatV()?1:0].join('|')}
+function geoOfC(p){const sg=geoSig(p),c=geoCache.get(p.id);if(c&&c.s===sg)return c.G;const G=geoOf(p);geoCache.set(p.id,{s:sg,G});return G}
+const camKey=()=>[cam===ocam?1:0,R,tg.x,tg.y,tg.z,az,el,cv.clientWidth,cv.clientHeight].join('|');
+function snapPool(excl){   // nishonlar (dunyo) — ekran koordinatasi so'rovda kamera bo'yicha hisoblanadi
+  const ex=excl||new Set(),pts=[],segs=[];
+  for(const p of panels){if(p.hid||ex.has(p.id))continue;const G=geoOfC(p);
+    if(snapM.end)for(const T of G.end)pts.push({T,k:'end'});if(snapM.mid)for(const T of G.mid)pts.push({T,k:'mid'});if(snapM.cen)for(const T of G.cen)pts.push({T,k:'cen'});
+    if(snapM.edge)for(const sg of G.edge)segs.push(sg)}
+  return{pts,segs,key:null}}
+function poolProject(P){const k=camKey();if(P.key===k)return;P.key=k;cam.updateMatrixWorld();const v=new THREE.Vector3(),W=cv.clientWidth,H=cv.clientHeight;
+  const pr=T=>{v.copy(T).project(cam);return[(v.x+1)/2*W,(1-v.y)/2*H,v.z]};
+  for(const q of P.pts){const r=pr(q.T);q.sx=r[0];q.sy=r[1];q.z=r[2]}for(const sg of P.segs){const a=pr(sg[0]),b=pr(sg[1]);sg.s=[a,b]}}
+function snapFind(e,excl,pool,skip){   // kursor atrofidagi eng yaqin magnit nishoni: {T,k}
+  const[mx,my]=cpos(e);let best=null;ndc(e);const P=pool||snapPool(excl);poolProject(P);
+  const sk=typeof skip==='function'?skip:skip&&skip.length?skip:null,la=lockAx(),
+    isSkip=T=>{if(!sk)return false;if(typeof sk==='function')return sk(T);
+      for(const q of sk)if((la===0||Math.abs(q.x-T.x)<.5)&&(la===1||Math.abs(q.y-T.y)<.5)&&(la===2||Math.abs(q.z-T.z)<.5))return true;return false};   // 2D ko'rinishda chuqurlik bo'yicha orqadagi nuqtalar ham (ekranda ustma-ust)
+  const take=(T,k,d,z,seg)=>{if(z<=-1||z>=1)return;const c=d+SNAP_PEN[k]+z*.5;if(!best||c<best.c){if(isSkip(T))return;best={T,k,c,seg:seg||null}}};
+  for(const q of P.pts){const dx=q.sx-mx;if(dx>SNAP_PX||dx<-SNAP_PX)continue;const dy=q.sy-my;if(dy>SNAP_PX||dy<-SNAP_PX)continue;take(q.T,q.k,Math.hypot(dx,dy),q.z)}
+  for(const sg of P.segs){const[a,b]=sg.s,ex=b[0]-a[0],ey=b[1]-a[1],L=ex*ex+ey*ey;let t=L>1e-9?((mx-a[0])*ex+(my-a[1])*ey)/L:0;t=Math.max(0,Math.min(1,t));
+    const px=a[0]+ex*t,py=a[1]+ey*t,d=Math.hypot(px-mx,py-my);if(d>SNAP_PX)continue;take(sg[0].clone().lerp(sg[1],t),'edge',d,a[2]+(b[2]-a[2])*t,sg)}
+  const test=(T,k)=>{const s=scrOf(T);if(!s.ok)return;const d=Math.hypot(s.x-mx,s.y-my);if(d>SNAP_PX)return;take(T,k,d,s.z)};
   const GL=guides.map(g=>({G:new THREE.Vector3(...g.p),D:gDir(g)}));
   for(const{G,D}of GL){const A=G.clone().addScaledVector(D,-1e5),B=G.clone().addScaledVector(D,1e5);test(A.clone().lerp(B,raySegT(A,B)),'guide')}
   for(let i=0;i<GL.length;i++)for(let j=i+1;j<GL.length;j++){   // ikki yordamchi chiziq kesishgan nuqta
@@ -638,10 +660,10 @@ function snapFind(e,excl){   // kursor atrofidagi eng yaqin magnit nishoni: {T,k
   return best}
 function srcPts(ps){   // tanlovning manba nuqtalari (yoqilgan turlar: uch/o'rta/markaz)
   const o=[],m=snapM.end||snapM.mid||snapM.cen?snapM:{end:true};
-  for(const p of ps){const G=geoOf(p);if(m.end)o.push(...G.end);if(m.mid)o.push(...G.mid);if(m.cen)o.push(...G.cen)}return o}
+  for(const p of ps){const G=geoOfC(p);if(m.end)o.push(...G.end);if(m.mid)o.push(...G.mid);if(m.cen)o.push(...G.cen)}return o}
 function ownSnap(e,ps){   // bosilgan joy yaqinidagi tanlovning o'z nuqtasi — tayanch nuqta (3ds Max kabi): {T,k}
   const[mx,my]=cpos(e),m=snapM.end||snapM.mid||snapM.cen?snapM:{end:true};let best=null;
-  for(const p of ps){const G=geoOf(p);
+  for(const p of ps){const G=geoOfC(p);
     for(const k of['end','mid','cen'])if(m[k])for(const T of G[k]){const s=scrOf(T);if(!s.ok)continue;const d=Math.hypot(s.x-mx,s.y-my);if(d>SNAP_PX)continue;
       const c=d+SNAP_PEN[k]+s.z*.5;if(!best||c<best.c)best={T,k,c}}}
   return best}
@@ -672,7 +694,7 @@ function movePlace(e){
   if(mag){hit=snapFind(e,pm.p?new Set([pm.p.id]):null);if(hit)c.add(conApply(hit.T.clone().sub(c.clone().sub(new THREE.Vector3(...ex).multiplyScalar(.5))),null))}
   if(!pm.p){pm.p=add({n:'Panel',w:TPL[0].w,h:TPL[0].h,o,x:c.x,y:c.y,z:c.z});paint()}else{pm.p.x=c.x;pm.p.y=c.y;pm.p.z=c.z;place(pm.p)}
   showSnap(hit);dirtyR=true}
-const TOOLH={joint:"Furnitura: ulanish chiziqlari rangli (to'q sariq — yevrovint, yashil — ekssentrik, moviy — shkant, binafsha — polkaderjatel, kulrang — fasad/paz). Yuqoridan turni tanlab chiziqni bosing; ramka (bo'sh joydan sudrash) yoki Shift — bir nechtasini tanlab, keyin tur tugmasi (masalan «Yo'q»); Esc — tanlovni tozalash",edge:"Kromka: panel qirrasiga olib boring (moviy chiziq) va bosing — kromka qo'yiladi/olinadi. Qalinlik: Panel ▸ Kromka",stretch:"Stretch: burchak nuqtalarini ramka bilan (yoki bosib, Shift — qo'shish) belgilang, so'ng nuqtani sudrang yoki pastdagi X/Y/Z masofani kiriting. Panel tanlangan bo'lsa faqat shularning nuqtalari",ruler:"Lineyka: A va B nuqtani bosing — magnit nimani ushlagani (Uch, O'rta, Markaz, Qirra — qirra yonadi) belgida yoziladi, o'lchangan nuqtalar belgisi qoladi. Esc — tozalash",guide:"Yordamchi chiziq (SketchUp kabi): A nuqtani, keyin B nuqtani bosing — chiziq A va B dan o'tib cheksiz davom etadi (Ortho — X/Y/Z o'qi bo'ylab, Free — istalgan yo'nalish). Magnit uchlar va kesishishlarga yopishadi. Tanlash — Select (V) da chiziqni bosing, Delete — o'chirish",select:"Tanlash: panelga bosing yoki bo'sh joyda ramka torting (chapdan o'ngga — to'liq ichida, o'ngdan chapga — tegib o'tgan). Shift — qo'shish. Ko'chirish strelkalari (o'q/tekislik) — Move asbobida (M)",move:"Ko'chirish: strelka (o'q), rangli kvadrat (tekislik), oq markaz yoki panelni sudrang. Panelni uchidan ushlasangiz — shu uch nishonga aynan tushadi. Sudrayotganda: X/Y/Z — o'q, Shift+X/Y/Z — tekislik, raqam — aniq masofa, Enter — tasdiq, Esc / o'ng tugma — bekor",rotate:"Aylantirish: halqani sudrang — Free: erkin burchak (Ctrl — butun gradus 1°, 2° …; raqam yozib Enter — aniq burchak), Ortho (O): 90° qadam; panelga bosing — ko'rinish o'qi atrofida 90° (Shift — teskari)",scale:"Masshtab: o'q uchidagi kubni (bitta yo'nalish) yoki markaziy sariq kubni (hamma yo'nalish) sudrang. Qalinlik o'zgarmaydi"};
+const TOOLH={joint:"Furnitura: ulanish chiziqlari rangli (to'q sariq — yevrovint, yashil — ekssentrik, moviy — shkant, binafsha — polkaderjatel, kulrang — fasad/paz). Yuqoridan turni tanlab chiziqni bosing; ramka (bo'sh joydan sudrash) yoki Shift — bir nechtasini tanlab, keyin tur tugmasi (masalan «Yo'q»); Esc — tanlovni tozalash",edge:"Kromka: panel qirrasiga olib boring (moviy chiziq) va bosing — kromka qo'yiladi/olinadi. Qalinlik: Panel ▸ Kromka",stretch:"Stretch: burchak nuqtalarini ramka bilan (yoki bosib, Shift — qo'shish) belgilang, so'ng nuqtani sudrang yoki pastdagi X/Y/Z masofani kiriting. Panel tanlangan bo'lsa faqat shularning nuqtalari",ruler:"Lineyka: A va B nuqtani bosing — magnit nimani ushlagani (Uch, O'rta, Markaz, Qirra — qirra yonadi) belgida yoziladi, o'lchangan nuqtalar belgisi qoladi. Esc — tozalash",guide:"Yordamchi chiziq (SketchUp kabi): A nuqtani, keyin B nuqtani bosing — chiziq A va B dan o'tib cheksiz davom etadi (Ortho — X/Y/Z o'qi bo'ylab, Free — istalgan yo'nalish). Magnit uchlar va kesishishlarga yopishadi. Tanlash — Select (V) da chiziqni bosing, Delete — o'chirish",select:"Tanlash: panelga bosing yoki bo'sh joyda ramka torting (chapdan o'ngga — to'liq ichida, o'ngdan chapga — tegib o'tgan). Shift — qo'shish. Ko'chirish strelkalari (o'q/tekislik) — Move asbobida (M)",move:"Ko'chirish: strelka (o'q), rangli kvadrat (tekislik), oq markaz yoki panelni sudrang. Strelka/kvadratni BIR MARTA bosing — yo'nalish qulflanadi (sariq), keyingi sudrashlar shu yo'nalishda (oq markaz — erkin). Panelni uchidan ushlasangiz — shu uch nishonga aynan tushadi. Sudrayotganda: X/Y/Z — o'q, Shift+X/Y/Z — tekislik, raqam — aniq masofa, Enter — tasdiq, Esc / o'ng tugma — bekor",rotate:"Aylantirish: halqani sudrang — Free: erkin burchak (Ctrl — butun gradus 1°, 2° …; raqam yozib Enter — aniq burchak), Ortho (O): 90° qadam; panelga bosing — ko'rinish o'qi atrofida 90° (Shift — teskari)",scale:"Masshtab: o'q uchidagi kubni (bitta yo'nalish) yoki markaziy sariq kubni (hamma yo'nalish) sudrang. Qalinlik o'zgarmaydi"};
 function setTool(t){tool=t;hideSnap();[['Sel','select'],['Mov','move'],['Rot','rotate'],['Scl','scale'],['Str','stretch'],['Edg','edge'],['Jnt','joint']].forEach(([i,n])=>{const b=q('#p3t'+i);if(b)b.classList.toggle('on',n===t)});q('#p3mkRul').classList.toggle('on',t==='ruler');q('#p3mkGd').classList.toggle('on',t==='guide');if(t!=='ruler')clearRuler();if(t!=='guide'&&(gdraw||gPrev)){gdraw=null;gPrevClear()}if(t!=='edge')edgeClear();if(t==='joint')jointShow();else{jointClear();jSel.clear();jointBar()}if(!pm&&!dr)q('#p3hint').textContent=TOOLH[t];dirtyR=true}
 const viewAxis=()=>vname==='front'||vname==='back'?2:vname==='left'||vname==='right'?0:1;
 function screenBox(p){const r=cv.getBoundingClientRect();let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
@@ -712,13 +734,21 @@ function scaleMove(e){
 function props_dims(){const p=cur();if(!p)return;for(const k of['w','h']){const i=q('#p3f_'+k);if(i)i.value=+p[k].toFixed(2)}}
 const GZ_COL=[0xff5555,0x55dd77,0x5599ff],GZ_HOT=0xffe14d;
 let gzAx=[],gzPl=[],gzHot=null,xfLine=null,c3=null,c3obj=null,pivot='center';
+/* Qulflangan yo'nalish (Move): strelka (o'q) yoki rangli kvadrat (tekislik) bir marta bosilsa — keyingi sudrashlar (panelni uchidan
+   ushlab ham) aynan shu yo'nalishda bo'ladi; zoom / ko'rinish almashsa ham o'zgarmaydi. Oq markaz yoki shu dastani qayta bosish — erkin. */
+let mvLock=null;
+const lockId=c=>c?(c.ax>=0?c.ax:c.n>=0?3+c.n:null):null,lockName=c=>c.ax>=0?AXN[c.ax]+" o'qi":AXN.filter((_,i)=>i!==c.n).join('')+' tekisligi';
+function lockUsable(c){if(!c||!cam)return false;const dir=cam.getWorldDirection(new THREE.Vector3());   // ko'rish yo'nalishiga parallel o'q / qirrasidan ko'rinayotgan tekislik — sudrab bo'lmaydi
+  return c.ax>=0?Math.abs(dir.getComponent(c.ax))<.985:Math.abs(dir.getComponent(c.n))>.15}
+function setLock(c){mvLock=c&&lockId(c)!==null?{ax:c.ax,n:c.n}:null;gzTint();dirtyR=true;if(!wrap)return;
+  say(mvLock?`Yo'nalish qulflandi: ${lockName(mvLock)} — panelni (uchidan ham) sudrang, shu yo'nalishda suriladi · oq markaz yoki shu dastani qayta bosish — erkin`:"Yo'nalish qulfi olindi — erkin ko'chirish")}
 function buildGizmo(){
   gz=new THREE.Group();const cols=GZ_COL;
   const inv=()=>new THREE.MeshBasicMaterial({visible:false}),mk=(c,o)=>{const m=new THREE.MeshBasicMaterial({color:c,depthTest:false,transparent:true,opacity:o||1,side:THREE.DoubleSide});m.userData.col=c;m.userData.op=o||1;return m};   // ingichka dastalar; ushlash zonasi (inv) keng qoladi
   // Ko'chirish: X/Y/Z strelkalari (ax 0..2), tekislik kvadratlari (ax 3..5 = normal o'qi 0..2), oq markaz — ekran tekisligi (ax 6)
   for(let a=0;a<3;a++){const g=new THREE.Group(),mat=mk(cols[a]);
-    const sh=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.1,84,6),mat),co=new THREE.Mesh(new THREE.ConeGeometry(5,20,12),mat),hit=new THREE.Mesh(new THREE.CylinderGeometry(16,16,130,6),inv());
-    sh.position.y=42;co.position.y=94;hit.position.y=65;[sh,co,hit].forEach(m=>{m.renderOrder=998;m.userData.ax=a});g.add(sh,co,hit);
+    const sh=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.1,84,6),mat),co=new THREE.Mesh(new THREE.ConeGeometry(5,20,12),mat),hit=new THREE.Mesh(new THREE.CylinderGeometry(16,16,112,6),inv());
+    sh.position.y=42;co.position.y=94;hit.position.y=74;[sh,co,hit].forEach(m=>{m.renderOrder=998;m.userData.ax=a});g.add(sh,co,hit);
     if(a===0)g.rotation.z=-Math.PI/2;else if(a===2)g.rotation.x=Math.PI/2;gz.add(g);gzAx[a]=g}
   for(let n=0;n<3;n++){const g=new THREE.Group(),sq=new THREE.Mesh(new THREE.PlaneGeometry(20,20),mk(cols[n],.4)),ht=new THREE.Mesh(new THREE.PlaneGeometry(34,34),inv());
     [sq,ht].forEach(m=>{m.renderOrder=998;m.userData.ax=3+n});g.add(sq,ht);
@@ -755,10 +785,14 @@ function updateGizmo(){
 function gzTint(){
   const c=act&&act.k==='xf'?act.con:act&&act.k==='stretch'&&act.gcon?act.gcon:null,on=c?(c.ax>=0?c.ax:c.n>=0?3+c.n:6):null;
   for(const G of[gz,gzR,gzS])if(G)G.traverse(o=>{const m=o.material;if(!m||!m.userData||m.userData.col===undefined)return;
-    const hot=on!==null?o.userData.ax===on:(o.userData.ax===gzHot&&G===activeGizmo());m.color.setHex(hot?GZ_HOT:m.userData.col);m.opacity=on!==null&&!hot?.18:m.userData.op})}
-const gizmoHits=(AG,hs)=>hs.filter(h=>{for(let o=h.object;o&&o!==AG;o=o.parent)if(!o.visible)return false;return true});
+    const lk=G===gz&&tool==='move'&&mvLock?lockId(mvLock):null,hot=on!==null?o.userData.ax===on:(G===activeGizmo()&&(o.userData.ax===gzHot||o.userData.ax===lk));m.color.setHex(hot?GZ_HOT:m.userData.col);m.opacity=on!==null&&!hot?.18:m.userData.op})}
+/* Ushlash zonalari ustma-ust tushsa barqaror tartib: Move — oq markaz > tekislik kvadrati > o'q strelkasi (masofaga emas, dasta turiga qarab;
+   aks holda markazni bosganda kamera burchagiga qarab goh strelka, goh markaz ushlanardi) */
+const gzPri=ax=>ax===6?0:ax>=3?1:2;
+const gizmoHits=(AG,hs)=>{const v=hs.filter(h=>{for(let o=h.object;o&&o!==AG;o=o.parent)if(!o.visible)return false;return true});
+  return AG===gz?v.map((h,i)=>({h,i})).sort((a,b)=>gzPri(a.h.object.userData.ax)-gzPri(b.h.object.userData.ax)||a.i-b.i).map(x=>x.h):v};
 function gizmoHover(e){   // sichqoncha ostidagi gizmo dastasi sariq bo'ladi (3ds Max / Blender kabi)
-  const AG=activeGizmo();let ax=null;
+  updateGizmo();const AG=activeGizmo();let ax=null;
   if(AG){AG.updateMatrixWorld(true);ndc(e);const h=gizmoHits(AG,ray.intersectObject(AG,true))[0];if(h)ax=h.object.userData.ax}
   if(ax===gzHot)return;gzHot=ax;
   gzTint();cv.style.cursor=ax!==null?'pointer':'';dirtyR=true}
@@ -773,9 +807,13 @@ function xfRaw(a){if(a.A){const t=axisT(a.P0,a.A);return t==null?null:a.A.clone(
 function xfRebase(a){xfFrame(a);ndc({clientX:a.x0,clientY:a.y0});a.r0=xfRaw(a)||new THREE.Vector3();ndc({clientX:a.lx,clientY:a.ly})}
 function xfStart(e,ps,o){
   if(!ps.length)return null;
-  const a={k:'xf',base:ps.map(p=>({p,x:p.x,y:p.y,z:p.z})),P0:o.P0.clone(),src:o.src?o.src.clone():null,con:o.con||{ax:-1,n:-1},auto:!!o.auto,
+  const a={k:'xf',base:ps.map(p=>({p,x:p.x,y:p.y,z:p.z})),P0:o.P0.clone(),src:o.src?o.src.clone():null,con:o.con||{ax:-1,n:-1},auto:!!o.auto,lk:!!o.lk,
     typed:'',x0:e.clientX,y0:e.clientY,lx:e.clientX,ly:e.clientY,d:new THREE.Vector3(),hit:null};
-  a.srcs=srcPts(ps);xfRebase(a);act=a;xfLineShow();xfHud();return a}
+  a.srcs=srcPts(ps);a.pool=snapPool(new Set(ps.map(p=>p.id)));
+  // boshlang'ich joy — nishon emas: siljishi (cheklov va 2D chuqurlik qulfidan keyin) nolga teng bo'ladigan nishon tashlab yuboriladi —
+  // aks holda qo'shni panel burchagi (yoki Front/Top da uning orqasidagi nuqta) obyektni joyiga «yopishtirib» qo'yardi
+  const ss=a.src?[a.src.clone()]:a.srcs.map(q=>q.clone());a.skip=T=>{for(const Q of ss)if(conApply(T.clone().sub(Q),a.con).lengthSq()<.25)return true;return false};
+  xfRebase(a);act=a;xfLineShow();xfHud();return a}
 function xfDomAx(a){const m=[a.d.x,a.d.y,a.d.z].map(Math.abs),mx=Math.max(...m);return mx>0?m.indexOf(mx):(lockAx()===0?2:0)}
 function xfUpdate(e){
   const a=act;if(e){a.lx=e.clientX;a.ly=e.clientY}const ev={clientX:a.lx,clientY:a.ly};ndc(ev);
@@ -786,9 +824,9 @@ function xfUpdate(e){
     if(a.auto&&a.con.ax<0&&a.con.n<0){   // Ortho: 8 px dan keyin asosiy o'q avtomatik tanlanadi
       if(Math.hypot(a.lx-a.x0,a.ly-a.y0)<8){d=new THREE.Vector3()}
       else{const r=xfRaw(a);if(!r)return;r.sub(a.r0);const m=[r.x,r.y,r.z].map(Math.abs);a.con={ax:m.indexOf(Math.max(...m)),n:-1};xfRebase(a);xfLineShow()}}
-    if(!d){const r=xfRaw(a);if(!r)return;d=conApply(r.sub(a.r0),a.con)}
+    if(!d){const r=xfRaw(a);if(!r)return;r.sub(a.r0);a.raw=r.clone();d=conApply(r,a.con)}
     const st=num(q('#p3step').value);if(st)d.set(Math.round(d.x/st)*st,Math.round(d.y/st)*st,Math.round(d.z/st)*st);
-    if(mag){const h=snapFind(ev,new Set(a.base.map(b=>b.p.id)));
+    if(mag){const h=snapFind(ev,null,a.pool,a.skip);
       if(h){d=a.src?conApply(h.T.clone().sub(a.src),a.con):snapShift(a.srcs,d,h.T,a.con);a.hit=h}}}
   a.d.copy(d);
   for(const b of a.base){b.p.x=b.x+d.x;b.p.y=b.y+d.y;b.p.z=b.z+d.z;place(b.p)}
@@ -804,9 +842,18 @@ function xfLineShow(){
   const a=act;if(!a||a.k!=='xf'||a.con.ax<0)return;const A=new THREE.Vector3();A.setComponent(a.con.ax,1);
   xfLine=new THREE.Line(new THREE.BufferGeometry().setFromPoints([a.P0.clone().addScaledVector(A,-1e5),a.P0.clone().addScaledVector(A,1e5)]),
     new THREE.LineBasicMaterial({color:GZ_COL[a.con.ax],depthTest:false,transparent:true,opacity:.8}));xfLine.renderOrder=995;scene.add(xfLine);dirtyR=true}
+function xfRezoom(){const a=act;if(!a||a.k!=='xf')return;ndc({clientX:a.lx,clientY:a.ly});const r=xfRaw(a);   // g'ildirak sudrash paytida: obyekt joyida qoladi, siljish yangi masshtabda davom etadi
+  if(r&&a.raw){a.r0=r.sub(a.raw);xfUpdate()}}
 function xfSetCon(con){const a=act;a.con=con;a.tax=null;xfRebase(a);xfLineShow();xfUpdate()}
 function xfStop(){act=null;xfLineShow();hideSnap();if(wrap)q('#p3hint').textContent=TOOLH[tool]||HINT}
-function xfEnd(){const a=act;xfStop();if(a.dup||a.d.lengthSq()>1e-12)changed();props();if(a.dup&&tool!=='move')setTool('move')}   // nusxa qo'yilgach Move — strelkalar bilan o'q/tekislik bo'yicha davom ettirish
+/* xfEnd: nusxa qo'yilgach Move — strelkalar bilan o'q/tekislik bo'yicha davom ettirish.
+   Dastani BOSISH (sudramasdan, < 4 px) — obyekt joyida qoladi va yo'nalish qulflanadi (3ds Max kabi doimiy cheklov);
+   qulflangan dastani yoki oq markazni qayta bosish — qulf olinadi. Dastani sudrash — bir martalik, qulfni o'zgartirmaydi. */
+function xfEnd(){const a=act;xfStop();const click=!!a.gzc&&Math.hypot(a.lx-a.x0,a.ly-a.y0)<4;
+  if(click)for(const b of a.base){b.p.x=b.x;b.p.y=b.y;b.p.z=b.z;place(b.p)}
+  else if(a.dup||a.d.lengthSq()>1e-12)changed();
+  props();if(a.dup&&tool!=='move')setTool('move');
+  if(click){const id=lockId(a.gzc.con);setLock(id===null||a.gzc.was===id?null:a.gzc.con)}}
 function xfCancel(){const a=act;
   if(a.dup){const del=new Set(a.dup);for(const p of panels)if(del.has(p.id)&&p.g&&P)P.remove(p.g);panels=panels.filter(p=>!del.has(p.id));   // nusxa bekor — o'chadi
     xfStop();msel=a.orig.filter(id=>panels.some(p=>p.id===id));sel=msel[msel.length-1]||null;paint();props();list();say('Nusxa bekor qilindi');dirtyR=true;return}
@@ -818,7 +865,8 @@ function xfKey(e){   // sudrash davomida klaviatura (Blender kabi)
   else if(k==='-')a.typed=a.typed.startsWith('-')?a.typed.slice(1):'-'+a.typed;
   else if(k==='Backspace')a.typed=a.typed.slice(0,-1);
   else if(/^[xyz]$/i.test(k)){const ax='xyz'.indexOf(k.toLowerCase()),c=a.con;
-    xfSetCon(e.shiftKey?(c.n===ax?{ax:-1,n:-1}:{ax:-1,n:ax}):(c.ax===ax?{ax:-1,n:-1}:{ax,n:-1}));a.auto=false;return true}
+    const off=!a.lk;a.lk=false;   // qulfdan kelgan cheklov bilan bir xil tugma — o'chirmaydi (qulf saqlanadi)
+    xfSetCon(e.shiftKey?(c.n===ax&&off?{ax:-1,n:-1}:{ax:-1,n:ax}):(c.ax===ax&&off?{ax:-1,n:-1}:{ax,n:-1}));a.auto=false;return true}
   else if(k==='Enter'){xfEnd();return true}
   else if(k==='Escape'){xfCancel();return true}
   else if(k===' '){toggleMag()}
@@ -1114,24 +1162,24 @@ function startStretch(e,g){   // g — ushlangan nuqta: u kursorga ergashadi va 
   const sel=stretchCands().filter(c=>vsel.has(c.key));if(!sel.length)return;
   const ids=[...new Set(sel.map(c=>c.p.id))],first=(g&&vsel.has(g.key)?g:sel[0]).w.clone();
   const pl=new THREE.Plane().setFromNormalAndCoplanarPoint(cam.getWorldDirection(new THREE.Vector3()),first),pt=new THREE.Vector3();ndc(e);ray.ray.intersectPlane(pl,pt);
-  act={k:'stretch',bases:ids.map(id=>snapBase(panels.find(a=>a.id===id))),vs:[...vsel],pl,pt,ax:-1,first,x0:e.clientX,y0:e.clientY}}
+  act={k:'stretch',bases:ids.map(id=>snapBase(panels.find(a=>a.id===id))),vs:[...vsel],pl,pt,ax:-1,first,x0:e.clientX,y0:e.clientY,pool:snapPool(new Set(ids)),skip:sel.map(c=>c.w.clone())}}
 function startStretchG(e,ax){   // gizmo bilan: o'q (0..2), tekislik (3..5 — normal), markaz (6 — ekran tekisligi)
   const sel=stretchCands().filter(c=>vsel.has(c.key));if(!sel.length)return;const ids=[...new Set(sel.map(c=>c.p.id))],P0=gz.position.clone();
   const gcon=ax<3?{ax,n:-1}:ax<6?{ax:-1,n:ax-3}:{ax:-1,n:-1},n=new THREE.Vector3();if(gcon.n>=0)n.setComponent(gcon.n,1);else cam.getWorldDirection(n);
   const A=gcon.ax>=0?new THREE.Vector3().setComponent(gcon.ax,1):null;ndc(e);
   const pl=new THREE.Plane().setFromNormalAndCoplanarPoint(n,P0),pt=new THREE.Vector3();if(!A&&!ray.ray.intersectPlane(pl,pt))pt.copy(P0);
-  act={k:'stretch',bases:ids.map(id=>snapBase(panels.find(a=>a.id===id))),vs:[...vsel],pl,pt,ax:gcon.ax,gcon,A,P0,t0:A?axisT(P0,A)||0:0,first:sel[0].w.clone(),x0:e.clientX,y0:e.clientY};gzTint()}
+  act={k:'stretch',bases:ids.map(id=>snapBase(panels.find(a=>a.id===id))),vs:[...vsel],pl,pt,ax:gcon.ax,gcon,A,P0,t0:A?axisT(P0,A)||0:0,first:sel[0].w.clone(),x0:e.clientX,y0:e.clientY,pool:snapPool(new Set(ids)),skip:sel.map(c=>c.w.clone())};gzTint()}
 function stretchMove(e){
   if(act.gcon){ndc(e);let d;const st=num(q('#p3step').value),rs=x=>st?Math.round(x/st)*st:x;
     if(act.A){const t=axisT(act.P0,act.A);if(t==null)return;d=act.A.clone().multiplyScalar(t-act.t0)}else{const v=new THREE.Vector3();if(!ray.ray.intersectPlane(act.pl,v))return;d=v.sub(act.pt)}
     conApply(d,act.gcon);d.set(rs(d.x),rs(d.y),rs(d.z));
-    let hit=null;if(mag){hit=snapFind(e,new Set(act.bases.map(b=>b.p.id)));if(hit)d.copy(conApply(hit.T.clone().sub(act.first),act.gcon))}
+    let hit=null;if(mag){hit=snapFind(e,null,act.pool,act.skip);if(hit)d.copy(conApply(hit.T.clone().sub(act.first),act.gcon))}
     showSnap(hit);for(const b of act.bases)applyStretchD(b,act.vs,d);
     q('#p3hint').textContent=`Stretch ${act.A?'XYZ'[act.gcon.ax]+' o\'qi':act.gcon.n>=0?'tekislik ⊥'+'XYZ'[act.gcon.n]:'ekran'}: ΔX ${f1(d.x)}  ΔY ${f1(d.y)}  ΔZ ${f1(d.z)} mm`;dirtyR=true;return}
   ndc(e);const v=new THREE.Vector3();if(!ray.ray.intersectPlane(act.pl,v))return;const d=v.sub(act.pt),st=num(q('#p3step').value),rs=x=>st?Math.round(x/st)*st:x;
   if(ortho){const a=[d.x,d.y,d.z].map(Math.abs);if(act.ax<0){if(Math.hypot(e.clientX-act.x0,e.clientY-act.y0)<8)return;act.ax=a.indexOf(Math.max(...a))}for(let i=0;i<3;i++)if(i!==act.ax)d.setComponent(i,0)}
   conApply(d,null);d.set(rs(d.x),rs(d.y),rs(d.z));
-  let hit=null;if(mag){hit=snapFind(e,new Set(act.bases.map(b=>b.p.id)));if(hit)d.copy(conApply(hit.T.clone().sub(act.first),ortho&&act.ax>=0?{ax:act.ax,n:-1}:null))}
+  let hit=null;if(mag){hit=snapFind(e,null,act.pool,act.skip);if(hit)d.copy(conApply(hit.T.clone().sub(act.first),ortho&&act.ax>=0?{ax:act.ax,n:-1}:null))}
   showSnap(hit);
   for(const b of act.bases)applyStretchD(b,act.vs,d);dirtyR=true}
 function stretchEnd(){hideSnap();props();list();changed();gzTint()}   // nuqtalar tanlovi qoladi — keyingi strelka bilan davom etish mumkin (Esc / bo'sh joy — tozalash)
@@ -1360,7 +1408,16 @@ function toggleMag(){mag=!mag;const b=q('#p3bMag');if(b)b.classList.toggle('on',
 function startPlace(){if(dr)endDraw();cancelPlace();if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();pm={o:viewOri(),p:null};q('#p3hint').textContent="Panel kursorda (chap-past burchagi bilan): joyiga bosib qo'ying — burchak magnit nishoniga aynan tushadi · Probel — magnit · Esc — bekor";}
 function cancelPlace(){hideSnap();if(!pm)return;if(pm.p)del(pm.p);pm=null;q('#p3hint').textContent=HINT}
 function onDown(e){
-  cv.setPointerCapture(e.pointerId);
+  try{cv.setPointerCapture(e.pointerId)}catch(_){}
+  if(act&&act.btn&&act.k!=='xf')abortAct();   // oldingi amal «osilib» qolgan bo'lsa (tugma oyna tashqarisida qo'yilgan) — avval yakunlanadi
+  const a0=act;onDown0(e);if(act&&act!==a0)act.btn=true}
+/* Barqarorlik: sichqoncha tugmasi oyna tashqarisida qo'yilsa, Alt+Tab, dialog yoki pointer yo'qolsa — faol amal (sudrash, ramka,
+   orbit, siljitish) yakunlanadi. Aks holda keyingi bosish e'tiborsiz qolar yoki ko'rinish tugmasiz harakatlanar edi («funksiya unutildi»). */
+function abortAct(){if(!act)return;const a=act;
+  if(a.k==='xf'){if(a.dup)xfEnd();else xfCancel();return}   // ko'chirish — bekor (joyiga), nusxa — qo'yiladi
+  if(a.k==='stretch'||a.k==='scale'||a.k==='rotg'||a.k==='rect'){onUp();return}
+  act=null;hideSnap();dirtyR=true}
+function onDown0(e){
   if(act&&act.k==='xf'){if(e.button===2)xfCancel();return}   // sudrash davomida o'ng tugma — bekor (3ds Max / Blender kabi)
   if(e.button===2&&e.shiftKey&&!pm&&!dr){placeCursor(e);return}
   if(pm&&e.button===0&&!e.shiftKey){if(!pm.p)movePlace(e);const p=pm.p;pm=null;hideSnap();q('#p3hint').textContent=HINT;if(p){select(p.id);changed()}return}
@@ -1386,15 +1443,18 @@ function onDown(e){
   if(tool==='edge'&&e.button===0){const h=edgePick(e);if(h)edgeToggle(h);return}
   if(tool==='joint'&&e.button===0){const l=jointPick(e);if(l){jointClick(l,e.shiftKey);return}   // bo'sh joydan sudrash — ramka bilan ulanishlarni tanlash
     act={k:'rect',j:true,x0:cx,y0:cy,x:cx,y:cy,add:e.shiftKey||e.ctrlKey,moved:0};return}
-  const AG=activeGizmo();
+  updateGizmo();const AG=activeGizmo();
   if(e.button===0&&AG){AG.updateMatrixWorld(true);ndc(e);const gh=gizmoHits(AG,ray.intersectObject(AG,true))[0];
     if(gh){const ax=gh.object.userData.ax;
-      if(tool==='move')xfStart(e,selected(),{P0:gz.position,con:ax<3?{ax,n:-1}:ax<6?{ax:-1,n:ax-3}:{ax:-1,n:-1},auto:ax===6&&ortho});
+      if(tool==='move'){const con=ax<3?{ax,n:-1}:ax<6?{ax:-1,n:ax-3}:{ax:-1,n:-1},a=xfStart(e,selected(),{P0:gz.position,con,auto:ax===6&&ortho&&!mvLock});if(a)a.gzc={con,was:lockId(mvLock)}}
       else if(tool==='rotate')startRotG(e,ax);else startScale(e,ax);return}}
   if(e.button===0&&tool==='select'){const gi=guidePick(e);   // yordamchi chiziqni tanlash (Shift — qo'shish), Delete — o'chirish
     if(gi>=0){if(!(e.shiftKey||e.ctrlKey))gsel.clear();gsel.has(gi)&&(e.shiftKey||e.ctrlKey)?gsel.delete(gi):gsel.add(gi);drawGuides();say(`Yordamchi chiziq tanlandi (${gsel.size}) — Delete: o'chirish, Esc: bekor`);return}
     if(gsel.size&&!(e.shiftKey||e.ctrlKey)){gsel.clear();drawGuides()}}
-  const id=pick(e);
+  let id=pick(e);
+  if(tool==='move'&&msel.length&&!(e.shiftKey||e.ctrlKey)&&!msel.includes(id)){   // Move: tanlov ustun — ostida/yonida boshqa (ingichka) panel bo'lsa ham tanlangan obyekt ushlanadi
+    ndc(e);const hs=ray.intersectObjects(P.children,true).find(x=>msel.includes(x.object.userData.pid));
+    if(hs)id=hs.object.userData.pid;else if(ownSnap(e,selected()))id=msel.includes(sel)?sel:msel[0]}
   if(id){
     const add=(e.shiftKey||e.ctrlKey)&&tool!=='rotate';
     if(tool==='rotate'){if(!msel.includes(id))select(id);rotateSel(selected(),viewAxis(),e.shiftKey?-1:1,true);return}
@@ -1403,11 +1463,12 @@ function onDown(e){
     if(tool==='move'){   // panelni sudrash: uchidan ushlansa — shu uch tayanch nuqta (nishonga aynan tushadi), aks holda kursor ostidagi nuqta
       const p=panels.find(a=>a.id===id),ps=grp?panels.filter(a=>!a.hid):(msel.length>1?selected():[p]),gs=mag?ownSnap(e,ps):null,g=gs&&gs.T;let P0=g;
       if(!P0){ndc(e);P0=new THREE.Vector3();if(!ray.ray.intersectPlane(new THREE.Plane().setFromNormalAndCoplanarPoint(cam.getWorldDirection(new THREE.Vector3()),new THREE.Vector3(p.x,p.y,p.z)),P0))P0.set(p.x,p.y,p.z)}
-      xfStart(e,ps,{P0,src:g,auto:ortho})}
+      const lk=mvLock&&lockUsable(mvLock)?{ax:mvLock.ax,n:mvLock.n}:null;xfStart(e,ps,{P0,src:g,con:lk,lk:!!lk,auto:ortho&&!lk})}
     else if(tool==='scale')startScale(e);
     return}
   act={k:'rect',x0:cx,y0:cy,x:cx,y:cy,add:e.shiftKey||e.ctrlKey,moved:0}}
 function onMove(e){
+  if(act&&act.btn&&e.buttons===0&&e.pointerType!=='touch'){onUp(e);return}   // tugma ko'rinmasdan qo'yilgan — amal yakunlanadi
   if(pm&&!act){movePlace(e);return}
   if(tool==='ruler'&&!act&&!dr){rulerMove(e);return}
   if(tool==='guide'&&!act&&!dr){guideMove(e);return}
@@ -1915,7 +1976,7 @@ function snapshot(){
   const big=lines.reduce((s,l)=>s+l.p.length,0)>60000;
   return{v:1,T,uid,guides,pl:planeMode,mc:Object.keys(matCol).length?{...matCol}:undefined,ms:Object.keys(matSheet).length?JSON.parse(JSON.stringify(matSheet)):undefined,dp:q&&wrap&&q('#p3dxD')?q('#p3dxD').value:'500',panels:panels.map(({g,...r})=>JSON.parse(JSON.stringify(r))),lines:big?[]:lines}}
 function load(d){
-  if(act&&act.k==='xf')xfStop();act=null;   // faol sudrash eski panellarga bog'lanib qolmasin
+  if(act&&act.k==='xf')xfStop();act=null;mvLock=null;   // faol sudrash eski panellarga bog'lanib qolmasin
   if(inited){for(const p of panels)if(p.g)P.remove(p.g)}
   panels=[];sel=null;msel=[];lines=[];guides=[];gsel.clear();gdraw=null;dr=null;matCol={};matSheet={};if(d&&d.ms&&typeof d.ms==='object')for(const k in d.ms){const o=d.ms[k];if(o&&+o.L>0&&+o.W>0)matSheet[k]={L:+o.L,W:+o.W}}vsel.clear();if(d&&d.mc&&typeof d.mc==='object')for(const k in d.mc)if(/^#[0-9a-f]{6}$/i.test(d.mc[k]))matCol[k]=d.mc[k];
   if(d&&Array.isArray(d.panels)){T=d.T>0?d.T:16;uid=d.uid||1;
@@ -2175,7 +2236,9 @@ function ensure(){
   selMat=fillMat.clone();ebMat=new THREE.MeshBasicMaterial({color:0xffb454,side:THREE.DoubleSide,transparent:true,opacity:.3,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});/* kromka tasmasi yarim shaffof — orqadagi panel chegarasi ko'rinadi */ebLine=new THREE.LineBasicMaterial({color:0xffb454});grainMat=new THREE.LineBasicMaterial({color:0xc9a063,transparent:true,opacity:.75});opsMat=new THREE.LineBasicMaterial({color:0xff8a1f});opsMat2=new THREE.LineBasicMaterial({color:0xe04fd0});lineMat=new THREE.LineBasicMaterial();selLine=new THREE.LineBasicMaterial();dxfMat=new THREE.LineBasicMaterial();
   cv.style.cssText='display:block;width:100%;height:100%;touch-action:none';
   cv.oncontextmenu=e=>e.preventDefault();cv.onpointerdown=onDown;cv.onpointermove=onMove;cv.onpointerup=onUp;
-  cv.onwheel=e=>{e.preventDefault();zoomAt(e,Math.exp(e.deltaY*.001))};
+  cv.onpointercancel=()=>{if(act&&act.btn)abortAct()};cv.onlostpointercapture=()=>{if(act&&act.btn)onUp()};
+  window.addEventListener('blur',()=>{if(act&&act.btn)abortAct()});
+  cv.onwheel=e=>{e.preventDefault();zoomAt(e,Math.exp(e.deltaY*.001));if(act&&act.k==='xf')xfRezoom()};
   cv.ondblclick=e=>{if(tool==='rotate'||tool==='scale')return;const id=pick(e),p=panels.find(a=>a.id===id);if(p&&!dr){if(e.altKey)startDraw(p);else editInDrawing(p)}};   // 2 marta — Drawing'da tahrirlash; Alt+2 marta — 3D da tez chizish
   c3Build();   // 3D kursor; magnit belgisi — DOM (#p3snap): tur shakli + nomi
   buildGizmo();Gg=new THREE.Group();scene.add(Gg);rulerMat=new THREE.LineBasicMaterial({color:0xffb454,depthTest:false});
@@ -2203,7 +2266,7 @@ function open(){
   if(inited){theme();resize();if(!open.viewed){open.viewed=true;setView('iso')}else upd()}
   iconsDraw();props();list();kzSync();histBtns();dirtyR=true}
 function close(){
-  if(!isOpen)return;if(dr)endDraw();cancelPlace();
+  if(!isOpen)return;if(dr)endDraw();cancelPlace();if(act)abortAct();act=null;gzHot=null;
   isOpen=false;mode='model';wrap.classList.remove('cut');document.body.classList.remove('p3On');wrap.style.display='none';
   {const bc=document.getElementById('modeCutlistBtn');if(bc)bc.classList.remove('active')}
   const b=document.getElementById('modePanel3dBtn');if(b)b.classList.remove('active');
@@ -2228,7 +2291,7 @@ window.Panel3D={retheme:()=>{if(inited)theme()},hotkeys:{commands:P3CMD.map(({id
   _gz:()=>{updateGizmo();const r=cv.getBoundingClientRect(),c=gz.position,k=gz.scale.x,P=v=>{const s=scrOf(v);return{x:r.left+s.x,y:r.top+s.y}},o={c:P(c)};
     for(let a=0;a<3;a++){const A=new THREE.Vector3();A.setComponent(a,1);o['a'+a]=P(c.clone().addScaledVector(A,90*k));o['v'+a]=gzAx[a].visible;
       const g=gzPl[a];g.updateMatrixWorld(true);o['p'+a]=P(g.getWorldPosition(new THREE.Vector3()));o['pv'+a]=g.visible}return o},
-  _cursor:()=>c3?c3.toArray():null,_autoName:()=>autoName(),_clusters:()=>corpusClusters(panels.filter(p=>!p.hid)).map(c=>c.map(p=>p.id)),_pivot:()=>pivot,_act:()=>act?{k:act.k,con:act.con,typed:act.typed,hit:act.hit?act.hit.k:null}:null,_snap:()=>snapHit?{k:snapHit.k,T:snapHit.T.toArray()}:null,
+  _lock:()=>mvLock?{ax:mvLock.ax,n:mvLock.n}:null,_setLock:c=>setLock(c),  _cursor:()=>c3?c3.toArray():null,_autoName:()=>autoName(),_clusters:()=>corpusClusters(panels.filter(p=>!p.hid)).map(c=>c.map(p=>p.id)),_pivot:()=>pivot,_act:()=>act?{k:act.k,con:act.con,typed:act.typed,hit:act.hit?act.hit.k:null}:null,_snap:()=>snapHit?{k:snapHit.k,T:snapHit.T.toArray()}:null,
   _cnc:()=>cncSend(),_col:id=>{const p=panels.find(x=>x.id===id);return p?panelCol(p):null},_vsel:keys=>{if(keys){vsel=new Set(keys);dirtyR=true}return{keys:[...vsel],gz:!!(gz&&gz.visible)}},_group:()=>groupSel(),_ungroup:()=>ungroupSel(),_array:(n,d)=>arraySel(n,d),_dist:a=>distSel(a),_joints:()=>HW.jointLines(panels,hwOpts),_jointScr:k=>{const l=HW.jointLines(panels,hwOpts).find(x=>x.key===k);if(!l)return null;const r=cv.getBoundingClientRect(),s=scrOf(new THREE.Vector3((l.p0[0]+l.p1[0])/2,(l.p0[1]+l.p1[1])/2,(l.p0[2]+l.p1[2])/2));return{x:r.left+s.x,y:r.top+s.y}},_price:o=>{if(o){prices=PRC.merge(o);prSave()}return prCalc()},_prOpen:()=>{if(!prOpen)q('#p3prTab').click()},_guides:()=>drawnLines.filter(l=>l.p3g).map(l=>({k:l.kind,pts:l.points.map(o=>[+o.x.toFixed(2),+o.y.toFixed(2)])})),_edit:id=>{const p=panels.find(x=>x.id===id);return p?editInDrawing(p):false},_editApply:()=>editApply(),_editCancel:()=>editCancel(),_editing:()=>p3edit?{...p3edit}:null,_hw:{place:o=>{if(o)hwOpts=HW.merge(HW.DEF,o);return hwPlace()},clear:hwClear,dxf:()=>hwDxfData(),csv:()=>HW.csv(hwTargets()),check:hwCheck,open:hwOpen,opts:()=>hwOpts,ops:id=>{const p=panels.find(x=>x.id===id);return p&&p.ops?JSON.parse(JSON.stringify(p.ops)):[]},showOps:()=>showOps},_snapM:snapM,_stretchScr:k=>{const c=stretchCands().find(x=>x.key===k);if(!c)return null;const r=cv.getBoundingClientRect(),v=scrOf(c.w);return{x:r.left+v.x,y:r.top+v.y}},_xlap:m=>xlapSel(m||'auto'),_clash:()=>clashCheck().map(x=>({...x})),_keyw:id=>{const p=panels.find(x=>x.id===id);return p?KEYW(p):null},_guides3:()=>guides.map(g=>({p:g.p,d:gDir(g).toArray().map(v=>+v.toFixed(4))})),_gsel:()=>[...gsel],_ruler:()=>ruler?{A:ruler.A.toArray(),B:ruler.B?ruler.B.toArray():null,kA:ruler.kA,kB:ruler.kB||null}:null,_msel:()=>msel.slice(),_geo:id=>{const p=panels.find(x=>x.id===id);if(!p)return null;const G=geoOf(p),r=v=>v.toArray().map(x=>+x.toFixed(2));return{end:G.end.map(r),cen:G.cen.map(r)}},_cam:()=>({R,tg:tg.toArray().map(x=>+x.toFixed(2))}),_rtDeg:id=>{const p=panels.find(x=>x.id===id);return p?rtDeg(p):null},_wof:id=>{const p=panels.find(x=>x.id===id);return p?Wof(p).map(v=>+v.toFixed(4)):null},_ext:id=>{const p=panels.find(x=>x.id===id);return p?ext(p).map(v=>+v.toFixed(2)):null},
   _rotDrag:(ax,deg,ctrl)=>{const ps=selected();if(!ps.length||!gzR)return null;const[mn,mx]=bboxOf(ps);gzR.position.set((mn[0]+mx[0])/2,(mn[1]+mx[1])/2,(mn[2]+mx[2])/2);
     const r=cv.getBoundingClientRect(),c=gzR.position.clone().project(cam),cx=r.left+(c.x+1)/2*r.width,cy=r.top+(1-c.y)/2*r.height,R0=120;
